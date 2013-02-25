@@ -1,0 +1,117 @@
+
+@baseGray: hsl(200, 0, 95%);
+@textColor: #222;
+
+.disable-select {
+   -webkit-touch-callout: none;
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+
+}
+
+* {
+   margin:0;
+   padding:0;
+}
+
+body {
+   font-family: "Ubuntu", sans-serif;
+   margin:0;
+   color: @textColor;
+   
+   cursor:default;
+}
+
+.fl {
+   float:left;
+}
+
+.fr {
+   float:right;
+}
+
+#topbar {
+   padding:0.5em;
+   background: darken(@baseGray, 15%);
+   border-bottom: fade(darken(@baseGray, 20%),50%) 1px solid;
+   box-shadow: 0px 0px 10px darken(@baseGray, 25%);
+   position:relative;
+   height:2.5em;
+   z-index:5;
+}
+
+#buttons, #user {
+   height:2.5em;
+   line-height:2.5em;
+}
+
+#buttons {
+   margin-left: 1em;
+}
+
+#user {
+   margin-right: 1em;
+}
+
+#topbar h1 {
+   font-weight: lighter;
+}
+
+.radialGradient(@centerColor, @outerColor) {
+  background: -moz-radial-gradient(center, ellipse cover,  @centerColor 0%,  @outerColor 50%); /* FF3.6+ */
+background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,@centerColor), color-stop(50%, @outerColor)); /* Chrome,Safari4+ */
+background: -webkit-radial-gradient(center, ellipse cover, @centerColor 0%, @outerColor 50%); /* Chrome10+,Safari5.1+ */
+background: -o-radial-gradient(center, ellipse cover,  @centerColor 0%, @outerColor 50%); /* Opera 12+ */
+background: -ms-radial-gradient(center, ellipse cover, @centerColor 0%, @outerColor 50%); /* IE10+ */
+background: radial-gradient(ellipse at center,  @centerColor 0%, @outerColor 50%); /* W3C */
+
+}
+
+#calendarview {
+   background: ;
+   position:relative;
+   overflow: scroll;overflow-y: hidden;
+   background: white;
+}
+
+#grid {
+   position: relative;
+}
+
+#grid .grid-col {
+   border-right: 1px solid darken(@baseGray,10%);
+   height: 100%;
+   position:absolute;
+   word-wrap:break-word;
+   font-size:60%;
+}
+
+#grid .grid-col.grid-col-even {
+   
+}
+
+#grid-headers {
+   height: 2em;
+   position:absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   
+   
+   
+}
+
+#grid-headers .header-col {
+   position:absolute;
+   padding:0.25em 0;
+   height:1.5em;
+   @border:1px solid  darken(@baseGray,10%);
+   border-right:@border;
+   border-bottom:@border;
+}
+#grid-headers .header-col.header-col-even {
+   
+}
