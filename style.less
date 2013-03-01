@@ -23,6 +23,7 @@ body {
    color: @textColor;
    
    cursor:default;
+   font-size:10pt;
 }
 
 .fl {
@@ -39,13 +40,18 @@ body {
    border-bottom: fade(darken(@baseGray, 20%),50%) 1px solid;
    box-shadow: 0px 0px 10px darken(@baseGray, 25%);
    position:relative;
-   height:2.5em;
+   height: 3em;
+  
    z-index:5;
 }
 
-#buttons, #user {
-   height:2.5em;
-   line-height:2.5em;
+#logo h1{
+    margin:0;
+}
+
+#topbar .fr, #topbar .fl {
+   height:3em;
+   line-height:3em;
 }
 
 #buttons {
@@ -73,7 +79,7 @@ background: radial-gradient(ellipse at center,  @centerColor 0%, @outerColor 50%
 #calendarview {
    background: ;
    position:relative;
-   overflow: scroll;overflow-y: hidden;
+   overflow:  hidden;
    background: white;
 }
 
@@ -86,7 +92,9 @@ background: radial-gradient(ellipse at center,  @centerColor 0%, @outerColor 50%
    height: 100%;
    position:absolute;
    word-wrap:break-word;
-   font-size:60%;
+   font-size:80%;
+   text-align:center;
+   line-heigt:1.5em;
 }
 
 #grid .grid-col.grid-col-even {
@@ -111,7 +119,16 @@ background: radial-gradient(ellipse at center,  @centerColor 0%, @outerColor 50%
    @border:1px solid  darken(@baseGray,10%);
    border-right:@border;
    border-bottom:@border;
+   text-align:center;
 }
 #grid-headers .header-col.header-col-even {
    
+}
+
+
+#zoomcontainer {
+    width:200px;
+    margin-left: 1em;
+    padding-top:1em;
+    height:auto !important;
 }

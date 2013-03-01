@@ -5,24 +5,32 @@
    <meta charset="utf-8" />
 
    <title>Personal timetabling</title>
-   
+
+   <!-- stock libraries -->
    <script src="lib/jquery.js"></script>
    <script src="lib/underscore.js"></script>
    <script src="lib/backbone.js"></script>
    <script src="lib/jquery-ui/jquery-ui.js"></script>
    <script src="lib/bootstrap/js/bootstrap.js"></script>
-   
+
+   <!-- own library extensions -->
    <script src="lib/Date.extended.js"></script>
-      
+   <script src="lib/Number.extended.js"></script>
+   <script src="app/jquery.ui.kineticdraggable.js"></script>
+
+   <!-- main application scripts -->
+   <script src="app/init.js"></script>
+   <script src="app/abstracttaskview.js"></script>
+   <script src="app/timelineview.js"></script>
    <script src="app/app.js"></script>
    
-   <link href="style.less" rel="stylesheet/less" type="text/css" />
-   <script src="lib/less.js"></script>
+
    
-   <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet/css" type="text/css" />
-   <link href="lib/jquery-ui/jquery-ui.css" rel="stylesheet/css" type="text/css" />
+   <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
+   <link href="lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css" />
 
-
+ <link href="style.less" rel="stylesheet/less" type="text/css" />
+   <script src="lib/less.js"></script>
 </head>
 
 <body>
@@ -34,11 +42,14 @@
          Add task | Show tasks | Preferences
       </div>
       
-      <div id="zoom" class="fr">
-      </div>
-      <div id="user" class="fr">
+
+        <div id="zoomcontainer" class="fl">
+            <div id="zoom"></div>
+        </div>
+        <div id="user" class='fr'>
          Lukáš
-      </div>
+         </div>
+
    </div>
    
    <div id="calendarview">
@@ -47,3 +58,4 @@
  
 </body>
 </html>
+
