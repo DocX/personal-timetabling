@@ -38,23 +38,70 @@
       <div id="logo" class="fl">
          <h1>Personal Timetabling</h1>
       </div>
-      <div id="buttons" class="fl">
-         Add task | Show tasks | Preferences
-      </div>
+
+      <div class="fr">
+
+        <div id="buttons" class="rightcomponents" >
+            <a href="#" class="btn btn-inverse">Add task</a>
+            <a href="#" class="btn btn-inverse">Show tasks</a>
+            <a href="#" class="btn btn-inverse">Tune</a>
+        </div>
+
+        <div id="zoomcontainer" class="rightcomponents">
+            <div class="btn-group">
+            <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
+                Ka-Zoom-A
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                
+               <li><div id="zoom" ></div></li>
+               <li class="divider"></li>
+               <li><a href="#">Day</a></li>
+               <li><a href="#">Week</a></li>
+               <li><a href="#">Month</a></li>
+               <li><a href="#">3 months</a></li>
+            </ul>
+            </div>
+            
+        </div>
       
 
-        <div id="zoomcontainer" class="fl">
-            <div id="zoom"></div>
-        </div>
-        <div id="user" class='fr'>
-         Lukáš
+        <div id="user"  class="rightcomponents">
+            <div class="btn-group ">
+            <button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Django Freeman</button>
+            <button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right">
+                <li><a tabindex="-1" href="#">Export</a></li>
+                <li><a tabindex="-1" href="#">Acount settings</a></li>
+                <li><a tabindex="-1" href="#helpModal" data-toggle='modal'>Gimme some help... </a></li>
+                <li class="divider"></li>
+                <li><a tabindex="-1" href="#" ><i class="icon-off"></i> Lock and hide!</a></li>
+            </ul>
+            </div>
          </div>
+    </div>
+   </div>
+   
+   
+   <div id="calendarview"> </div>
 
-   </div>
-   
-   <div id="calendarview">
-   
-   </div>
+    <div id="helpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="helpModalLabel">So U wanna help with somethink?</h3>
+        </div>
+        <div class="modal-body">
+            <p>For what U think I bought U, huh?</p>
+            <h4>Shedulling a task</h4>
+            <p>One fine body…</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Okay, I got it, please don't whip me...</button>
+        </div>
+</div>
  
 </body>
 </html>

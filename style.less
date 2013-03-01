@@ -2,6 +2,8 @@
 @baseGray: hsl(200, 0, 95%);
 @textColor: #222;
 
+@import url(http://fonts.googleapis.com/css?family=Molle:400italic);
+
 .disable-select {
    -webkit-touch-callout: none;
    -webkit-user-select: none;
@@ -35,36 +37,50 @@ body {
 }
 
 #topbar {
-   padding:0.5em;
-   background: darken(@baseGray, 15%);
-   border-bottom: fade(darken(@baseGray, 20%),50%) 1px solid;
-   box-shadow: 0px 0px 10px darken(@baseGray, 25%);
-   position:relative;
-   height: 3em;
-  
-   z-index:5;
+height:40px;
+padding:10px;
+background: rgb(0, 111, 116) url(assets/noisy.png);
+border-bottom: rgba(0, 0, 0, 0.16) 2px solid;
+box-shadow: 0px 0px 10px rgb(0, 0, 0);
+position: relative;
+z-index: 5;
 }
 
-#logo h1{
-    margin:0;
-}
 
 #topbar .fr, #topbar .fl {
-   height:3em;
-   line-height:3em;
+   height:40px;
+
 }
 
-#buttons {
-   margin-left: 1em;
+
+
+.logoheader {
+text-shadow: 0px 2px 1px rgba(209, 209, 209, 0.39);
+color: rgba(0, 0, 0, 0.66);
+margin: 0;
+font-style:italic;
+font-family: "Molle";
+
+font-weight: bolder;
+padding-top:5px;
 }
 
-#user {
-   margin-right: 1em;
+#logo h1 {
+    .logoheader;
 }
 
-#topbar h1 {
-   font-weight: lighter;
+#topbar .rightcomponents {
+   margin-right: 10px;
+   float:left;
+   line-height:40px;
 }
+
+ul.dropdown-menu div.ui-slider {
+    margin: 7px 20px;
+}
+
+
+
 
 .radialGradient(@centerColor, @outerColor) {
   background: -moz-radial-gradient(center, ellipse cover,  @centerColor 0%,  @outerColor 50%); /* FF3.6+ */
@@ -125,10 +141,3 @@ background: radial-gradient(ellipse at center,  @centerColor 0%, @outerColor 50%
    
 }
 
-
-#zoomcontainer {
-    width:200px;
-    margin-left: 1em;
-    padding-top:1em;
-    height:auto !important;
-}
