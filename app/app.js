@@ -3,7 +3,7 @@
 PersonalTimetabling.App = Backbone.View.extend({
 
    initialize: function() {
-      this.calendar_view = new PersonalTimetabling.CalendarViews.TimelineView({el: $("#calendarview")});
+      this.calendar_view = new PersonalTimetabling.CalendarViews.VerticalDayView({el: $("#calendarview")});
       this.$topbar = $("#topbar");
 
       $(window).resize(function(that) { return function() {that.resize();} } (this));
