@@ -1,0 +1,35 @@
+#calendarview.timelineview {
+
+    @grid-border: 1px solid rgb(240,240,240);
+
+    #grid {
+        position: relative;
+    }
+
+    #grid .grid-col {
+        border-right:@grid-border;
+        height: 100%;
+        position:absolute;
+        word-wrap:break-word;
+        font-size:80%;
+        text-align:center;
+        line-heigt:1.5em;
+    }
+
+    #grid-headers {
+        height: 2em;
+        position:absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    #grid-headers .header-col {
+        position:absolute;
+        padding:0.25em 0;
+        height:1.5em;
+        border-right:@grid-border;
+        border-bottom:@grid-border;
+        text-align:center;
+    }
+}
