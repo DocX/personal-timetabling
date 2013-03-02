@@ -1,6 +1,6 @@
 #calendarview.timelineview {
 
-    @grid-border: 1px solid rgb(240,240,240);
+    @grid-border: 1px solid desaturate(fade(@mainmenu-background,25%), 25%);
 
     #grid {
         position: relative;
@@ -8,7 +8,7 @@
 
     #grid .grid-col {
         border-right:@grid-border;
-        height: 100%;
+        height: 1000px;
         position:absolute;
         word-wrap:break-word;
         font-size:80%;
@@ -16,20 +16,80 @@
         line-heigt:1.5em;
     }
 
+
     #grid-headers {
-        height: 2em;
         position:absolute;
         top: 0;
         left: 0;
         right: 0;
+        padding-bottom:5px;
+    
+        .header-cols-container, .header-supercols-container {
+            position:relative;
+        }
+        
+        .header-cols-container {
+            height: 1.5em;
+            
+            .grid-header-col {
+                border-bottom:@grid-border;
+                border-right:@grid-border;
+                height:100%;
+                display:block;
+                position:absolute;
+                word-wrap:break-word;
+                font-size:80%;
+                text-align:center;
+            }
+        }
+
+        .header-supercols-container {
+            
+            height: 1.75em;
+           
+
+
+            .header-col {
+                position:absolute;
+                height:1.5em;
+                border-right:@grid-border;
+                border-bottom:@grid-border;
+                background: desaturate(fade(@mainmenu-background,15%), 25%);
+                text-align:left;
+                padding-top:0.25em;
+
+                &.header-col-invisibleleft {
+                    span.header-col-label {
+                        position:fixed;
+                        left: 0;
+                    }
+                }
+
+                &.header-col-invisible {
+                    text-align:right;
+                    span.header-col-label {
+                        position:static;
+                    }
+                }
+
+                span.header-col-label {
+                    padding-left: 1em;
+                    padding-right: 1em;
+                }
+            }
+        }
+    } // #grid-headers
+
+
+    #tasks {
+        position: absolute;
+        left: 0;
+        top: 1.5em + 2em;
+        width: 100%;
     }
 
-    #grid-headers .header-col {
-        position:absolute;
-        padding:0.25em 0;
-        height:1.5em;
-        border-right:@grid-border;
-        border-bottom:@grid-border;
-        text-align:center;
+    #mover-window {
+        overflow:hidden;
+        overflow-y:scroll;
     }
 }

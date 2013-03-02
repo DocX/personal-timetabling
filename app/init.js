@@ -3,6 +3,8 @@
 var PersonalTimetabling = {};
 var PT = PersonalTimetabling;
 
+"use strict";
+
 PT.App = null;
 PT.CalendarViews = {};
 

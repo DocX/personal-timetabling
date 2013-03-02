@@ -11,13 +11,21 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
         this.$el.addClass("timelineview");
         
-        this.$container = $("<div id='mover' />").appendTo(this.$el);
+
+        this.$bar_container = $("<div id='mover-headers' />").appendTo(this.$el);
+        this.$headers_el = $("<div id='grid-headers' />").appendTo(this.$bar_container);
+
+        this.$container_window = $("<div id='mover-window'/>").appendTo(this.$el);
+        this.$container = $("<div id='mover' />").appendTo(this.$container_window);
         this.$grid_el = $("<div id='grid' />").appendTo(this.$container);
-        this.$headers_el = $("<div id='grid-headers' />").appendTo(this.$container);
-        this.$tasks_el = $("<div id='tasks' />").appendTo(this.$container);
 
-        this.$container.kinetic_draggable({axis: 'x', drag:_.bind(this.gridDrag, this), stop: _.bind(this.gridDrag, this)});
+        this.$container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
+        this.$bar_container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$container), stop: _.bind(this.on_drag, this, this.$container)});
 
+        $(window).on("keypress", _.bind(function(e) {
+            this.scroll(1);
+        }, this));
+        
         // clone zoom and geometry from class instance
         this.zoom = _.extend({}, this.zoom);
         this.geometry = _.extend({}, this.geometry);
@@ -40,7 +48,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
         // determine geometry by given minutes/pixel zoom
         compute: function(min_per_px) {
-            var MIN_COL_WIDTH = 60;
+            var MIN_COL_WIDTH = 80;
             var GRANULARITY_LEVELS = [30,60,120,240,360,720,1440,2880,5760,10080];
             var SUPERCOLUM_LEVELS = ['DAY', 'DAY', 'DAY','DAY','DAY','DAY','WEEK','WEEK', 'MONTH', 'MONTH', 'MONTH']
 
@@ -121,16 +129,14 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     render: function() {
         this.resize();
         this.render_columns();
-        this.render_supercolumns();
+        this.render_headers();
     },
 
     // refresh sizes of view
     resize: function() {
-        var headers_h = this.$headers_el.outerHeight();
-        this.$grid_el.height(this.$el.height() - headers_h).css("top", headers_h);
-        this.$tasks_el.height(this.$el.height() - headers_h).css("top", headers_h);
-        this.$container.height(this.$el.height());
-
+        var headers_height = this.$headers_el.innerHeight();
+        this.$bar_container.height(headers_height);
+        this.$container_window.height(this.$el.height()-headers_height);
         this.zoom.recompute(this);
     },
 
@@ -145,26 +151,22 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             var gridcol = $("<div class='grid-col' />")
             .width(this.zoom.column_width)
             .css("left", this.zoom.column_width * i);
-
-            var label_el = $("<span class='grid-col-label'/>");
-            gridcol.append(label_el);
             
-            this.$grid_cols.push({col: gridcol, label: label_el});
+            this.$grid_cols.push({col: gridcol});
             this.$grid_el.append(gridcol);
         }
 
         this.grid_cols_first_date = this.geometry.align(this.left_edge_date).addMinutes(this.geometry.column_minutes * -this.zoom.edge_columns);
-        this.update_cols();
-
         this.$container.width(this.zoom.rendering_width);
-        this.$container.css("left", -this.left_edge_date.diffMinutes(this.grid_cols_first_date) / this.zoom.pixel_minutes);
+        this.set_movers_offset(-this.left_edge_date.diffMinutes(this.grid_cols_first_date) / this.zoom.pixel_minutes);
 
     },
 
-    // render supercolumns
-    render_supercolumns: function() {
+    // render headers
+    render_headers: function() {
         this.$headers_el.empty();
         this.$grid_supercols = [];
+        this.$grid_colsheaders = [];
 
         // compute maximum on screen visible headers
         var headers_count = 0;
@@ -186,22 +188,37 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
                 break;
         }
 
+        // create supercolumns elements
+        var supercols_header_container = $("<div class='header-supercols-container'/>").appendTo(this.$headers_el);
+        
         for (var i = 0; i< headers_count; i++) {
             var label_el = $("<span class='header-col-label'></span>");
             var header_el = $("<div class='header-col'></div>").append(label_el);
 
-            this.$headers_el.append(header_el);
+            supercols_header_container.append(header_el);
             this.$grid_supercols.push({col: header_el, label: label_el});
         }
 
-        this.update_supercols();
+        // create number of visible columns
+        var cols_header_container = $("<div class='header-cols-container'/>").appendTo(this.$headers_el);
+        for( var i = 0; i < this.zoom.rendering_columns_count; i++) {
+            var label_el = $("<div class='grid-header-col'/>")
+            .width(this.zoom.column_width)
+            .css("left", this.zoom.column_width * i);
+
+            this.$grid_colsheaders.push({$el: label_el});
+            cols_header_container.append(label_el);
+        }
+
+
+        this.update_headers();
     },
 
-    update_supercols: function() {
+    update_headers: function() {
 
         var left_date = this.grid_cols_first_date;
         var left_pixels = 0;
-
+        
         for(var i = 0; i < this.$grid_supercols.length; i++) {
             // get date of end of current supercolumn determined by left date
             var next_stop = null;
@@ -238,21 +255,47 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
                 this.$grid_supercols[i].col.width(width);
             }
 
+            this.$grid_supercols[i].width = width;
+            this.$grid_supercols[i].left = left_pixels;
+            this.$grid_supercols[i].label_width =  this.$grid_supercols[i].label.innerWidth();
+
             left_date = next_stop;
             left_pixels += width;
         }
-    },
 
-    // update labels on columns
-    update_cols: function() {
-
-        for(var i = 0; i < this.$grid_cols.length; i++) {
+        // update cols headers
+        for(var i = 0; i < this.$grid_colsheaders.length; i++) {
             var col_date = this.grid_cols_first_date.addMinutes(i * this.geometry.column_minutes);
-            this.$grid_cols[i].label.text(this.column_label(col_date));
+            this.$grid_colsheaders[i].$el.text(this.column_label(col_date));
         }
-
-        this.update_supercols();
+        
+        this.update_header_labels();
     },
+
+    update_header_labels: function(container_offset) {
+        if (container_offset == undefined) {
+            container_offset = this.$container.offset();
+        }
+        
+        for(var i = 0; i < this.$grid_supercols.length; i++) {
+            // if left part of column is not visible, make label fixed
+            if (this.$grid_supercols[i].left + container_offset.left < 0) {
+                this.$grid_supercols[i].col.addClass("header-col-invisibleleft");
+            }
+            else {
+                this.$grid_supercols[i].col.removeClass("header-col-invisibleleft");
+            }
+
+            if (this.$grid_supercols[i].left + container_offset.left < -this.$grid_supercols[i].width+this.$grid_supercols[i].label_width) {
+                this.$grid_supercols[i].col.addClass("header-col-invisible");
+            }
+            else {
+                this.$grid_supercols[i].col.removeClass("header-col-invisible");
+            }
+        }
+        
+    },
+
 
     // get label on column according current zoom
     column_label: function(col_date) {
@@ -287,27 +330,35 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     shiftLeft: function(colsnumber) {
         // set new first col date
         this.grid_cols_first_date = this.grid_cols_first_date.addMinutes(colsnumber * this.geometry.column_minutes);
-        this.update_cols();
+        this.update_headers();
     },
 
     // scroll view to right - ie prepend days to left
     shiftRight: function(colsnumber) {
         // set new first col date
         this.grid_cols_first_date = this.grid_cols_first_date.addMinutes(colsnumber * -this.geometry.column_minutes);
-        this.update_cols();
+        this.update_headers();
     },
 
 
-    _rearanging: false,
+    scroll: function(pixels) {
+        var container_offset = this.$container.offset();
+        this.$container.offset({left: container_offset.left + pixels});
+        this.$bar_container.offset({left: container_offset.left + pixels});
 
-    gridDrag: function(e, ui) {
-        if (this._rearanging === true)
-            return;
+        this.scroll_masquerade(this.$container.offset());
+    },
 
-        var grid_left = ui.position.left;
+    set_movers_offset: function(left){
+        this.$container.css("left", left);
+        this.$bar_container.css("left", left);
+    },
+    
+    scroll_masquerade: function(current_offset) {
+
+        var grid_left = current_offset.left;
 
         if (grid_left > 0) {
-            this._rearanging = true;
 
             // number of columns to prerender and shift
             var number = Math.ceil(grid_left / (this.zoom.column_width * this.zoom.edge_columns))
@@ -316,14 +367,12 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             this.shiftRight(number);
 
             // move to seamless position
-            this.$container.css("left", (-this.zoom.edge_columns * this.zoom.column_width)
+            this.set_movers_offset( (-this.zoom.edge_columns * this.zoom.column_width)
                 + (grid_left % (this.zoom.edge_columns * this.zoom.column_width)));
 
-            // reset mouse position in drag
-            this.$container.kinetic_draggable("resetMouse", e);
-            this._rearanging = false;
+            this.left_edge_date = this.grid_cols_first_date.addMinutes(-this.$container.offset().left * this.zoom.pixel_minutes);
+            return true;
         } else if (grid_left < -2*this.zoom.edge_columns*this.zoom.column_width ) {
-            this._rearanging = true;
 
             // how many pixels is missing in the right
             var overflow = -(grid_left + this.zoom.column_width*2*this.zoom.edge_columns);
@@ -335,16 +384,32 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             this.shiftLeft(number);
 
             // move to seamless position
-            this.$container.css("left", (-this.zoom.edge_columns * this.zoom.column_width)
+            this.set_movers_offset( (-this.zoom.edge_columns * this.zoom.column_width)
             - (overflow % (this.zoom.edge_columns * this.zoom.column_width)));
 
-            // reset drag mouse position
-            this.$container.kinetic_draggable("resetMouse", e);
-            this._rearanging = false;
+            this.left_edge_date = this.grid_cols_first_date.addMinutes(-this.$container.offset().left * this.zoom.pixel_minutes);
+            return true;
+        } else {
+            // update headers text alginments
+            this.update_header_labels(current_offset);
         }
 
-        // save current position
-        this.left_edge_date = this.grid_cols_first_date.addMinutes(-this.$container.offset().left * this.zoom.pixel_minutes);
+        this.left_edge_date = this.grid_cols_first_date.addMinutes(-current_offset.left * this.zoom.pixel_minutes);
+        return false;
+        
+    },
+
+    on_drag: function(other, e, ui) {
+        // drag also other elements
+        other.offset({left: ui.position.left});
+        
+        if (this.scroll_masquerade(ui.position)) {
+            // reset mouse position in drag
+            if (typeof ui.helper !== "undefined" && typeof ui.helper.kinetic_draggable === "function") {
+                ui.helper.kinetic_draggable("resetMouse", e);
+            }
+        }
+
     },
 
     setZoom: function(z) {
