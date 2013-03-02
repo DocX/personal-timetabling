@@ -9,16 +9,20 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
     initialize: function() {
 
-        this.$el.addClass("timelineview");
+        this.$el.addClass("dayincolview");
         
-
-        this.$bar_container = $("<div id='mover-headers' />").appendTo(this.$el);
+        this.$bar_container_window = $("<div id='headers-window'/>").appendTo(this.$el);
+        this.$bar_container = $("<div id='mover-headers' />").appendTo(this.$bar_container_window);
         this.$headers_el = $("<div id='grid-headers' />").appendTo(this.$bar_container);
-
+        this.$bar_container_window.append($("<div id='headers-corkiee'><div class='something'/></div>"));
+        
         this.$container_window = $("<div id='mover-window'/>").appendTo(this.$el);
         this.$container = $("<div id='mover' />").appendTo(this.$container_window);
         this.$grid_el = $("<div id='grid' />").appendTo(this.$container);
 
+        this.$hours_labels = $("<div id='grid-vertical'/>").appendTo(this.$container_window);
+        this.render_hours_labels();
+        
         this.$container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
         this.$bar_container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$container), stop: _.bind(this.on_drag, this, this.$container)});
 
@@ -31,6 +35,8 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.geometry = _.extend({}, this.geometry);
 
         this.left_edge_date = this.options.initial_date;
+
+        this.geometry.compute(this.zoom.pixel_minutes);
     },
 
     // current columns geometry configuration - abstracted from physical rendered units
@@ -49,8 +55,8 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         // determine geometry by given minutes/pixel zoom
         compute: function(min_per_px) {
             var MIN_COL_WIDTH = 80;
-            var GRANULARITY_LEVELS = [30,60,120,240,360,720,1440,2880,5760,10080];
-            var SUPERCOLUM_LEVELS = ['DAY', 'DAY', 'DAY','DAY','DAY','DAY','WEEK','WEEK', 'MONTH', 'MONTH', 'MONTH']
+            var GRANULARITY_LEVELS = [1440,2880,5760,10080];
+            var SUPERCOLUM_LEVELS = ['WEEK','WEEK', 'MONTH', 'MONTH', 'MONTH']
 
             var selected = 0;
             while(selected < GRANULARITY_LEVELS.length && GRANULARITY_LEVELS[selected] / min_per_px < MIN_COL_WIDTH) {
@@ -81,7 +87,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     // current rendering zoom - translates abstracted columns to physical rendering units
     zoom: {
         // current minutes per one view pixel of width
-        pixel_minutes: 0.5,
+        pixel_minutes: 6,
 
         // current count of columns are rendered (not the same as visible due to overflow hidding)
         rendering_columns_count: 0,
@@ -158,6 +164,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
         this.grid_cols_first_date = this.geometry.align(this.left_edge_date).addMinutes(this.geometry.column_minutes * -this.zoom.edge_columns);
         this.$container.width(this.zoom.rendering_width);
+        this.$bar_container.width(this.zoom.rendering_width);
         this.set_movers_offset(-this.left_edge_date.diffMinutes(this.grid_cols_first_date) / this.zoom.pixel_minutes);
 
     },
@@ -214,6 +221,18 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.update_headers();
     },
 
+    render_hours_labels: function() {
+        this.$hours_labels.empty();
+
+        // add 24 hours boxes
+        for(var i = 0; i< 24;i++) {
+            $("<div class='hour-label' />")
+            .text(i.pad(2) + ":00")
+            .appendTo(this.$hours_labels);
+        }
+        
+    },
+
     update_headers: function() {
 
         var left_date = this.grid_cols_first_date;
@@ -232,7 +251,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
                     next_stop = left_date.getMidnight().addMinutes(770+1440).getMidnight();
                     break;
                 case 'WEEK':
-                    next_stop = new Date(left_date);
+                    next_stop = left_date.getMidnight();
                     next_stop.setDate(next_stop.getDate() - left_date.getDayStarting(1) + 7);
                     break;
                 case 'MONTH':
@@ -279,14 +298,15 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         
         for(var i = 0; i < this.$grid_supercols.length; i++) {
             // if left part of column is not visible, make label fixed
-            if (this.$grid_supercols[i].left + container_offset.left < 0) {
+            if (this.$grid_supercols[i].left + container_offset.left < 60) {
                 this.$grid_supercols[i].col.addClass("header-col-invisibleleft");
+                this.$grid_supercol_affixed = i;
             }
             else {
                 this.$grid_supercols[i].col.removeClass("header-col-invisibleleft");
             }
 
-            if (this.$grid_supercols[i].left + container_offset.left < -this.$grid_supercols[i].width+this.$grid_supercols[i].label_width) {
+            if (this.$grid_supercols[i].left + container_offset.left < -this.$grid_supercols[i].width+this.$grid_supercols[i].label_width +60) {
                 this.$grid_supercols[i].col.addClass("header-col-invisible");
             }
             else {
@@ -394,6 +414,10 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             this.update_header_labels(current_offset);
         }
 
+        if (this.$grid_supercol_affixed !== undefined) {
+            this.$grid_supercols[this.$grid_supercol_affixed].label.css("left", -current_offset.left - this.$grid_supercols[this.$grid_supercol_affixed].left);
+        }
+        
         this.left_edge_date = this.grid_cols_first_date.addMinutes(-current_offset.left * this.zoom.pixel_minutes);
         return false;
         

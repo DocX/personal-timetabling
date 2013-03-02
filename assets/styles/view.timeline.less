@@ -1,6 +1,4 @@
-#calendarview.timelineview {
-
-    @grid-border: 1px solid desaturate(fade(@mainmenu-background,25%), 25%);
+#calendarview.timelineview, #calendarview.dayincolview {
 
     #grid {
         position: relative;
@@ -12,8 +10,6 @@
         position:absolute;
         word-wrap:break-word;
         font-size:80%;
-        text-align:center;
-        line-heigt:1.5em;
     }
 
 
@@ -60,8 +56,7 @@
 
                 &.header-col-invisibleleft {
                     span.header-col-label {
-                        position:fixed;
-                        left: 0;
+                        position:absolute;
                     }
                 }
 

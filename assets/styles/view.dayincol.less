@@ -1,0 +1,57 @@
+#calendarview.dayincolview {
+
+    #grid .grid-col {
+        background: url('../images/grid.png') top left repeat;
+        height: 24*50px;
+    }
+
+    #mover-window, #headers-window {
+        position:relative;
+    }
+    
+    #grid-vertical {
+        height: 24*50px;
+        width: 55px;
+        background: rgba(255,255,255,0.85);
+        padding-right:5px;
+        position:absolute;
+        top: 0;
+        left: 0;
+
+        .hour-label {
+            height:49px;
+            border-bottom:  @grid-border;
+            border-right: @grid-border;
+            font-size: 80%;
+            text-align: right;
+            padding-right: 0.5em;
+            background: rgba(255,255,255,1);
+        }
+    }
+
+    #headers-window #headers-corkiee {
+        width: 55px;
+        background: rgba(255,255,255,0.5);
+        position:absolute;
+        top: 0;
+        left: 0;
+        bottom:4px;
+        padding-right:5px;
+
+        .something {
+            background: desaturate(fade(@mainmenu-background,15%), 25%);
+            position:absolute;
+            bottom:0;
+            right: 5px;
+            left:0;
+            top:0;
+            border-bottom:  @grid-border;
+            
+           
+        }
+    }
+
+    #grid-headers .header-supercols-container .header-col-invisibleleft span.header-col-label {
+        padding-left:70px;
+    }
+}
