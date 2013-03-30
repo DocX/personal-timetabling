@@ -21,208 +21,33 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.$grid_el = $("<div id='grid' />").appendTo(this.$container);
 
         this.$hours_labels = $("<div id='grid-vertical'/>").appendTo(this.$container_window);
-        this.render_hours_labels();
         
-        this.$container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
-        this.$bar_container.kinetic_draggable({axis: 'x', drag:_.bind(this.on_drag, this, this.$container), stop: _.bind(this.on_drag, this, this.$container)});
+        
+        this.$container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
+        this.$bar_container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$container), stop: _.bind(this.on_drag, this, this.$container)});
 
         $(window).on("keypress", _.bind(function(e) {
             this.scroll(1);
         }, this));
         
         // clone zoom and geometry from class instance
-        this.zoom = _.extend({}, this.zoom);
-        this.geometry = _.extend({}, this.geometry);
+        this.zoom = new PersonalTimetabling.CalendarViews.VerticalDayView.ColumnViewParemeters();
+        this.geometry = new PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry();
 
-        this.left_edge_date = this.options.initial_date;
+        this.geometry.compute(this.zoom.zoom(999, this));
 
-        this.geometry.compute(this.zoom.pixel_days);
+        this.grid_cols_first_date = this.geometry.align(new Date());
+
+        this.render();
+        
+        this.displayDate(this.options.initial_date);
     },
 
     // current columns geometry configuration - abstracted from physical rendered units
-    geometry: {
-
-        // specifies length of column in units. doesnot explicitly means constant time ammount
-        column_units: 1,
-
-        column_unit: 'DAY',
-
-        // specifies rendered subcolumns axes
-        subcolumns_count: 4,
-
-        // specifies grouping "function" for supercolumn header
-        // one of [HOUR, DAY, WEEK, MONTH, YEAR]
-        supercolumn_groupby: 'WEEK',
-
-        // determine geometry by given minutes/pixel zoom
-        compute: function(days_per_pixel) {
-            var MIN_COL_WIDTH = 50;
-            var GRANULARITY_LEVELS = [1,2,1,2,1];
-            var GRANULARITY_UNITS = ['DAY', 'DAY', 'WEEK','WEEK','MONTH'];
-            var SUPERCOLUM_LEVELS = ['WEEK','WEEK','MONTH','MONTH', 'YEAR'];
-
-            var selected = 0;
-            while(selected < GRANULARITY_LEVELS.length &&
-                (GRANULARITY_LEVELS[selected]*this.unit_minutes_limit(GRANULARITY_UNITS[selected]) / 1500) / days_per_pixel < MIN_COL_WIDTH) {
-                selected++;
-            }
-
-            if (selected >= GRANULARITY_LEVELS.length)
-                selected--;
-
-            this.column_units = GRANULARITY_LEVELS[selected];
-            this.column_unit = GRANULARITY_UNITS[selected];
-            this.supercolumn_groupby = SUPERCOLUM_LEVELS[selected];
-        },
-
-        // align given date to the nearest earlier eadge of larger unit
-        align: function(date, unit) {
-            if (unit == undefined)
-                unit = this.column_unit;
-            
-            switch(unit) {
-                case 'HOUR':
-                    return new Date(date.getFullYear(), date.getMonth(), date.getDate, date.getHours(), 0,0);
-                    break;
-                case 'DAY':
-                    // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
-                    // in DST
-                    return date.getMidnight();
-                    break;
-                case 'WEEK':
-                    return date.getMidnight().addDays(- date.getDayStarting(1));
-                    break;
-                case 'MONTH':
-                    next_stop = new Date(date);
-                    next_stop.setDate(1);
-                    next_stop.setHours(0,0,0);
-                    return next_stop;
-                    break;
-                case 'YEAR':
-                    return new Date(date.getFullYear(), 0,0,0,0,0);
-                default:
-                    return date;
-                    break;
-            }
-        },
-
-        // get the nearest latter edge of larger time unit
-        next: function(date, unit){
-            if (unit === undefined)
-                unit = this.column_unit;
-
-            switch(unit) {
-                case 'HOUR':
-                    return new Date(date.getFullYear(), date.getMonth(), date.getDate, date.getHours() + 1, 0,0);
-                    break;
-                case 'DAY':
-                    // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
-                    // in DST
-                    return date.getMidnight().addDays(1);
-                    break;
-                case 'WEEK':
-                    return date.getMidnight().addDays(- date.getDayStarting(1) + 7);
-                    break;
-                case 'MONTH':
-                    next_stop = new Date(date);
-                    next_stop.setDate(1);
-                    next_stop.setMonth(next_stop.getMonth() + 1);
-                    next_stop.setHours(0,0,0);
-                    return next_stop;
-                    break;
-                case 'YEAR':
-                    return new Date(date.getFullYear() + 1, 0,0,0,0,0);
-                default:
-                    break;
-            }            
-        },
-
-        unit_minutes_limit: function(unit) {
-            switch(unit) {
-                case 'HOUR':
-                    return 60;
-                    break;
-                case 'DAY':
-                    // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
-                    // in DST
-                    // 25 hours a day
-                    return 1500;
-                    break;
-                case 'WEEK':
-                    // better bound is only 1 day in week can have 25 hours
-                    // but it is for compatibility with cross unit computations (ie WEEK / DAY returns 7 not 6,76)
-                    return 7*1500;
-                    break;
-                case 'MONTH':
-                    // similar to week
-                    return 31*1500;
-                    break;
-                case 'YEAR':
-                    return 31*12*1500;
-                default:
-                    break;
-            }
-
-        },
-        
-        upper_limit_column_timeunits: function(unit) {
-            var column_unit_max_minutes = this.unit_minutes_limit(this.column_unit);
-            return this.column_units * column_unit_max_minutes / this.unit_minutes_limit(unit);
-        },
-
-        get_column_next: function(date) {
-            var column_date = date;
-            var i = this.column_units;
-            while(i-- > 0) {column_date = this.next(column_date, this.column_unit);}
-            return column_date;
-        },
-        
-        // returns count of units inside column representing given time period
-        get_column_units: function(date, unit) {
-            var column_start = this.align(date, this.column_unit);
-            // find next column
-
-            return this.get_column_next(date).diff(unit, column_start);
-        }
-    },
+    geometry: null,
 
     // current rendering zoom - translates abstracted columns to physical rendering units
-    zoom: {
-        // current days per pixel. day not neccessary mean 24 hours
-        pixel_days: 1/80,
-
-        // current count of columns are rendered (not the same as visible due to overflow hidding)
-        rendering_columns_count: 0,
-
-        // current rendering width.
-        rendering_width: 0,
-
-        max_column_width: 0,
-        
-        // number of columns appended on each side for dragging seamless effect
-        edge_columns: 4,
-
-        // offset at which right edge is visible in view
-        right_edge_offset: 0,
-
-        // maximal width of rendering area
-        max_rendering_width: 0,
-        
-        recompute: function (timeline) {
-
-            var visible_width = timeline.$el.width();
-            this.max_column_width = timeline.geometry.upper_limit_column_timeunits('DAY') / this.pixel_days;
-            this.rendering_columns_count = Math.ceil(visible_width / this.max_column_width) + 2*this.edge_columns;
-            this.max_rendering_width = this.max_column_width * this.rendering_columns_count;
-
-            console.log('zoom recomputed: ', this);
-        },
-
-        column_width: function(geometry, date) {
-            var column_days = geometry.get_column_units(date, 'DAY');
-            return column_days / this.pixel_days;
-        }
-    },
+    zoom: null,
 
     // array of grid column elements
     $grid_cols: [],
@@ -230,18 +55,16 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     // date representing by first column in grid_cols array
     grid_cols_first_date: null,
 
-    // date supposed to be on the left edge of screen
-    left_edge_date: null,
-
     // array of supercolumn elements
     $grid_supercols: [],
 
     // redraws whole view
-    render: function() {
-        this.resize();
+    render: function(visible_date) {
+        this.render_hours_labels();
+        this.resize();        
         this.render_columns();
         this.render_headers();
-        this.redraw();
+        this.redraw(visible_date);
     },
 
     // refresh sizes of view
@@ -275,7 +98,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
         // compute maximum on screen visible headers
         // ie max supercol units in visible days pixels
-        var headers_count = this.zoom.max_rendering_width * this.zoom.pixel_days * this.geometry.unit_minutes_limit('DAY') / this.geometry.unit_minutes_limit(this.geometry.supercolumn_groupby);
+        var headers_count = (this.zoom.rendering_columns_count / this.geometry.min_supercolumn_columns()) + 1;
 
         // create supercolumns elements
         var supercols_header_container = $("<div class='header-supercols-container'/>").appendTo(this.$headers_el);
@@ -301,55 +124,94 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     render_hours_labels: function() {
         this.$hours_labels.empty();
 
+        var lineformat = this.geometry.column_spec.lineformat;
+        var sepformat = this.geometry.column_spec.sepformat;
+        var sepparam = this.geometry.column_spec.sepparam;
+
+        var previous_sep = '';
+        
         // add 24 hours boxes
-        for(var i = 0; i< 24;i++) {
+        for(var i = 0; i< this.geometry.column_spec.lines;i++) {
+          var hour = (i * this.geometry.column_spec.linehours) % 24;
+          hour = hour.pad(2) + ":00";
+          
+          var dayn = Math.floor((i * this.geometry.column_spec.linehours) / 24);
+          var day = "day +" + dayn;
+
+          var weekday = "wday " + (dayn % 7);
+          var week = "week +" + Math.floor(dayn / 7);
+
+          var curr_sep = sepparam.replace("%w", week).replace("%v", weekday).replace("%h", hour).replace("%d", day);
+          var format = (previous_sep != curr_sep) ? sepformat : lineformat;
+          previous_sep = curr_sep;
+          
             $("<div class='hour-label' />")
-            .text(i.pad(2) + ":00")
+            .html(format.replace("%w", week).replace("%v", weekday).replace("%h", hour).replace("%d", day))
             .appendTo(this.$hours_labels);
         }
-        
+
+        this.$grid_el.height(50*this.geometry.column_spec.lines);
+        this.$hours_labels.height(50*this.geometry.column_spec.lines);
     },
 
     // UPDATE COLUMNS WIDTH AND ALIGNMENT
     update_columns_rendering: function() {
-        // align first column to left edge minus edge columns
-        this.grid_cols_first_date = this.left_edge_date.addMinutes(1);
-        var c = this.zoom.edge_columns;
-        while(c-- > 0) {this.grid_cols_first_date = this.geometry.align(this.grid_cols_first_date.addMinutes(-1));}
+        // ensure alignment of first column
 
         var left_date = this.grid_cols_first_date;
         var left_pixels = 0;
+
+        var even = true;
+        // find columns difference from current left and new left
+        if ('date' in this.$grid_cols[0]) {
+          var columns = this.geometry.columns_of_range(left_date, this.$grid_cols[0].date);
+          even = this.$grid_cols[0].col.is(".even-col");
+          even = (columns % 2 == 0) ? even : !even;
+        }
+
+        //this.$grid_el.hide();
         
         for(var i = 0; i< this.$grid_cols.length; i++) {
             // column width is variable (ie column of month)
-            var width = this.zoom.column_width(this.geometry,left_date);
+            var width = this.zoom.column_width;
 
             this.$grid_cols[i].width = width;
             this.$grid_cols[i].left = left_pixels;
             this.$grid_cols[i].date = left_date;
             this.$grid_cols[i].col.width(width);
             this.$grid_cols[i].col.css("left", left_pixels);
-
+            this.$grid_cols[i].col.toggleClass("even-col", even);
+            this.$grid_cols[i].col.height(this.geometry.column_spec.lines * 50);
+            
             left_pixels += width;
             left_date = this.geometry.get_column_next(left_date);
+            even = !even;
         }
 
+        //this.$grid_el.show();
+        
         this.zoom.rendering_width = left_pixels;
+        this.grid_cols_last_date = left_date;
         this.$container.width(this.zoom.rendering_width);
         this.$bar_container.width(this.zoom.rendering_width);
-        this.zoom.right_edge_offset = - (this.zoom.rendering_width - this.$el.width());
+        //console.log("update columns end ");
     },
+
 
     update_headers: function() {
         // compute start of first supercolumn.
         var left_date = this.geometry.align(this.grid_cols_first_date, this.geometry.supercolumn_groupby);
-        var left_pixels = -this.grid_cols_first_date.diff('DAY',left_date) / this.zoom.pixel_days;
-        
+
+        // compute pixel offset of first supercolumn
+        var left_pixels = -this.geometry.columns_of_range(left_date, this.grid_cols_first_date) * this.zoom.column_width;
+
+        // supercolumns
         for(var i = 0; i < this.$grid_supercols.length; i++) {
             // get date of end of current supercolumn determined by left date
             var next_stop = this.geometry.next(left_date, this.geometry.supercolumn_groupby);
 
-            var width = next_stop.diff('DAY',left_date) / this.zoom.pixel_days;
+            // width of supercolumn = number of columns overlapped by supercolumn * column width
+            var width = this.geometry.columns_of_range(left_date, next_stop) * this.zoom.column_width;
             this.$grid_supercols[i].col
                 .css("left", left_pixels);
             this.$grid_supercols[i].label
@@ -411,11 +273,11 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         } else if (this.geometry.column_unit == 'DAY') {
                 return col_date.getDate() + ". " + (col_date.getMonth()+1) + ". " + col_date.getFullYear();
         } else if (this.geometry.column_unit == 'WEEK') {
-                return "Week" + col_date.getWeekOfYear();
+                return "Week " + col_date.getWeekOfYear().text;
         } else {
             // month
             return (col_date.getMonth() + 1) + "/" + col_date.getFullYear();
-        }
+        }                           
 
     },
 
@@ -426,9 +288,10 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             case 'DAY':
                 return header_date.getDate() + ". " + (header_date.getMonth()+1) + ". " + header_date.getFullYear();
             case 'WEEK':
-                return "Week " + header_date.getWeekOfYear() + "/" + header_date.getFullYear();
+                var w = header_date.getWeekOfYear();
+                return "Week " + w.week  + "/" + w.year;
             case 'MONTH':
-                return (header_date.getMonth() + 1) + "/" + header_date.getFullYear();
+                return header_date.getMonthName() + " " + header_date.getFullYear();
             case 'YEAR':
                 return header_date.getFullYear();
             default:
@@ -436,14 +299,96 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         }
     },
 
-    redraw: function() {
-        // set new first col date
+    activity_template: _.template("<div data-type='activity-occurance' class='activity-occurance'><div class='name'><%= name %></div><div class='time'><span class='start'><%= start %></span><span class='end'><%= end %></span></div></div>"),
+    
+    // renders activities
+    update_data_view: function() {
+
+      this.$grid_el.find("[data-type='activity-occurance']").remove();
+      
+      var first_date = this.grid_cols_first_date;
+      var last_date = this.grid_cols_last_date;
+
+      var activities_to_show = this.collection.withOccurancesInRange(first_date, last_date);
+
+      for(var i = 0; i < activities_to_show.length; i++) {
+        var activity = activities_to_show[i];
+        var activity_occurances = activity.getOccurancesInRange(first_date, last_date);
+
+        for(var io = 0; io < activity_occurances.length; io++) {
+          var occurance = activity_occurances[io];
+          // determine column
+          var start_col = this.geometry.get_containing_column_index(first_date, occurance.get("start"));
+          var start_line = this.geometry.get_column_line(this.$grid_cols[start_col].date, occurance.get("start"));
+          var end_line = this.geometry.get_column_line(this.$grid_cols[start_col].date, occurance.get("end"));
+
+          this.$grid_cols[start_col].col.append(
+            $(this.activity_template({name: activity.get("name"), start:  occurance.get("start"), end:  occurance.get("end")}))
+              .css("top", (start_line*50) + "px")
+              .height((end_line - start_line) * 50)
+          );
+
+        }
+      }
+
+    },
+    
+
+    // rederaws columns in order to make given column index prepended by edge columns
+    redraw: function(column_to_center_around) {
+        //console.log("redraw start");
+        this.$container.hide();
+      
+        var column_index = 0;
+        if (column_to_center_around !== false) {
+          if (typeof column_to_center_around == 'undefined') {
+            column_to_center_around = -this.$container.offset().left / this.zoom.column_width;
+          }
+
+          // set new first col date
+          column_index = Math.floor(column_to_center_around);
+
+          if (column_index > 0) {
+            if (column_index < this.$grid_cols.length && 'date' in this.$grid_cols[column_index]) {
+              this.grid_cols_first_date = this.$grid_cols[column_index].date;
+            } else {
+              // compute
+              var i = column_index;
+              while(i-- > 0)
+                this.grid_cols_first_date = this.geometry.get_column_next(this.grid_cols_first_date);
+            }
+          } else {
+            var i = column_index * this.geometry.column_units;
+            while(i++ < 0)
+              this.grid_cols_first_date = this.geometry.align(this.grid_cols_first_date.addMinutes(-1));
+          }
+        }
+        
+        // prepend by edge cols
+        var i = this.zoom.edge_columns* this.geometry.column_units;
+        while(i-- >0)
+          this.grid_cols_first_date = this.geometry.align(this.grid_cols_first_date.addMinutes(-1));
+
+        // update columns labels
         this.update_columns_rendering();
         this.update_headers();
-        this.set_movers_offset(this.grid_cols_first_date.diff('DAY',this.left_edge_date) / this.zoom.pixel_days);
+        this.update_data_view();
+        
+        // set view offset to given column to center around partition
+        if (column_to_center_around === false) {
+          column_to_center_around = 0;
+        }
+        this.set_movers_offset(
+          -(this.zoom.edge_columns + column_to_center_around - column_index) * this.zoom.column_width
+        );
+
+        this.$container.show();
+        //console.log("redraw end");
     },
 
     scroll: function(pixels) {
+
+        //console.log("scroll ", pixels);
         var container_offset = this.$container.offset();
         this.$container.offset({left: container_offset.left + pixels});
         this.$bar_container.offset({left: container_offset.left + pixels});
@@ -454,19 +399,19 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     set_movers_offset: function(left){
         this.$container.css("left", left);
         this.$bar_container.css("left", left);
+        //console.log("movers ", left);
     },
-    
+
+    // redraw columns in order to currently leftmost visible column will be prepended with edge columns (ie align columns roll to center of view)
     scroll_masquerade: function(current_offset) {
 
         var grid_left = current_offset.left;
-
-        this.left_edge_date = this.grid_cols_first_date.addMinutes(-current_offset.left * this.zoom.pixel_days * 1440);
         
         if (grid_left > 0) {
-            this.redraw();
+            this.redraw(-grid_left / this.zoom.column_width);
             return true;
-        } else if (grid_left <  this.zoom.right_edge_offset) {
-            this.redraw();
+        } else if (grid_left <  -this.zoom.column_width * this.zoom.edge_columns) {
+            this.redraw(-grid_left / this.zoom.column_width);
             return true;
         } else {
             // update headers text alginments
@@ -483,28 +428,265 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
     on_drag: function(other, e, ui) {
         // drag also other elements
-        other.offset({left: ui.position.left});
+        other.offset({left:ui.position.left});
+
         
         if (this.scroll_masquerade(ui.position)) {
             // reset mouse position in drag
             if (typeof ui.helper !== "undefined" && typeof ui.helper.kinetic_draggable === "function") {
-                ui.helper.kinetic_draggable("resetMouse", e);
+              ui.helper.kinetic_draggable("resetMouse", e);
             }
         }
 
+        this.zoom_date = null;
     },
 
+    zoom_date: null,
+    
+    // z is 0 to 1000
     setZoom: function(z) {
+      if (this.zoom_date === null) {
+        this.zoom_date = this.getAbstractMiddleDate();
+      }
+      
+      var level = this.zoom.zoom(z, this);
+      this.geometry.compute(level);
 
-        //console.log("left edge is on ", this.left_edge_date);
-
-        // change pixel minutes
-        this.zoom.pixel_days = Math.max(0.01,z/10000);
-
-        // change geometry to reflect it
-        this.geometry.compute(this.zoom.pixel_days);
-
-        this.render();
+      this.render();
+      this.displayDate(this.zoom_date);
     },
 
+    // move view center to given date
+    displayDate: function(date) {
+      this.setAbstractMiddleDate(date);
+    },
+
+    getAbstractMiddleDate: function() {
+      var middle_column = (-this.$container.offset().left + (this.$el.width() / 2)) / this.zoom.column_width;
+      
+      var column = Math.floor(middle_column);
+      
+      return this.$grid_cols[column]
+        .date
+        .addMinutes((middle_column-column)*PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry.max_unit_days[this.geometry.column_unit]*this.geometry.column_units*1440);
+    },
+
+    setAbstractMiddleDate: function(date) {
+      // determine offset in columns from current middle column
+      var current_middle = this.getAbstractMiddleDate();
+
+      var column_diff = this.geometry.columns_of_range(current_middle, date);      
+      
+      this.scroll(-column_diff * this.zoom.column_width);
+    }
+});
+
+
+// Abstract representation of view column logic.
+PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry = Backbone.Model.extend({
+
+  constructor: function() {
+    this.compute(0);
+
+    Backbone.Model.apply(this, arguments);
+  },
+
+  // determine geometry by given minutes/pixel zoom
+  compute: function(level) {
+    var level_spec = this.constructor.LEVELS[level];
+    
+    this.column_units = level_spec.count;
+    this.column_unit = level_spec.unit;
+    this.supercolumn_groupby = level_spec.supercolumn;
+    this.column_spec = level_spec;
+  },
+  
+  // align given date to the nearest earlier eadge of larger unit
+  align: function(date, unit) {
+    if (unit == undefined)
+      unit = this.column_unit;
+    
+    switch(unit) {
+      case 'DAY':
+        // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
+        // in DST
+        return date.getMidnight();
+        break;
+      case 'WEEK':
+        return date.getMidnight().addDays(- date.getDayStarting(1));
+        break;
+      case 'MONTH':
+        next_stop = new Date(date);
+        next_stop.setDate(1);
+        next_stop.setHours(0,0,0);
+        return next_stop;
+        break;
+      case 'YEAR':
+        return new Date(date.getFullYear(), 0,0,0,0,0);
+      default:
+        return date;
+        break;
+    }
+  },
+  
+  // get the nearest latter edge of larger time unit
+  next: function(date, unit){
+    if (unit === undefined)
+      unit = this.column_unit;
+    
+    switch(unit) {
+      case 'DAY':
+        // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
+        // in DST
+        return date.getMidnight().addDays(1);
+        break;
+      case 'WEEK':
+        return date.getMidnight().addDays(- date.getDayStarting(1) + 7).getMidnight();
+        break;
+      case 'MONTH':
+        next_stop = new Date(date);
+        next_stop.setDate(1);
+        next_stop.setMonth(next_stop.getMonth() + 1);
+        next_stop.setHours(0,0,0);
+        return next_stop;
+        break;
+      case 'YEAR':
+        return new Date(date.getFullYear() + 1, 0,0,0,0,0);
+      default:
+        break;
+    }
+  },
+  
+  unit_minutes_limit: function(unit) {
+    switch(unit) {
+      case 'HOUR':
+        return 60;
+        break;
+      case 'DAY':
+        // go to noon of next day and then get midnight to resolve +- 1 hour fluctuation in day length
+        // in DST
+        // 25 hours a day
+        return 1500;
+        break;
+      case 'WEEK':
+        // better bound is only 1 day in week can have 25 hours
+        // but it is for compatibility with cross unit computations (ie WEEK / DAY returns 7 not 6,76)
+        return 7*1500;
+        break;
+      case 'MONTH':
+        // similar to week
+        return 31*1500;
+        break;
+      case 'YEAR':
+        return 31*12*1500;
+      default:
+        break;
+    }
+    
+  },
+  
+  get_column_next:function (date) {
+    var column_date = date;
+    var i = this.column_units;
+    while(i-- > 0) {column_date = this.next(column_date, this.column_unit);}
+    return column_date;
+  },
+  
+  // returns number of column containing needle_date right of first_column_date
+  get_containing_column_index: function(first_column_date, needle_date) {
+    var next_column = this.get_column_next(first_column_date);
+    var column_index = 0;
+    while(next_column < needle_date) {
+      column_index++;
+      next_column = this.get_column_next(next_column);
+    }
+    return column_index;
+  },
+  
+  // determine minimal supercolumn width in number of columns
+  min_supercolumn_columns: function() {
+    // smallest allowed column is day.
+
+    var col_days = this.constructor.max_unit_days[this.column_unit] * this.column_units;
+    var supercol_days = this.constructor.min_unit_days[this.supercolumn_groupby];
+
+    return supercol_days / col_days;
+  },
+
+  // retrieve number of columns corresponding to range given by two dates
+  columns_of_range: function(left, right) {
+    var days = right.diff('DAY', left);
+
+    var column_days = this.constructor.max_unit_days[this.column_unit] * this.column_units;
+
+    return days / column_days;
+  },
+
+  // determine line (with precision to decimals) of given date in column starting in column_start_date
+  get_column_line: function(column_start_date, date) {
+    var hours_diff = date.diff_partial('HOUR', column_start_date);
+    return hours_diff / this.column_spec.linehours;
+  }
+}, {
+  max_unit_days: {
+    'DAY': 1,
+    'WEEK': 7,
+    'MONTH': 31,
+    'YEAR': 366,
+  },
+  
+  min_unit_days: {
+    'DAY': 1,
+    'WEEK': 7,
+    'MONTH': 28,
+    'YEAR': 356
+  },
+  
+  // levels of details from the farest
+  LEVELS: [
+  {count: 2, unit: 'WEEK', supercolumn: 'MONTH', linehours: 24, lines:14, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 2, unit: 'WEEK', supercolumn: 'MONTH', linehours: 12, lines:28, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 24, lines:7, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 12, lines:14, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 8, lines:21, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 1, unit: 'DAY', supercolumn: 'WEEK', linehours: 2, lines:12, lineformat: "%h",  sepformat: "%h", sepparam: ""},
+  {count: 1, unit: 'DAY', supercolumn: 'WEEK', linehours: 1, lines:24, lineformat: "%h",  sepformat: "%h", sepparam: ""},
+  ],  
+});
+
+
+PersonalTimetabling.CalendarViews.VerticalDayView.ColumnViewParemeters = Backbone.Model.extend({
+
+  MIN_COL_WIDTH: 150,
+  
+  // current column width in pixels
+  column_width: 150,
+
+  // current count of columns are rendered (not the same as visible due to overflow hidding)
+  rendering_columns_count: 0,
+
+  // current rendering width.
+  rendering_width: 0,
+
+  // number of columns appended on each side for dragging seamless effect
+  edge_columns: 4,
+  
+  recompute: function(timeline) {
+    
+    var visible_width = timeline.$el.width();
+    this.rendering_columns_count = Math.ceil(visible_width / this.column_width) + 2*this.edge_columns;
+    this.rendering_width = this.rendering_columns_count * this.column_width;
+    
+  },
+
+  // zooms view parameters and returns zoom level for geometry
+  zoom: function(zoom, timeline) {    
+      var level = Math.floor(PT.CalendarViews.VerticalDayView.ColumnsGeometry.LEVELS.length * zoom/ 1000);
+      console.log("level", level);
+      
+      this.column_width = /*zoom % this.MIN_COL_WIDTH + */this.MIN_COL_WIDTH;
+      this.recompute(timeline);
+
+      return level;
+  }
 });

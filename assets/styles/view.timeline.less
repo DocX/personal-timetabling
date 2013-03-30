@@ -2,11 +2,12 @@
 
     #grid {
         position: relative;
+        background: url("../images/retina_wood.png") repeat left -44px;
     }
 
     #grid .grid-col {
-        border-right:@grid-border;
-        height: 1000px;
+        //border-right:@grid-border;
+
         position:absolute;
         word-wrap:break-word;
         font-size:80%;
@@ -18,8 +19,11 @@
         top: 0;
         left: 0;
         right: 0;
-        padding-bottom:5px;
-    
+        padding-bottom:2px;
+        background: url("../images/retina_wood.png") repeat;
+        box-shadow: 0 0 5px black;
+        z-index:2;
+        
         .header-cols-container, .header-supercols-container {
             position:relative;
         }
@@ -28,8 +32,8 @@
             height: 1.5em;
             
             .grid-header-col {
-                border-bottom:@grid-border;
-                border-right:@grid-border;
+                //border-bottom:@grid-border;
+                //border-right:@grid-border;
                 height:100%;
                 display:block;
                 position:absolute;

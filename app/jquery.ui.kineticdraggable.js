@@ -7,47 +7,30 @@ $.easing.lineardeceleration = function(t) {
          };
 
 // kinetic draggable widget, extends ui.draggable by kinetic effect after drag end        
-$.widget("pt.kinetic_draggable", $.ui.draggable, {
+$.widget("pt.kinetic_draggable", $.ui.mouse, {
    _create: function() {
       this._drag_stack = [];
-      this.element.data("ui-draggable", this);
-      this._super();
+
+      this._mouseInit();
    },
 
    resetMouse: function(event) {
-      if (this._animation != null || this.helper == null || !this.helper.is(".ui-draggable-dragging"))
+      if (this._animation != null)
          return;
 
-      //Cache the margins of the original element
-                this._cacheMargins();
-
-      //Store the helper's css position
-                this.cssPosition = this.helper.css("position");
-                this.scrollParent = this.helper.scrollParent();
-
       //The element's absolute position on the page minus margins
-                this.offset = this.positionAbs = this.element.offset();
-                this.offset = {
-                        top: this.offset.top - this.margins.top,
-                        left: this.offset.left - this.margins.left
-                };
+      this.offset = this.positionAbs = this.element.offset();
 
-                $.extend(this.offset, {
-                        click: { //Where the click happened, relative to the element
-                                left: event.pageX - this.offset.left,
-                                top: event.pageY - this.offset.top
-                        },
-                        parent: this._getParentOffset(),
-                        relative: this._getRelativeOffset() //This is a relative to absolute position minus the actual position calculation - only used for relative positioned helper
-                });
+      this.click = { //Where the click happened,
+        x: event.pageX ,
+        y: event.pageY
+      };
 
-                //Generate the original position
-                this.originalPosition = this.position = this._generatePosition(event);
-                this.originalPageX = event.pageX;
-                this.originalPageY = event.pageY;
+      console.log("mouse reset", this.offset, this.click);
    },
 
    _mouseDrag: function(event) {
+      console.log("mouse drag", event.pageX, event.pageY);
       // store last 5 events
       this._drag_stack.push({mouseX: event.pageX, mouseY: event.pageY, time: new Date().getTime()});
       if (this._drag_stack.length > 3)
@@ -55,7 +38,17 @@ $.widget("pt.kinetic_draggable", $.ui.draggable, {
          this._drag_stack.shift();
       }
 
-      return this._super(event);
+      var x_delta = event.pageX - this.click.x;
+      var y_delta = event.pageY - this.click.y;
+
+      // set offset to delta from click point
+      var ui = {};
+      ui.position = {left: this.offset.left + x_delta, top: this.offset.top};
+      ui.helper = this.element;
+      this.element.offset(ui.position);
+
+      this._trigger("drag", event, ui);
+      
    },
 
     _animation: null,
@@ -66,23 +59,20 @@ $.widget("pt.kinetic_draggable", $.ui.draggable, {
             return;
         }
         var offset = this.element.offset();
-        this.element.offset({left: offset.left + (xv*0.01)});
-        this._trigger("drag", event, {position:this.element.offset()});
+        offset.left = offset.left + (xv*0.01);
+        this.element.offset(offset);
+        this._trigger("drag", event, {position:offset});
         this._animation = setTimeout(_.bind(this.animation, this, (xv < 0 ? -1 : 1) * Math.max(Math.abs(xv) - 100,0), event), 10);
       },
     
-   _mouseUp: function(event) {
-      var result = this._super(event);
-
+   _mouseStop: function(event) {
       // start kinetic animation
       var speed = this._averageSpeed();
      
       this._animation = setTimeout(_.bind(this.animation, this, speed.xv, event), 10);
-      
-      return result;
    },
 
-   _mouseDown: function(event) {
+   _mouseStart: function(event) {
         //stop animation
         if (this._animation != null){
             clearTimeout(this._animation);
@@ -91,7 +81,8 @@ $.widget("pt.kinetic_draggable", $.ui.draggable, {
 
         this._drag_stack = [];
         
-        this._super(event);
+        this.resetMouse(event);
+        console.log("mousedown");
     },
 
    _averageSpeed: function() {

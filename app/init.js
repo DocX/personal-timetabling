@@ -3,10 +3,9 @@
 var PersonalTimetabling = {};
 var PT = PersonalTimetabling;
 
-"use strict";
-
 PT.App = null;
 PT.CalendarViews = {};
+PT.Models = {};
 
 // when ready, start app
 $(document).ready(function() {
