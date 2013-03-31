@@ -1,26 +1,42 @@
 #calendarview.dayincolview {
 
     #grid .grid-col {
-        background: url('../images/dot.png') center 4px repeat-y;
+        //background: url('../images/dot.png') center 4px repeat-y;
         
 
         div.activity-occurance {
 
           position:absolute;
 
-          border-radius: 3px;
-          border: @grid-border;
-          background: @mainmenu-background;
+          //border-radius: 3px;
+          border: rgba(173, 121, 29, 0.5) 1px solid;
+	  //border-left:0;
+	  //border-top:0;
+          background: lighten(desaturate(@mainmenu-background,70%), 70%);
 
           left: 5px;
           right:5px;
-          box-shadow: inset 5px 5px 10px -5px rgba(0,0,0,0.8);
+	  
+          //box-shadow: inset 5px 5px 10px -5px rgba(0,0,0,0.8);
+	  overflow:hidden;
         }
+        
+        div.line-label {
+	    height:50px;
+	    padding-left: 3px;
+	  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+color: rgba(126, 76, 14, 0.56);
+text-align:center;
+	}
     }
 
     #grid .grid-col.even-col {
       background: rgba(194, 117, 20, 0.11);
       box-shadow: inset 2px 0 1px -1px rgba(0, 0, 0, 0.15), inset -2px 0 1px -1px rgba(255, 255, 255, 0.66);
+      
+      div.line-label {
+	padding-left:4px;
+      }
     }
 
     #mover-window, #headers-window {

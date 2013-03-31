@@ -1,0 +1,60 @@
+ISSUES
+====================
+
+Abstractize col view
+- now its so bloat
+- make dumb view layer, that knows only columns and lines in them
+- make "heart" classes for each view layout: col as month/week/day/(hour)
+  heart class interface draft:
+  - get column of date
+  - get line of date
+  - get column lines (for each column)
+  - get column label
+  - get supercolumns (in columns unit)
+- handle activities model with view heart
+
+MONTH column
+- make month col
+- require dealing with flexible column lines count
+
+WEEK column
+- add weeks first date to label or column
+- or think out display of date to each day of week in column
+
+View dragging
+- make draggable only headers bar
+- add navigation buttons left/right (half a screen scroll?)
+
+Far zoom activities
+- at far zoom levels activities are small boxes
+- brainstorming:
+  - on hover expand for actual "in pixel" activity
+  - enlarge important/bigger activities (inapropriate to view measure)
+  
+
+HARD things!!!
+---------------
+
+Activity types
+- implement models for all activity types
+- implement manual handling of activities
+
+Long term activity
+- visualize deadline 
+
+Activity category
+- make categories
+- capable of hiding/showing each of them
+
+Sleep time collapse/expand
+- make it possible to collapse/expand sleep time hours (or range of hours/days by view layout)
+
+
+VISIONS - DO NOT IMPLEMENT
+--------------------------
+
+Locations
+- coloring of activities depending of location
+
+Mutual activities
+- enable more activities parallel

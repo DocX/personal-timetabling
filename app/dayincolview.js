@@ -20,7 +20,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.$container = $("<div id='mover' />").appendTo(this.$container_window);
         this.$grid_el = $("<div id='grid' />").appendTo(this.$container);
 
-        this.$hours_labels = $("<div id='grid-vertical'/>").appendTo(this.$container_window);
+        //this.$hours_labels = $("<div id='grid-vertical'/>").appendTo(this.$container_window);
         
         
         this.$container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
@@ -121,10 +121,12 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         }
     },
 
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Son", "Sun"],
+    
     render_hours_labels: function() {
-        this.$hours_labels.empty();
+	//this.$hours_labels.empty();
 
-        var lineformat = this.geometry.column_spec.lineformat;
+        /*var lineformat = this.geometry.column_spec.lineformat;
         var sepformat = this.geometry.column_spec.sepformat;
         var sepparam = this.geometry.column_spec.sepparam;
 
@@ -136,9 +138,9 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
           hour = hour.pad(2) + ":00";
           
           var dayn = Math.floor((i * this.geometry.column_spec.linehours) / 24);
-          var day = "day +" + dayn;
+          var day = dayn;
 
-          var weekday = "wday " + (dayn % 7);
+          var weekday = this.weekdays[(dayn % 7)];
           var week = "week +" + Math.floor(dayn / 7);
 
           var curr_sep = sepparam.replace("%w", week).replace("%v", weekday).replace("%h", hour).replace("%d", day);
@@ -149,9 +151,28 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             .html(format.replace("%w", week).replace("%v", weekday).replace("%h", hour).replace("%d", day))
             .appendTo(this.$hours_labels);
         }
-
+	*/
         this.$grid_el.height(50*this.geometry.column_spec.lines);
-        this.$hours_labels.height(50*this.geometry.column_spec.lines);
+        //this.$hours_labels.height(50*this.geometry.column_spec.lines);
+	
+    },
+    
+    render_incol_hours_labels: function(coldate, col) {
+	col.find("[data-role=line-label]").remove();
+
+        var lineformat = this.geometry.column_spec.lineformat;
+        var sepformat = this.geometry.column_spec.sepformat;
+        var sepparam = this.geometry.column_spec.sepparam;
+
+        var previous_sep = '';
+        
+        // add 24 hours boxes
+        for(var i = 0; i< this.geometry.column_spec.lines;i++) {
+          
+            $("<div class='line-label' data-role='line-label' />")
+            .html(this.geometry.column_line_label(coldate, i))
+            .appendTo(col);
+        }
     },
 
     // UPDATE COLUMNS WIDTH AND ALIGNMENT
@@ -183,6 +204,8 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             this.$grid_cols[i].col.toggleClass("even-col", even);
             this.$grid_cols[i].col.height(this.geometry.column_spec.lines * 50);
             
+	    this.render_incol_hours_labels(left_date, this.$grid_cols[i].col);
+	    
             left_pixels += width;
             left_date = this.geometry.get_column_next(left_date);
             even = !even;
@@ -410,7 +433,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         if (grid_left > 0) {
             this.redraw(-grid_left / this.zoom.column_width);
             return true;
-        } else if (grid_left <  -this.zoom.column_width * this.zoom.edge_columns) {
+        } else if (grid_left <  -this.zoom.column_width * 2* this.zoom.edge_columns) {
             this.redraw(-grid_left / this.zoom.column_width);
             return true;
         } else {
@@ -626,8 +649,26 @@ PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry = Backbone.Mod
   get_column_line: function(column_start_date, date) {
     var hours_diff = date.diff_partial('HOUR', column_start_date);
     return hours_diff / this.column_spec.linehours;
+  },
+  
+  column_line_label: function(column_start_date, lineno) {
+    var line_normalized_day = this.column_spec.linehours * lineno / 24;
+    var day_floor = Math.floor(line_normalized_day);
+    
+    var line_date = column_start_date.addDays(day_floor).addMinutes((line_normalized_day - day_floor) * 24 * 60);
+    
+    switch (this.column_unit) {
+      case "WEEK":
+	return line_normalized_day > day_floor ? "" : ( this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + line_date.getMonth() + ".");
+      case "DAY":
+	return lineno.pad(2) + "h";
+      case "MONTH":
+	return column_start_date.getMonth() == line_date.getMonth() ? this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + line_date.getMonth() + "." : "-";
+    }
   }
 }, {
+  weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Son", "Sun"],
+  
   max_unit_days: {
     'DAY': 1,
     'WEEK': 7,
@@ -644,8 +685,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry = Backbone.Mod
   
   // levels of details from the farest
   LEVELS: [
-  {count: 2, unit: 'WEEK', supercolumn: 'MONTH', linehours: 24, lines:14, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
-  {count: 2, unit: 'WEEK', supercolumn: 'MONTH', linehours: 12, lines:28, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
+  {count: 1, unit: 'MONTH', supercolumn: 'YEAR', linehours: 24, lines:31, lineformat: "%d.", sepformat: "%d.", sepparam: "%d"},
   {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 24, lines:7, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
   {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 12, lines:14, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
   {count: 1, unit: 'WEEK', supercolumn: 'MONTH', linehours: 8, lines:21, lineformat: "%h", sepformat: "%v<br>%h", sepparam: "%d"},
