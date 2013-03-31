@@ -659,11 +659,11 @@ PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry = Backbone.Mod
     
     switch (this.column_unit) {
       case "WEEK":
-	return line_normalized_day > day_floor ? "" : ( this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + line_date.getMonth() + ".");
+	return line_normalized_day > day_floor ? "" : ( this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + (line_date.getMonth()+1) + ".");
       case "DAY":
 	return lineno.pad(2) + "h";
       case "MONTH":
-	return column_start_date.getMonth() == line_date.getMonth() ? this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + line_date.getMonth() + "." : "-";
+	return column_start_date.getMonth() == line_date.getMonth() ? this.constructor.weekdays[line_date.getDayStarting(1)] + " " + line_date.getDate() + ". " + (line_date.getMonth()+1) + "." : "-";
     }
   }
 }, {
