@@ -19,17 +19,10 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.$container_window = $("<div id='mover-window'/>").appendTo(this.$el);
         this.$container = $("<div id='mover' />").appendTo(this.$container_window);
         this.$grid_el = $("<div id='grid' />").appendTo(this.$container);
-
-        //this.$hours_labels = $("<div id='grid-vertical'/>").appendTo(this.$container_window);
         
-        
-        this.$container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
+        //this.$container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
         this.$bar_container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$container), stop: _.bind(this.on_drag, this, this.$container)});
 
-        $(window).on("keypress", _.bind(function(e) {
-            this.scroll(1);
-        }, this));
-        
         // clone zoom and geometry from class instance
         this.zoom = new PersonalTimetabling.CalendarViews.VerticalDayView.ColumnViewParemeters();
         this.geometry = new PersonalTimetabling.CalendarViews.VerticalDayView.ColumnsGeometry();
@@ -52,9 +45,6 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     // array of grid column elements
     $grid_cols: [],
 
-    // date representing by first column in grid_cols array
-    grid_cols_first_date: null,
-
     // array of supercolumn elements
     $grid_supercols: [],
 
@@ -72,11 +62,12 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         var headers_height = this.$headers_el.innerHeight();
         this.$bar_container.height(headers_height);
         this.$container_window.height(this.$el.height()-headers_height);
-        this.zoom.recompute(this);
     },
 
     // renders main grid columns
     render_columns: function() {
+        console.log("render_columns");
+      
         this.$grid_el.empty();
 
         this.$grid_cols = [];
@@ -92,6 +83,8 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
 
     // render headers
     render_headers: function() {
+        console.log("render_headers");
+      
         this.$headers_el.empty();
         this.$grid_supercols = [];
         this.$grid_colsheaders = [];
@@ -152,7 +145,10 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
             .appendTo(this.$hours_labels);
         }
 	*/
-        this.$grid_el.height(50*this.geometry.column_spec.lines);
+	var newHeight = 50*this.geometry.column_spec.lines;
+	if (this.$grid_el.height() != newHeight){
+	  this.$grid_el.height(newHeight);
+	}
         //this.$hours_labels.height(50*this.geometry.column_spec.lines);
 	
     },
@@ -360,7 +356,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
     // rederaws columns in order to make given column index prepended by edge columns
     redraw: function(column_to_center_around) {
         //console.log("redraw start");
-        this.$container.hide();
+        //this.$container.hide();
       
         var column_index = 0;
         if (column_to_center_around !== false) {
@@ -405,7 +401,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
           -(this.zoom.edge_columns + column_to_center_around - column_index) * this.zoom.column_width
         );
 
-        this.$container.show();
+        //this.$container.show();
         //console.log("redraw end");
     },
 
@@ -730,3 +726,50 @@ PersonalTimetabling.CalendarViews.VerticalDayView.ColumnViewParemeters = Backbon
       return level;
   }
 });
+
+// represents view geometry. translates view columns/lines to/from dates and handles column labels
+PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnView = function(view, model) {
+  
+  var global_geometry =  {
+    column_max_lines : 24,
+    supercolum_max_cols: 7,
+  };
+  
+  /* construcotr(view, model) { */
+    this.view = view;
+    this.model = model;
+  /* } */
+  
+  // returns view mode's global geometry, immutable by the time
+  // geometry = {column_max_lines: number, supercolum_max_cols: number}
+  function get_global_geometry() {
+    return this.constructor.global_geometry;
+  }
+  
+  // returns number column specification to the right, resp. to the left of from_id column
+  // column specifications = [{id: id, title: "", lines_labels: ["", "", ...]}, ...]
+  function get_columns(number, from_id) {
+    // id is column's top edge Date
+    
+  }
+  
+  // return supercolumns grouping columns between given bounds.
+  // supercolumns are specified as array of borders coordinates in columns unit
+  // supercolumns = [{end_column_id: id, column_part: part, label: ""}, ...]
+  function get_super_columns(column_start_id, column_end_id) {
+    
+  }
+  
+  function get_activities(column_start_id, column_end_id) {
+    
+  }
+  
+  function get_date_of_line(column_id, line) {
+    
+  }
+  
+  // returns line coordinates = {column_id: id, line: number}
+  function get_line_of_date(date) {
+    
+  }
+};
