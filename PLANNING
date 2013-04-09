@@ -1,0 +1,27 @@
+TASKS
+===========
+
+10.04.2013
+--------------
+
+* implementovat typ sloupcu pro mesic
+* implementovat vertikalni zobrazeni (stejne jako ted, jen o 90 stupnu)
+
+
+11.04.2013
+--------------
+
+* implementovat zobrazeni time domainy (+ stub model)
+  - pri kliku na aktivitu (zatim)
+* implementovat rozhrani manipulace aktivit
+  - (pohled by mel mit udalosti "klik na aktivitu", "tazeni aktivity doleva/doprava".. konkretni co s tim resi kontroller)
+  - posouvani
+  - zmena velikosti
+* implementovat vlozeni aktivity
+
+
+21.04.2013
+--------------
+
+DEADLINE GUI
+====> MUSI BYT PRIPRAVENE NA ZAPOCETI IMPLEMENTACE ALGORITMU
