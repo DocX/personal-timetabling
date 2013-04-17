@@ -47,9 +47,9 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
           "<ul class='dropdown-menu'>" +
             "<li><div data-role='zoom-slider' ></div></li>" +
             "<li class='divider'></li>" +
-            "<li><a href='#' data-role='zoom-days'>Days</a></li>" +
-            "<li><a href='#' data-role='zoom-weeks'>Weeks</a></li>" +
-            "<li><a href='#' data-role='zoom-months'>Months</a></li>" +
+            "<li><a href='#' data-role='zoom-to' data-zoom='600'>Days</a></li>" +
+            "<li><a href='#' data-role='zoom-to' data-zoom='300'>Weeks</a></li>" +
+            "<li><a href='#' data-role='zoom-to' data-zoom='0'>Months</a></li>" +
           "</ul>" +
           "</div>" +
       
@@ -75,14 +75,15 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
         this.$container = this.$el.find("#mover");
         this.$grid_el = this.$el.find("#grid");
         
-        this.$buttons.find("[data-role=zoom-slider]")
-          .slider({min: 0, max: 999, change:_.bind(this.set_zoom, this), slide:_.bind(this.set_zoom, this), value:999});
+        this.$zoom_slider = this.$buttons.find("[data-role=zoom-slider]")
+          .slider({min: 0, max: 899, change:_.bind(this.set_zoom, this), slide:_.bind(this.set_zoom, this), value:600});
 
         this.$buttons.find("[data-role=scroll-left]")
-          .click(_.bind(this.move_right, this));
-        this.$buttons.find("[data-role=scroll-right]")
           .click(_.bind(this.move_left, this));
-          
+        this.$buttons.find("[data-role=scroll-right]")
+          .click(_.bind(this.move_right, this));
+         this.$buttons.find("[data-role=zoom-to]")
+          .click(_.partial(function(view) {view._set_zoom($(this).attr("data-zoom"), true)}, this));
         
         // create Bindings and other stuff
         //this.$container.kinetic_draggable({distance:10, drag:_.bind(this.on_drag, this, this.$bar_container), stop: _.bind(this.on_drag, this, this.$bar_container)});
@@ -97,7 +98,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
         // setup view parametersdate
         this.drawing_column_width = 200;
         this.drawing_columns_overlap = 6;
-        this._set_zoom(500);
+        this._set_zoom(600, false, true);
 
         this.drawing_columns_list = [{column_id: this.geometry.get_line_of_date(this.options.initial_date).column_id}];
         
@@ -107,8 +108,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
 
     // set zoom
     set_zoom: function(e, ui) {
-      this._set_zoom(ui.value);
-      this.resize();
+      this._set_zoom(ui.value, true, true);
     },
 
     set_geometry: function(geometry) {
@@ -168,13 +168,13 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
       }
     },
     
-    _set_zoom: function(zoom) {
-      if (zoom >= 500) {
+    _set_zoom: function(zoom, redraw, dont_update_slider) {
+      if (zoom >= 600) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry(this, null));
         }
       }
-      else {
+      else if (zoom >= 300) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.VerticalDayView.WeekColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.VerticalDayView.WeekColumnGeometry(this, null));
         }        
@@ -188,12 +188,20 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
       var max_height = 200;
       
       // compute height as linear function of zoom between min and max height
-      this.drawing_column_line_height = min_height + ((max_height - min_height) * ((zoom % 500) / 500));
+      this.drawing_column_line_height = min_height + ((max_height - min_height) * ((zoom % 300) / 300));
+      
+      if (redraw) {
+        this.resize();
+      }
+      
+      if (!dont_update_slider) {
+        this.$zoom_slider.slider("value", zoom);
+      }
     },
     
     // redraws whole view
     render: function() {
-        this.resize();        
+        this.resize();
     },
 
     // refresh sizes of view
