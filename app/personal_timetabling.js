@@ -8,7 +8,7 @@ PersonalTimetabling.App = Backbone.View.extend({
 
       $("[data-submit=schedule-activity]").click(_.partial(this.schedule_activity_clicked, this));
       
-      this.calendar_view = new PersonalTimetabling.CalendarViews.VerticalDayView({el: $("#calendarview"), collection: this.activities});
+      this.calendar_view = new PersonalTimetabling.CalendarViews.VerticalDayView({el: $("#content"), collection: this.activities});
       this.$topbar = $("#topbar");
 
       $(window).resize(function(that) { return function() {that.resize();} } (this));
@@ -37,14 +37,9 @@ PersonalTimetabling.App = Backbone.View.extend({
    render: function() {
       this.resize();
       this.calendar_view.render();
-      var onchange = _.bind(function(e,ui) {this.calendar_view.set_zoom(ui.value);}, this);
-      $("#zoom").slider({min: 0, max: 999, change:onchange, slide:onchange, value:999});
    },
 
    resize: function() {
-      var window_h = $(window).height();
-      var topbar_h = this.$topbar.outerHeight();
-      this.calendar_view.$el.height(window_h - topbar_h);
       this.calendar_view.resize();
    },
 

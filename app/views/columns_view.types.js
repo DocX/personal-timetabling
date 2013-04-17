@@ -4,7 +4,7 @@
 PersonalTimetabling.CalendarViews.VerticalDayView.TimeColumnGeometryBase = Base.extend( {
   
   
-  constructor: function(view, model, lines_per_day) {
+  constructor: function(view, model) {
     this.view = view;
     this.model = model;
   },
@@ -66,7 +66,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView.TimeColumnGeometryBase = Base.
 });
 
 PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry = PT.CalendarViews.VerticalDayView.TimeColumnGeometryBase.extend({
-  constructor: function(view, model) {
+  constructor: function(view, model,  hours_lower, hours_upper) {
     this.base(view, model);
     
   }, 

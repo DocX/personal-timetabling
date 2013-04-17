@@ -14,7 +14,6 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.Abstract
         this.$bar_container_window = $("<div id='headers-window'/>").appendTo(this.$el);
         this.$bar_container = $("<div id='mover-headers' />").appendTo(this.$bar_container_window);
         this.$headers_el = $("<div id='grid-headers' />").appendTo(this.$bar_container);
-        this.$bar_container_window.append($("<div id='headers-corkiee'><div class='something'/></div>"));
         
         this.$container_window = $("<div id='mover-window'/>").appendTo(this.$el);
         this.$container = $("<div id='mover' />").appendTo(this.$container_window);

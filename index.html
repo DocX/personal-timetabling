@@ -6,92 +6,75 @@
 
    <title>Personal timetabling</title>
 
-   <!-- stock libraries -->
+  <!-- stock libraries -->
    <script src="lib/jquery.js"></script>
    <script src="lib/underscore.js"></script>
    <script src="lib/backbone.js"></script>
    <script src="lib/jquery-ui/jquery-ui.js"></script>
    <script src="lib/bootstrap/js/bootstrap.js"></script>
-
    <script src="lib/backbone.localStorage.js"></script>
+   
+   <script src="lib/sugar.min.js"></script>
+   <script src="lib/Base.js"></script>
    
    <!-- own library extensions -->
    <script src="lib/Date.extended.js"></script>
-   <script src="lib/Number.extended.js"></script>
-   <script src="app/jquery.ui.kineticdraggable.js"></script>
+   <script src="lib/jquery.ui.kineticdraggable.js"></script>
    
    <!-- main application scripts -->
-   <script src="app/init.js"></script>
-   <script src="app/abstracttaskview.js"></script>
-   <script src="app/timelineview.js"></script>
-   <script src="app/dayincolview.js"></script>
+   <script src="app/init.js"></script>   
+   <script src="app/personal_timetabling.js"></script>
+   <script src="app/tasks_view_base.js"></script>
 
-   <script src="app/models.activities.js"></script>
-   
-   <script src="app/app.js"></script>
-   
-
+   <script src="app/views/columns_view.js"></script>
+   <script src="app/views/columns_view.types.js"></script>
+   <script src="app/models/activities.js"></script>
    
    <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
    <link href="lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css" />
-
- <link href="assets/styles/styles.less?version=1010" rel="stylesheet/less" type="text/css" />
+   <link href="assets/styles/styles.less?version=1010" rel="stylesheet/less" type="text/css" />
    <script src="lib/less.js"></script>
 </head>
 
-<body>
+<body class='app-layout'>
    <div id="topbar">
-      <div id="logo" class="fl">
+      <div id="logo">
          <h1>Personal Timetabling</h1>
       </div>
-
-      <div class="fr">
+      
+      <div id="common-panel-place">
 
         <div id="buttons" class="rightcomponents" >
             <a href="#schedule-activity" data-toggle='modal' class="btn btn-inverse"><i class="icon-plus icon-white"></i> Schedule activity</a>
             <a href="#" class="btn btn-inverse">Show tasks</a>
-            <a href="#" class="btn btn-inverse">Tune</a>
         </div>
 
-        <div id="zoomcontainer" class="rightcomponents">
-            <div class="btn-group">
-            <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
-                Ka-Zoom-A
-                <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-                
-               <li><div id="zoom" ></div></li>
-               <li class="divider"></li>
-               <li><a href="#">Day</a></li>
-               <li><a href="#">Week</a></li>
-               <li><a href="#">Month</a></li>
-               <li><a href="#">3 months</a></li>
-            </ul>
-            </div>
-            
-        </div>
-      
 
         <div id="user"  class="rightcomponents">
-            <div class="btn-group ">
-            <button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Django Freeman</button>
-            <button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu pull-right">
-                <li><a tabindex="-1" href="#">Export</a></li>
-                <li><a tabindex="-1" href="#">Acount settings</a></li>
-                <li><a tabindex="-1" href="#helpModal" data-toggle='modal'>Gimme some help... </a></li>
-                <li class="divider"></li>
-                <li><a tabindex="-1" href="#" ><i class="icon-off"></i> Lock and hide!</a></li>
-            </ul>
-            </div>
-         </div>
-    </div>
+           <div class="btn-group ">
+              <button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Django Freeman</button>
+              <button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
+                  <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu pull-right">
+                  <li><a tabindex="-1" href="#">Export</a></li>
+                  <li><a tabindex="-1" href="#">Acount settings</a></li>
+                  <li><a tabindex="-1" href="#helpModal" data-toggle='modal'>Gimme some help... </a></li>
+                  <li class="divider"></li>
+                  <li><a tabindex="-1" href="#" ><i class="icon-off"></i> Lock and hide!</a></li>
+              </ul>
+          </div>
+      </div>
+      </div>
+      
+      <div id="content-panel-place">
+          
+      </div>
+
+   
    </div>
    
-   <div id="calendarview"> </div>
+   <div id="content"> </div>
 
     <div id="helpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
         <div class="modal-header">
