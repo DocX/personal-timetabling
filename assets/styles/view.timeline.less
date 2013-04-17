@@ -1,8 +1,9 @@
-#calendarview.timelineview, #calendarview.dayincolview {
+.dayincolview {
 
     #grid {
         position: relative;
         background: url("../images/retina_wood.png") repeat left -44px;
+        box-shadow: inset 0px -5px 5px -5px #000;
     }
 
     #grid .grid-col {
@@ -74,6 +75,7 @@
                 span.header-col-label {
                     padding-left: 1em;
                     padding-right: 1em;
+                    position:relative;
                 }
             }
         }
@@ -90,5 +92,6 @@
     #mover-window {
         overflow:hidden;
         overflow-y:scroll;
+        background:url("file:///home/docx/Devel/personal-tt/webui/assets/styles/../images/noisy.png"), desaturate(darken(@mainmenu-background, 25%),50%);
     }
 }
