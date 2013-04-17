@@ -498,26 +498,27 @@ PersonalTimetabling.CalendarViews.VerticalDayView = PersonalTimetabling.TasksVie
     set_movers_offset: function(left){
         this.$container.css("left", left);
         this.$bar_container.css("left", left);
+        this.update_supercol_label_position(left);        
     },
 
     // redraw columns in order to currently leftmost visible column will be prepended with edge columns (ie align columns roll to center of view)
     on_move: function(current_offset) {
 
         var grid_left = current_offset.left;
-        
+      
         // check if drawed columns reached screen edge from inside
         if (grid_left > 0) {
           // make virtual column which would be on the left edge non-virtual - ie prepend it
           this.center_columns();
+          
           return true;
         } else if (grid_left <  -this.drawing_column_width * this.drawing_columns_overlap) {
           // make virtual column which would be on the right edge non-virtual - ie append it
           this.center_columns();
+          
           return true;
         }
-
-        // update fixed supercol label
-        this.update_supercol_label_position(grid_left);
+        this.update_supercol_label_position(grid_left);        
         
         return false;
         
