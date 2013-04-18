@@ -1,7 +1,7 @@
 
 
-PersonalTimetabling.Models.ActivityOccurance = Backbone.Model.extend({
-
+PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
+  
   validate: function(attrs, options) {
     if (attrs.end < attrs.start) {
       return "can't end before it starts";
@@ -26,59 +26,73 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.Model.extend({
 
 
 // High-level representation of activity
-PersonalTimetabling.Models.FixedActivity = Backbone.Model.extend({
+PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
 
-  constructor: function(values) {
-    if (values && 'start' in values && 'end' in values) {
-      values.occurance = new PT.Models.ActivityOccurance({start: values.start, end: values.end});
-      delete values.start;
-      delete values.end;
+  relations: [
+    {
+      type: Backbone.HasMany,
+      key: 'occurances',
+      relatedModel: 'PersonalTimetabling.Models.ActivityOccurance',
+      reverseRelation: {
+        key: 'activity',
+      },
+      collectionType: 'Backbone.LocalCollection',
+      collectionOptions: { localStorageName: 'occurances' },
+      parse: true,
+      includeInJSON: 'attributeId',
+      
     }
-
-    Backbone.Model.apply(this, arguments);
-  },
-
-  parse: function(data, options) {
-    data.occurance = new PT.Models.ActivityOccurance(data.occurance, {parse:true});
-    return data;
+  ],
+  
+  defaults: {
+    name: "",
+    description: "",
+    type: 'Fixed', /* others: 'Fluent', 'Repeating', 'Longterm' */
+    data: {},
   },
 
   getOccurancesInRange: function(start, end) {
-    if (!this.has("occurance"))
-      return [];
+    return this.get('occurances');
+  }
 
-    var fixedOccurance = this.get("occurance");
-    
-    if (fixedOccurance.inRange(start, end)) {
-      return [fixedOccurance];
+}, {
+  createFixed: function(name, description, start, end) {
+    if (typeof name === 'object') {
+        end = name.end;
+        start = name.start;
+        description = name.description,
+        name = name.name;
     }
-    return [];
+    
+    var fixed = new PersonalTimetabling.Models.Activity({
+      name: name,
+      description: description,
+      type: 'Fixed',
+    });
+    
+    var occurance = new PersonalTimetabling.Models.ActivityOccurance({
+      start: start,
+      end: end, 
+      activity: fixed
+    });
+    
+    return fixed;
+  },
+});
+
+Backbone.LocalCollection = Backbone.Collection.extend({
+
+  initialize: function(models, options) {
+    this.localStorage = new Backbone.LocalStorage(options.localStorageName);
+    
+    Backbone.Collection.prototype.initialize.call(this, models, options);
   }
 
 });
 
 PersonalTimetabling.Models.ActivityCollection = Backbone.Collection.extend({
 
-  /*initialize: function() {
-    // sample stuff
-    // TODO only once
-    if (this.length == 0) {
-  this.create({
-    name: "Lunch",
-    description:"Lunch at Burger King",
-    occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/24 11:15:00"), end: new Date("2013/03/24 13:15:00")})});
-    this.create({
-      name: "Lunch",
-      description:"Lunch at Vegan bistro",
-      occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/25 11:15:00"), end: new Date("2013/03/25 13:15:00")})});
-      this.create({
-        name: "Something",
-        occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/28 19:35:00"), end: new Date("2013/03/28 21:15:00")})});
-    }
-    
-  },*/
-
-  model: PersonalTimetabling.Models.FixedActivity,
+  model: PersonalTimetabling.Models.Activity,
 
   localStorage: new Backbone.LocalStorage("activities"),
 

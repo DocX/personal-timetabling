@@ -1,7 +1,7 @@
 
 
 // represents view geometry. translates view columns/lines to/from dates and handles column labels
-PersonalTimetabling.CalendarViews.VerticalDayView.TimeColumnGeometryBase = Base.extend( {
+PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.extend( {
   
   
   constructor: function(view, model) {
@@ -65,7 +65,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView.TimeColumnGeometryBase = Base.
   months: ["January", "February", "March", "April", "May", "June", "Jule", "August", "October", "November", "December"],
 });
 
-PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry = PT.CalendarViews.VerticalDayView.TimeColumnGeometryBase.extend({
+PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarViews.ColumnsView.TimeColumnGeometryBase.extend({
   constructor: function(view, model,  hours_lower, hours_upper) {
     this.base(view, model);
     
@@ -97,10 +97,11 @@ PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry = PT.Calenda
   
   column_spec: function(date_id) {
     var date = new Date(date_id);
+    var sun_or_sat = ((date.getWeekday() +6) % 7) >= 5;
     return {
         id: date_id,
         title: date.format("{Dow} {d}. {M}. {yyyy}"),
-        lines_labels: this.lines_prototype           
+        lines_labels: this.lines_prototype.map(function(el) {return {label: el, style: sun_or_sat ? 'shaded' : ''};})
       };
   },
   
@@ -139,7 +140,7 @@ PersonalTimetabling.CalendarViews.VerticalDayView.DayColumnGeometry = PT.Calenda
 
 
 
-PersonalTimetabling.CalendarViews.VerticalDayView.WeekColumnGeometry = PT.CalendarViews.VerticalDayView.TimeColumnGeometryBase.extend({
+PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarViews.ColumnsView.TimeColumnGeometryBase.extend({
   constructor: function(view, model) {
     this.base(view, model);
     
@@ -174,7 +175,8 @@ PersonalTimetabling.CalendarViews.VerticalDayView.WeekColumnGeometry = PT.Calend
     var lines = [];
     var line_date = date.clone();
     for(var i = 0; i<7; i++) {
-      lines.push(line_date.format("{Dow} {d}.{M}."));
+      var sun_or_sat = ((line_date.getWeekday() +6) % 7) >= 5;
+      lines.push({label: line_date.format("{Dow} {d}.{M}."), style: sun_or_sat ? 'shaded' : ''});
       line_date.addDays(1);
     }
     var week = date.getWeekOfYear();

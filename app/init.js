@@ -1,5 +1,5 @@
 // (c) 2013 Lukas Dolezal
-
+"use strict";
 
 var PersonalTimetabling = {};
 var PT = PersonalTimetabling;

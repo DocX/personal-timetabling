@@ -8,7 +8,7 @@ PersonalTimetabling.App = Backbone.View.extend({
 
       $("[data-submit=schedule-activity]").click(_.partial(this.schedule_activity_clicked, this));
       
-      this.calendar_view = new PersonalTimetabling.CalendarViews.VerticalDayView({el: $("#content"), collection: this.activities});
+      this.calendar_view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#content"), collection: this.activities});
       this.$topbar = $("#topbar");
 
       $(window).resize(function(that) { return function() {that.resize();} } (this));
@@ -16,22 +16,23 @@ PersonalTimetabling.App = Backbone.View.extend({
 
       //this.listenTo(this.activities, 'change', this.calendar_view.update_data_view);
       
-      this.activities.fetch({success: function(collection) {
+      this.activities.fetch({success: function(activities) {
         // this is only for example
-        if (collection.length == 0) {
-          collection.create({
-            name: "Lunch",
+        if (activities.length == 0) {
+          activities.create(PersonalTimetabling.Models.Activity.createFixed({
+            name: "Lunch 01",
             description:"Lunch at Burger King",
-            occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/24 11:15:00"), end: new Date("2013/03/24 13:15:00")})});
-          collection.create({
-            name: "Lunch",
-            description:"Lunch at Vegan bistro",
-            occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/25 11:15:00"), end: new Date("2013/03/25 13:15:00")})});
-          collection.create({
-            name: "Something",
-            occurance: new PT.Models.ActivityOccurance({start: new Date("2013/03/28 19:35:00"), end: new Date("2013/03/28 21:15:00")})});
-          }
-      } } );
+            start: new Date().beginningOfDay().addHours(11).addMinutes(15),
+            end: new Date().beginningOfDay().addHours(13).addMinutes(00)
+          }));
+          activities.create(PersonalTimetabling.Models.Activity.createFixed({
+            name: "Lunch 02",
+            description:"Lunch at Burger King",
+            start: new Date().beginningOfDay().addDays(1).addHours(11).addMinutes(15),
+            end: new Date().beginningOfDay().addDays(1).addHours(13).addMinutes(00)
+          }));
+        } 
+      }});
    },
 
    render: function() {
@@ -53,12 +54,12 @@ PersonalTimetabling.App = Backbone.View.extend({
       if (activity_type == 'fixed') {
         //var activity = new PT.models.FixedActivity();
 
-        app.activities.create({
+        app.activities.create(PersonalTimetabling.Models.Activity.createFixed({
           start: new Date(form["activity-fixed-start-time"].value),
           end: new Date(form["activity-fixed-end-time"].value),
           name: form["activity-name"].value,
           description: form["activity-description"].value,
-        });
+        }));
         
       } else {
         alert("Not implemented") ;
