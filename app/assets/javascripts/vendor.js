@@ -1,0 +1,10 @@
+//= require jquery
+//= require jquery_ujs
+//= require jquery.ui.all
+//= require twitter/bootstrap
+//= require underscore
+//= require backbone
+//= require backbone-relational
+//= require sugar.min
+//= require Base
+//= require bootstrap
