@@ -65,22 +65,21 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
       return;
     
     var box = $(this.activity_template)
-      .css("top", (start_coord.line*this.drawing_column_line_height) + "px")
-      // TODO support over column activities
-      .css("height", (end_coord.line - start_coord.line) * this.drawing_column_line_height + "px")
       .data('occurance', occurance)
       .data('column', column);
-      box.find('[data-source=name]').text(occurance.get("activity").get("name")); 
-      box.find('[data-source=start]').text(occurance.get("start").format(this.activity_date_format));
-      box.find('[data-source=end]').text( occurance.get("end").format(this.activity_date_format));
-      
+    box.find('[data-source=name]').text(occurance.get("activity").get("name")); 
+    box.find('[data-source=start]').text(occurance.get("start").format(this.activity_date_format));
+    box.find('[data-source=end]').text( occurance.get("end").format(this.activity_date_format));
+    
+    this.set_box_offset_and_size_for_column(box, start_coord.line, end_coord.line - start_coord.line);
+    
     column.$column.append(box);
     this.visible_occurances_boxes[occurance.id] = box;
     
     box.draggable({
       grid:[this.drawing_column_line_height/this.column_line_steps, this.drawing_column_line_height/this.column_line_steps], 
       containment: "parent", 
-      axis: "y",
+      axis: this.axis == 'y' ? 'x' : 'y',
       drag: _.bind(this.activity_box_moved,this),
       stop: _.bind(this.activity_box_moving_stop, this)
     });      
@@ -92,7 +91,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     var column = $box.data('column');
     
     // get date of current lines
-    var start_date = this.geometry.get_date_of_line(column.column_id, ui.position.top / this.drawing_column_line_height, 15);
+    var start_date = this.geometry.get_date_of_line(column.column_id, this.get_box_offset_in_column(ui.position), 15);
     
     occurance.set({
       start: start_date
@@ -102,7 +101,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     $box.find('[data-source=end]').text( occurance.get('end').format(this.activity_date_format));
     
     // align to new date time
-    
+    return true;
   },
   
   activity_box_moving_stop: function(e, ui) {

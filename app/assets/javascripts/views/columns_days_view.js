@@ -87,7 +87,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
     },
     
     date_in_center: function() {
-      var current_center_column = (-this.$container.offset().left  + (this.drawing_view_width/2)) / this.drawing_column_width;
+      var current_center_column = (-this.container_offset()  + (this.drawing_view_width/2)) / this.drawing_column_width;
       var column_index = Math.ceil(current_center_column);
       
       var center =  this.geometry.get_date_of_line(
@@ -103,21 +103,21 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       if (zoom >= 600) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry(this, null));
-          this.column_line_steps = 4;
         }
+        this.column_line_steps = 4;
       }
       else if (zoom >= 300) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry(this, null));
-          this.column_line_steps = 24;
         }        
+        this.column_line_steps = 24;
       }
       
       var max_lines = this.geometry.get_global_geometry().column_max_lines;
       
       // set height of lines
       // minimum is to be fit to window height or 50px
-      var min_height = Math.min(200, Math.max(25, this.$container_window.height() / max_lines));
+      var min_height = Math.min(200, Math.max(25, this.container_window_lines_size() / max_lines));
       var max_height = 200;
       
       // compute height as linear function of zoom between min and max height

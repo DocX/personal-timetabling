@@ -1,9 +1,17 @@
+
+
 .columns-view {
+  @line-cell-shadow: inset 0px 1px 0px 0px rgba(104, 57, 0, 0.26);  
   
-  .mover-content {
+  .mover {
     background: image-url("retina_wood.png") repeat;
+    position:relative;
     
     .disable-text-selection;
+    
+    .grid-mover {
+      background-position: left -44px; 
+    }
   }
   
   .window {
@@ -28,14 +36,9 @@
     }
   }
   
-  .mover {
-    position:relative;
-  }
-  
   // MAIN COLUMNS GRID
   .grid {
-    box-shadow: inset 0px -5px 5px -5px #000;
-    background-position: left -44px;
+    box-shadow: inset 0px -5px 5px -5px #000;    
     
     .grid-col {
       position:absolute;
@@ -48,7 +51,6 @@
         color: rgba(126, 76, 14, 0.56);
         text-align:center;
         
-        @line-cell-shadow: inset 0px 1px 0px 0px rgba(104, 57, 0, 0.26);
         box-shadow: @line-cell-shadow;
         
         &.shaded-line {
@@ -176,6 +178,8 @@
 
 
 .columns-view.horizontal-columns {
+  @line-cell-shadow: inset 1px 0px 0px 0px rgba(104, 57, 0, 0.26);  
+  
   .window {
     position:absolute;
     top:0;
@@ -193,26 +197,95 @@
       cursor:move;
       left:0;
       width:80px;
+      height: auto;
       box-shadow: 0 0 5px black;
       z-index:2;
     }
   }
   
+  .grid-mover {
+    background-position: -80px top; 
+  }
+  
   .grid {
     box-shadow: inset -5px 0px 5px -5px #000;
-    background-position: -80px top;
+    
+    .grid-col {
+      div.line-label { 
+        float:left;
+        padding-left:0;
+        height:100%;
+        box-shadow: @line-cell-shadow;
+        
+        &.delimiter-left {
+          box-shadow:inset 0 3px 0px 0px rgba(161, 197, 199, 0.81), @line-cell-shadow;
+        }
+        &.delimiter-left.delimiter-top {
+          box-shadow: inset 3px 0 0px 0px rgba(161, 197, 199, 0.81), inset 0 3px 0px 0px  rgba(161, 197, 199, 0.81), @line-cell-shadow;
+        }
+        &.delimiter-right {
+          box-shadow: inset 0 -3px 0px 0px rgba(161, 197, 199, 0.81), @line-cell-shadow;
+        }    
+      }
+    }
   }
   
   .headers {
     .headers-supercols {
       width: 20px;
       height:auto;
-      transform: rotate(-90deg);
+      
+      .headers-col {
+          width:20px;
+          padding:0;
+          border:0;
+          border-right:@grid-border;
+          border-top:@grid-border;
+          
+          .headers-col-label {
+            padding:0;
+            margin-top: 65px;  
+            display:block;
+            white-space:nowrap;
+            -webkit-transform: rotate(-90deg);
+          }
+      }
     }
     .headers-cols {
       width: 60px;
       height:auto;
-      transform: rotate(-90deg);
+      left:20px;
+      
+      .headers-col {
+        width:100%;
+      }
     }
   }
+  
+  .grid  div.activity-occurance {
+    bottom: 5px;
+    top:2em;
+    
+    
+    .activity-occurance-inner {
+      top:0px;
+      left:1px;
+      bottom:0px;
+      right:0;
+    }
+    
+    &:hover, &.ui-draggable-dragging {
+      .activity-occurance-inner {
+        
+        div.activity-occurance-labels {
+          top: 100%;
+          left:-2px;
+          width:250px;
+          margin-top:4px;
+          margin-left:0;
+          
+        }
+      }
+    }
+  }   
 }
