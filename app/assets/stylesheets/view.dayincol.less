@@ -74,11 +74,21 @@
       
       div.activity-occurance {
         position:absolute;
-        border: rgba(173, 121, 29, 0.5) 1px solid;
-        background: lighten(desaturate(@mainmenu-background,70%), 70%);
+        
+        
         left: 5px;
         right:5px;
         overflow:hidden;
+        
+        .activity-occurance-inner {
+          background: fade(desaturate(@mainmenu-background,30%), 50%);
+          border: rgba(22, 111, 162, 1) 2px solid;
+          position:absolute;
+          top:1px;
+          left:0;
+          bottom:1px;
+          right:0;
+        }
       } 
     } // .grid-col
     

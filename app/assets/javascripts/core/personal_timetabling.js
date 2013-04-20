@@ -31,7 +31,7 @@ PersonalTimetabling.App = Backbone.View.extend({
             start: new Date().beginningOfDay().addDays(1).addHours(11).addMinutes(15),
             end: new Date().beginningOfDay().addDays(1).addHours(13).addMinutes(00)
           }));
-        } 
+        };
       }});
    },
 

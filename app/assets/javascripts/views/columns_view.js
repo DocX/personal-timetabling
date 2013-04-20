@@ -42,7 +42,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         this.$grid_overlay_el = this.$el.find(".columns-view .grid-overlay");
                 
         this.$bar_container.kinetic_draggable({
-          distance: 10,
+          
           drag: _.bind(this.on_drag, this, this.$container),
           stop: _.bind(this.on_drag, this, this.$container)
         });

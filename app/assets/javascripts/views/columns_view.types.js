@@ -130,10 +130,16 @@ PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarVie
     return {column_id: date.getMidnight().getTime(), line: date.getHours() + (date.getMinutes()/60)};
   },
   
-  get_date_of_line: function(column_id, line) {
+  get_date_of_line: function(column_id, line, round_to_minutes) {
     var date = new Date(column_id);
-    date.setHours(Math.ceil(line))
-    date.setMinutes(Math.round(line * 60) % 60);
+    
+    if (!round_to_minutes)
+      round_to_minutes = 1;
+    
+    minutes_since_zero = Math.round((line * 60) / round_to_minutes) * round_to_minutes;
+    
+    date.setHours(Math.floor(minutes_since_zero / 60))
+    date.setMinutes(minutes_since_zero % 60);
     return date;
   }
 });
@@ -215,9 +221,13 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   
   
   
-  get_date_of_line: function(column_id, line) {
+  get_date_of_line: function(column_id, line, round_to_minutes) {
     var date = new Date(column_id);
-    date.addMinutes(line * 1440);
+    
+    if (!round_to_minutes)
+      round_to_minutes = 1;
+    
+    date.addMinutes(Math.round(line * 1440 / round_to_minutes) * round_to_minutes);
     return date;
   }
 });
