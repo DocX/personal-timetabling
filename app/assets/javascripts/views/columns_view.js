@@ -29,8 +29,18 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
     
     initialize: function() {
 
+        this.reset_html();
+
+        // setup view parametersdate
+        this.drawing_column_width = 200;
+        this.drawing_columns_overlap = 6;
+    },
+
+    reset_html: function() {
         // create HTML
-        this.$el.append(this.layout_template);
+        this.$wrapper = $(this.layout_template);
+        this.$el.empty();
+        this.$el.append(this.$wrapper);
         
         // store jQuery references
         this.$bar_container = this.$el.find(".columns-view .headers-mover");
@@ -42,16 +52,11 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         this.$grid_overlay_el = this.$el.find(".columns-view .grid-overlay");
                 
         this.$bar_container.kinetic_draggable({
-          axis: 'y',
+          axis: this.axis,
           drag: _.bind(this.on_drag, this, this.$container),
           stop: _.bind(this.on_drag, this, this.$container)
-        });
-
-        // setup view parametersdate
-        this.drawing_column_width = 200;
-        this.drawing_columns_overlap = 6;
+        });      
     },
-
     
     move_left: function() {
       this.scroll(this.drawing_column_width);
@@ -65,6 +70,23 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
     /** (private) section **/
     
     axis: 'y',
+    
+    set_axis: function(axis) {
+      switch(axis) {
+        case 'y':
+          this.axis = 'y';
+          this.reset_html();
+          this.$wrapper.addClass('horizontal-columns');
+          this.resize();
+          break;
+        case 'x':
+          this.axis = 'x';
+          this.reset_html();
+          this.$wrapper.removeClass('horizontal-columns');
+          this.resize();
+          break;
+      }
+    },
     
     container_window_lines_size: function() {
       return this.axis == 'y' ? this.$container_window.width() : this.$container_window.height();
@@ -88,7 +110,6 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
       .css(this.axis == 'y' ? 'left' : "top", (offset*this.drawing_column_line_height) + "px")
       // TODO support over column activities
       .css(this.axis == 'y' ? 'width' : "height", (size * this.drawing_column_line_height) + "px")
-
     },
     
     _set_geometry: function(geometry) {
@@ -102,13 +123,25 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
 
     // refresh sizes of view
     resize: function() {        
+        if (this.axis == 'y') {
+          this.in_column_size_attr = 'width';
+          this.in_column_offset_attr = 'left';
+          this.columns_offset_attr = 'top';
+          this.columns_size_attr = 'height';
+        } else {
+          this.in_column_size_attr = 'height';
+          this.in_column_offset_attr = 'top';
+          this.columns_offset_attr = 'left';
+          this.columns_size_attr = 'width';
+        }
         // set view parameters
-        this.drawing_view_width = this.$el.height();
+        this.drawing_view_width = this.$el[this.columns_size_attr].call(this.$el);
         this.drawing_column_width = this.drawing_view_width / Math.floor(this.drawing_view_width / this.column_min_size());
         this.drawing_columns = Math.ceil(this.drawing_view_width / this.drawing_column_width) + this.drawing_columns_overlap;
-        this.$container.height(this.drawing_columns*this.drawing_column_width);
-        this.$bar_container.height(this.drawing_columns*this.drawing_column_width);
-
+        
+        this.$container[this.columns_size_attr].call(this.$container, this.drawing_columns*this.drawing_column_width);
+        this.$bar_container[this.columns_size_attr].call(this.$bar_container, this.drawing_columns*this.drawing_column_width);
+        
         this.render_columns();
         this.render_headers();
         this.update_columns();
@@ -127,17 +160,17 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
 
         var max_lines = this.geometry.get_global_geometry().column_max_lines;
         
-        var line_proto = $('<div class="line-label" />').css("width", this.drawing_column_line_height + "px");
+        var line_proto = $('<div class="line-label" />').css(this.in_column_size_attr, this.drawing_column_line_height + "px");
         
         // create number of visible columns plus 2 for left and right overflow
         for( var i = 0; i < this.drawing_columns; i++) {            
             var gridcol = $("<div class='grid-col' />");
-            gridcol.height(this.drawing_column_width);
-            gridcol.css("top", i*this.drawing_column_width);
+            gridcol.css(this.columns_size_attr, this.drawing_column_width);
+            gridcol.css(this.columns_offset_attr, i*this.drawing_column_width);
 
             var label_el = $("<div class='headers-col'/>");
-            label_el.height(this.drawing_column_width);
-            label_el.css("top", i*this.drawing_column_width);
+            label_el.css(this.columns_size_attr, this.drawing_column_width);
+            label_el.css(this.columns_offset_attr, i*this.drawing_column_width);
             
             // render lines
             var lines = []; var lines_visible = 0;
@@ -154,7 +187,8 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         }
         
         this.drawing_columns_list[0].column_id = first_id;
-        this.$container.width(max_lines * this.drawing_column_line_height);
+        // set container size to fit in column cells
+        this.$container.css(this.in_column_size_attr,max_lines * this.drawing_column_line_height);
         
         // move to overlaping column
         this.set_movers_offset(-this.drawing_column_width * this.drawing_columns_overlap / 2)
@@ -211,7 +245,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
             var col_height =  visible_lines * this.drawing_column_line_height;
             if (col_height > max_height)
               max_height = col_height;
-            this.drawing_columns_list[i].$column.css({"width":col_height+"px"});
+            this.drawing_columns_list[i].$column.css(this.in_column_size_attr,col_height+"px");
             this.drawing_columns_list[i].$label.get(0).innerHTML = (columns_specs[i].title);
             
             //update line labels
@@ -261,10 +295,10 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         ) * this.drawing_column_width;
         
         var width_pixels = left_pixels - previous_left_pixels;
-        this.drawing_columns_supercols[i-1].$el.css("height", (width_pixels) + "px");
+        this.drawing_columns_supercols[i-1].$el.css(this.columns_size_attr, (width_pixels) + "px");
         previous_left_pixels = left_pixels;
         
-        this.drawing_columns_supercols[i].$el.css("top", (left_pixels) + "px");
+        this.drawing_columns_supercols[i].$el.css(this.columns_offset_attr, (left_pixels) + "px");
         this.drawing_columns_supercols[i-1].label_el.innerHTML = supercolumns[i-1].label;
         
         // process lines for marking them delimiters
@@ -273,13 +307,13 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
       
       // set width last supercol (wchich breaks at the right edge of view)
       var width_pixels = this.drawing_column_width*this.drawing_columns - previous_left_pixels;
-      this.drawing_columns_supercols[i-1].$el.css("height", (width_pixels) + "px");
+      this.drawing_columns_supercols[i-1].$el.css(this.columns_size_attr, (width_pixels) + "px");
       this.drawing_columns_supercols[i-1].label_el.innerHTML = supercolumns[i-1].label;
       
       // set unused columns to width:0
       for(;i<this.drawing_columns_supercols.length;i++){
-        this.drawing_columns_supercols[i].$el.css("height",0);
-        this.drawing_columns_supercols[i].$el.css("top",0);
+        this.drawing_columns_supercols[i].$el.css(this.columns_size_attr,0);
+        this.drawing_columns_supercols[i].$el.css(this.columns_offset_attr,0);
       }
     },
 
@@ -309,11 +343,15 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
       this.update_columns(columns_spec, first_even);
     },
     
+    get_view_center_column: function() {
+      return (-this.$container.position()[this.columns_offset_attr]  + (this.drawing_view_width/2)) / this.drawing_column_width;
+    },
+    
     // rederaws columns in order to make currently display columns on view centered in all columns
     center_columns: function() {      
       //compute how much columns prepend/append
       var center_column = this.drawing_columns / 2;
-      var current_center_column = (-this.$container.offset().top  + (this.drawing_view_width/2)) / this.drawing_column_width;
+      var current_center_column = this.get_view_center_column();
       var columns_distance = current_center_column - center_column;
       var columns_to_shift = 0;
       
@@ -336,44 +374,44 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
     scroll: function(pixels) {
 
         //console.log("scroll ", pixels);
-        var container_offset = this.$container.offset();
-        this.$container.offset({top: container_offset.top + pixels});
-        this.$bar_container.offset({top: container_offset.top + pixels});
+        var container_offset = this.$container.position();
+        this.$container.css(this.columns_offset_attr, container_offset[this.columns_offset_attr] + pixels);
+        this.$bar_container.css(this.columns_offset_attr, container_offset[this.columns_offset_attr] + pixels);
 
-        this.on_move(this.$container.offset());
+        this.on_move(this.$container.position());
     },
     
     scrollTo: function(offset){
-        this.$container.css("top", offset + "px");
-        this.$bar_container.css("top", offset + "px");
+        this.$container.css(this.columns_offset_attr, offset + "px");
+        this.$bar_container.css(this.columns_offset_attr, offset + "px");
 
-        this.on_move(this.$container.offset());
+        this.on_move(this.$container.position());
     },
 
     set_movers_offset: function(left){
-        this.$container.css("top", left);
-        this.$bar_container.css("top", left);
+        this.$container.css(this.columns_offset_attr, left);
+        this.$bar_container.css(this.columns_offset_attr, left);
         this.update_supercol_label_position(left);        
     },
 
     // redraw columns in order to currently leftmost visible column will be prepended with edge columns (ie align columns roll to center of view)
     on_move: function(current_offset) {
 
-        var grid_left = current_offset.top;
+        var grid_offset = current_offset[this.columns_offset_attr];
       
         // check if drawed columns reached screen edge from inside
-        if (grid_left > 0) {
+        if (grid_offset > 0) {
           // make virtual column which would be on the left edge non-virtual - ie prepend it
           this.center_columns();
           
           return true;
-        } else if (grid_left <  -this.drawing_column_width * this.drawing_columns_overlap) {
+        } else if (grid_offset <  -this.drawing_column_width * this.drawing_columns_overlap) {
           // make virtual column which would be on the right edge non-virtual - ie append it
           this.center_columns();
           
           return true;
         }
-        this.update_supercol_label_position(grid_left);        
+        this.update_supercol_label_position(grid_offset);        
         
         return false;
         
@@ -389,18 +427,27 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
        * 
        */
         if (this.drawing_columns_supercols) {
-        for(var i = 0; i < this.drawing_columns_supercols.length;i++) {
-          var header_dom = this.drawing_columns_supercols[i].$el.get(0);
-          this.drawing_columns_supercols[i].label_el.style.top =
-          Math.max(0, Math.min(header_dom.offsetHeight - this.drawing_columns_supercols[i].label_el.offsetHeight, -header_dom.offsetTop - left)) + "px";
-        }
+          var sizeDOMAttr = this.axis =='y'? 'offsetHeight' : 'offsetWidth';
+          var offsetDOMAttr = this.axis =='y'? 'offsetTop' : 'offsetLeft';
+          
+          for(var i = 0; i < this.drawing_columns_supercols.length;i++) {
+            var header_dom = this.drawing_columns_supercols[i].$el.get(0);
+            // always get width of label, because it is rotated by css transform.
+            var label_size = this.drawing_columns_supercols[i].label_el.offsetWidth;
+            
+            this.drawing_columns_supercols[i].label_el.style[this.columns_offset_attr] =
+            Math.max(0, Math.min(
+                      header_dom[sizeDOMAttr] - label_size,
+                      -header_dom[offsetDOMAttr] - left)
+                    ) + "px";
+          }
         }
     },
 
     // handle drag event
     on_drag: function(other, e, ui) {
       // drag also other elements
-      other.css({"top":ui.position.top+"px"});
+      other.css(this.columns_offset_attr,ui.position[this.columns_offset_attr]+"px");
       
       if (this.on_move(ui.position)) {
         // reset mouse position in drag

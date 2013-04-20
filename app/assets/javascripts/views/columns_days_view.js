@@ -23,7 +23,12 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
           "<li><a href='#' data-role='zoom-to' data-zoom='0'>Months</a></li>" +
         "</ul>" +
         "</div>" +
-    
+
+        "<div class='btn-group'>" +
+          "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i>H</button>" +
+          "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i>V</button>" +
+        "</div>" +        
+        
         "<div class='btn-group'>" +
           "<button class='btn btn-inverse' data-role='scroll-left'><i class='icon-white icon-chevron-left'></i></button>" +
           "<button class='btn btn-inverse' data-role='scroll-right'><i class='icon-white icon-chevron-right'></i></button>" +
@@ -45,6 +50,18 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
         .click(_.bind(this.move_right, this));
       this.$buttons.find("[data-role=zoom-to]")
         .click(_.partial(function(view) {view._set_zoom($(this).attr("data-zoom"), true)}, this));
+      var mode_vertical_btn = this.$buttons.find("[data-role=mode-vertical]");
+      var mode_horizontal_btn = this.$buttons.find("[data-role=mode-horizontal]");
+      mode_vertical_btn.click(_.bind(function() {
+          mode_vertical_btn.addClass('active');
+          mode_horizontal_btn.removeClass('active');
+          this.set_axis('x');
+      }, this));  
+      mode_horizontal_btn.click(_.bind(function() {
+          mode_vertical_btn.removeClass('active');
+          mode_horizontal_btn.addClass('active');
+          this.set_axis('y');
+      }, this));  
         
       this._set_geometry( new PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry(this,null) );
 
@@ -113,15 +130,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
         this.column_line_steps = 24;
       }
       
-      var max_lines = this.geometry.get_global_geometry().column_max_lines;
-      
-      // set height of lines
-      // minimum is to be fit to window height or 50px
-      var min_height = Math.min(200, Math.max(25, this.container_window_lines_size() / max_lines));
-      var max_height = 200;
-      
-      // compute height as linear function of zoom between min and max height
-      this.drawing_column_line_height = min_height + ((max_height - min_height) * ((zoom % 300) / 300));
+      this.zoom = zoom;
       
       if (redraw) {
         this.resize();
@@ -132,5 +141,18 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       }
     },
     
+    resize: function() {
+        var max_lines = this.geometry.get_global_geometry().column_max_lines;
+        
+        // set height of lines
+        // minimum is to be fit to window height or 50px
+        var min_height = Math.min(200, Math.max(25, this.container_window_lines_size() / max_lines));
+        var max_height = 500;
+        
+        // compute height as linear function of zoom between min and max height
+        this.drawing_column_line_height = min_height + ((max_height - min_height) * ((this.zoom % 300) / 300));              
+
+        PersonalTimetabling.CalendarViews.ColumnsView.prototype.resize.apply(this);      
+    }
     
 });
