@@ -1,8 +1,9 @@
 .columns-view {
   
   .mover-content {
-    
     background: image-url("retina_wood.png") repeat;
+    
+    .disable-text-selection;
   }
   
   .window {
@@ -15,6 +16,7 @@
       top:40px;
       bottom:0;
       overflow-y:scroll;
+      cursor:default;
     }
     
     &.headers-window  {
@@ -71,25 +73,6 @@
           padding-left:4px;
         }
       }
-      
-      div.activity-occurance {
-        position:absolute;
-        
-        
-        left: 5px;
-        right:5px;
-        overflow:hidden;
-        
-        .activity-occurance-inner {
-          background: fade(desaturate(@mainmenu-background,30%), 50%);
-          border: rgba(22, 111, 162, 1) 2px solid;
-          position:absolute;
-          top:1px;
-          left:0;
-          bottom:1px;
-          right:0;
-        }
-      } 
     } // .grid-col
     
     .grid-overlay {
@@ -148,4 +131,88 @@
     } 
   } // .headers
   
+  .grid  div.activity-occurance {
+    position:absolute;
+    
+    left: 5px;
+    right:5px;
+    
+    
+    .activity-occurance-inner {
+      background: fade(desaturate(@mainmenu-background,30%), 50%);
+      border: rgba(22, 111, 162, 1) 2px solid;
+      position:absolute;
+      top:1px;
+      left:0;
+      bottom:1px;
+      right:0;
+      overflow: hidden;
+      
+      div.activity-occurance-labels {
+        position:absolute;
+        padding-left: 5px;
+      }
+    }
+    
+    &:hover, &.ui-draggable-dragging {
+      .activity-occurance-inner {
+        overflow: visible;
+        
+        div.activity-occurance-labels {
+          background: fade(desaturate(@mainmenu-background,30%), 100%);
+          top: -2px;
+          left:100%;
+          width:100%;
+          margin-left:4px;
+          
+          border: rgba(22, 111, 162, 1) 2px solid;
+          z-index:100;
+        }
+      }
+    }
+  } 
+  
 } // .columns-view
+
+
+.columns-view.horizontal-columns {
+  .window {
+    position:absolute;
+    top:0;
+    bottom:0;
+    overflow:hidden;
+
+    &.grid-window {
+      left:80px;
+      right:0;
+      overflow-x:scroll;
+      cursor:default;
+    }
+    
+    &.headers-window  {
+      cursor:move;
+      left:0;
+      width:80px;
+      box-shadow: 0 0 5px black;
+      z-index:2;
+    }
+  }
+  
+  .grid {
+    box-shadow: inset -5px 0px 5px -5px #000;
+    background-position: -80px top;
+  }
+  
+  .headers {
+    .headers-supercols {
+      width: 20px;
+      height:auto;
+      transform: rotate(-90deg);
+    }
+    .headers-cols {
+      width: 60px;
+      height:auto;
+      transform: rotate(-90deg);
+    }
+  }
+}

@@ -7,14 +7,18 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   activity_template: 
     "<div data-type='activity-occurance' class='activity-occurance'>"+
       "<div class='activity-occurance-inner'>" +
-        "<div class='name' data-source='name'></div>" +
-        "<div class='time'>" +
-          "<span class='start' data-source='start'></span>" +
-          "<span class='end' data-source='end'></span>" +
+        "<div class='activity-occurance-labels'>" +
+          "<div class='name' data-source='name'></div>" +
+          "<div class='time'>" +
+            "<span class='start' data-source='start'></span> - " +
+            "<span class='end' data-source='end'></span>" +
+          "</div>" +
         "</div>" +
       "</div>" +
     "</div>",
  
+  activity_date_format: '{dd}.{MM}.{yy} {H}:{mm}',
+    
   initialize: function() {
     
     PersonalTimetabling.CalendarViews.ColumnsDaysView.prototype.initialize.apply(this);
@@ -42,6 +46,8 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
       activity.getOccurancesInRange(first_date, last_date, _.bind(function(activity_occurances){
         for(var io = 0; io < activity_occurances.length; io++) {
           var occurance = activity_occurances.at(io);
+          if (occurance.get('activity') == null)
+            continue;
           this.add_activity_box(occurance);
         }
       }, this) );
@@ -64,15 +70,15 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
       .css("height", (end_coord.line - start_coord.line) * this.drawing_column_line_height + "px")
       .data('occurance', occurance)
       .data('column', column);
-      box.find('[data-source=name]').text(occurance.get("activity.name")); 
-      box.find('[data-source=start]').text(occurance.get("start"));
-      box.find('[data-source=end]').text( occurance.get("end"));
+      box.find('[data-source=name]').text(occurance.get("activity").get("name")); 
+      box.find('[data-source=start]').text(occurance.get("start").format(this.activity_date_format));
+      box.find('[data-source=end]').text( occurance.get("end").format(this.activity_date_format));
       
     column.$column.append(box);
     this.visible_occurances_boxes[occurance.id] = box;
     
     box.draggable({
-      grid:[this.drawing_column_line_height/4, this.drawing_column_line_height/4], 
+      grid:[this.drawing_column_line_height/this.column_line_steps, this.drawing_column_line_height/this.column_line_steps], 
       containment: "parent", 
       axis: "y",
       drag: _.bind(this.activity_box_moved,this),
@@ -87,15 +93,13 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     
     // get date of current lines
     var start_date = this.geometry.get_date_of_line(column.column_id, ui.position.top / this.drawing_column_line_height, 15);
-    var end_date = start_date.clone()
-      .advance(occurance.get('end').millisecondsSince(occurance.get('start')));
     
     occurance.set({
-      start: start_date,
-      end: end_date});
+      start: start_date
+    });
     
-    $box.find('[data-source=start]').text(start_date);
-    $box.find('[data-source=end]').text( end_date);
+    $box.find('[data-source=start]').text(start_date.format(this.activity_date_format));
+    $box.find('[data-source=end]').text( occurance.get('end').format(this.activity_date_format));
     
     // align to new date time
     

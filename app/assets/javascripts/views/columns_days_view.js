@@ -103,11 +103,13 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       if (zoom >= 600) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry(this, null));
+          this.column_line_steps = 4;
         }
       }
       else if (zoom >= 300) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry(this, null));
+          this.column_line_steps = 24;
         }        
       }
       
