@@ -7,6 +7,8 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   activity_template: 
     "<div data-type='activity-occurance' class='activity-occurance'>"+
       "<div class='activity-occurance-inner'>" +
+        "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
+        "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
         "<div class='activity-occurance-labels'>" +
           "<div class='name' data-source='name'></div>" +
           "<div class='time'>" +
@@ -30,7 +32,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   // renders activities
   update_data_view: function() {
 
-    this.$grid_el.find("[data-type='activity-occurance']").remove();
+    this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
     this.visible_occurances_boxes = {};
     
     var first_date = this.drawing_columns_list.first().column_id;
@@ -64,40 +66,51 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     if (column == undefined)
       return;
     
-    var box = $(this.activity_template)
-      .data('occurance', occurance)
-      .data('column', column);
+    var box = $(this.activity_template).data({
+      'occurance': occurance,
+      'column': column,
+      'start_date': occurance.get('start'),
+      'duration': occurance.get('duration'),
+    });
+    box.css(this.columns_size_attr, this.drawing_column_width);
+    box.css(this.columns_offset_attr, column.$column.position()[this.columns_offset_attr]);
     box.find('[data-source=name]').text(occurance.get("activity").get("name")); 
     box.find('[data-source=start]').text(occurance.get("start").format(this.activity_date_format));
     box.find('[data-source=end]').text( occurance.get("end").format(this.activity_date_format));
     
     this.set_box_offset_and_size_for_column(box, start_coord.line, end_coord.line - start_coord.line);
     
-    column.$column.append(box);
+    this.$grid_overlay_el.append(box);
     this.visible_occurances_boxes[occurance.id] = box;
-    
+    /*
     box.draggable({
       grid:[this.drawing_column_line_height/this.column_line_steps, this.drawing_column_line_height/this.column_line_steps], 
       containment: "parent", 
       axis: this.axis == 'y' ? 'x' : 'y',
       drag: _.bind(this.activity_box_moved,this),
       stop: _.bind(this.activity_box_moving_stop, this)
-    });      
+    });     
+    */
+    box.column_box({
+      view: this,
+      orientation: this.axis == 'x' ? 'y' : 'x',
+      steps: this.column_step_minutes,
+      drag: _.bind(this.activity_box_moved,this),
+      stop: _.bind(this.activity_box_moving_stop, this)
+    });
   },
     
   activity_box_moved: function(e, ui) {
-    var $box = $(ui.helper);
+    var $box = $(ui.el);
     var occurance = $box.data('occurance');
     var column = $box.data('column');
     
-    // get date of current lines
-    var start_date = this.geometry.get_date_of_line(column.column_id, this.get_box_offset_in_column(ui.position), 15);
-    
     occurance.set({
-      start: start_date
+      start: ui.date_front,
+      duration: ui.duration
     });
     
-    $box.find('[data-source=start]').text(start_date.format(this.activity_date_format));
+    $box.find('[data-source=start]').text(ui.date_front.format(this.activity_date_format));
     $box.find('[data-source=end]').text( occurance.get('end').format(this.activity_date_format));
     
     // align to new date time
@@ -105,7 +118,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   },
   
   activity_box_moving_stop: function(e, ui) {
-    var $box = $(ui.helper);
+    var $box = $(ui.el);
     var occurance = $box.data('occurance');
 
     occurance.save();

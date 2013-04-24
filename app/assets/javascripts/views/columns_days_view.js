@@ -121,13 +121,13 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry(this, null));
         }
-        this.column_line_steps = 4;
+        this.column_step_minutes = 15;
       }
       else if (zoom >= 300) {
         if (!(this.geometry instanceof PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry)) {
           this.set_geometry(new PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry(this, null));
         }        
-        this.column_line_steps = 24;
+        this.column_step_minutes = 60;
       }
       
       this.zoom = zoom;

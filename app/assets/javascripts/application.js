@@ -14,6 +14,7 @@
 //= require Date.extended
 //= require Number.extended
 //= require jquery.ui.kineticdraggable
+//= require jquery.ui.columnbox
 //
 //= require ./core/init
 //= require ./core/personal_timetabling

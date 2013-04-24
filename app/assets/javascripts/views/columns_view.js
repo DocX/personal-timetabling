@@ -105,15 +105,34 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
       return offset / this.drawing_column_line_height;
     },
     
+    box_offset_and_size_for_column: function(offset, size) {
+      var setting = {};
+      setting[this.axis == 'y' ? 'left' : "top"] = offset*this.drawing_column_line_height;
+      setting[this.axis == 'y' ? 'width' : "height"] = size * this.drawing_column_line_height;
+      return setting;
+    },
+    
     set_box_offset_and_size_for_column: function($box, offset, size) {
-      $box
-      .css(this.axis == 'y' ? 'left' : "top", (offset*this.drawing_column_line_height) + "px")
-      // TODO support over column activities
-      .css(this.axis == 'y' ? 'width' : "height", (size * this.drawing_column_line_height) + "px")
+      $box.css(this.box_offset_and_size_for_column(offset,size));
     },
     
     _set_geometry: function(geometry) {
       this.geometry = geometry;
+    },
+    
+    column_of_id: function(column_id, offset) {
+      if (offset == undefined)
+        offset = 0;
+      
+      for(var i = 0; i < this.drawing_columns_list.length; i++) {
+        if (this.drawing_columns_list[i].column_id == column_id)
+          break;
+      }
+      
+      i = i + offset;
+      return i < this.drawing_columns_list.length && i >= 0 ?
+        this.drawing_columns_list[i] : null;
+      
     },
     
     // redraws whole view

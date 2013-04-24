@@ -7,11 +7,13 @@ class OccurancesController < ApplicationController
   end
   
   def update
-    @occurance = Occurance.find params[:id]
+    #@occurance = Occurance.find params[:id]
     filtered_params = params.reject {|k,v| not ['start', 'duration'].include? k}
-    @occurance.update_attributes filtered_params
+    #@occurance.update_attributes filtered_params
+    #Occurance.where(:id => params[:id]).update_all filtered_params
+    Occurance.update params[:id], filtered_params
     respond_to do |format|
-      format.json { render :json => @occurance}
+      format.json { render :json => true}
     end
   end
   

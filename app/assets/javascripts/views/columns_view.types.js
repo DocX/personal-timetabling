@@ -19,13 +19,7 @@ PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.exte
     // id is column's top edge Date
     
     // go to first date
-    var date = from_id;
-    var direction = offset < 0 ? -1 : 1;
-    offset = offset * direction;
-    while(offset>0) {
-      offset -= 1;
-      date = direction > 0 ? this.next_column(date) : this.prev_column(date);
-    }
+    var date = this.get_offset_column(from_id, offset);
     
     var columns = [];
     while(number-- > 0) {
@@ -50,6 +44,18 @@ PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.exte
   // get date representation of center of given column
   get_center_date: function(column_id) {
     
+  },
+  
+  // gets column which is number of columns apart from given column
+  get_offset_column: function(column, offset) {
+    var date = column;
+    var direction = offset < 0 ? -1 : 1;
+    offset = offset * direction;
+    while(offset>0) {
+      offset -= 1;
+      date = direction > 0 ? this.next_column(date) : this.prev_column(date);
+    }
+    return date;
   },
   
   /* abstract protected methods */

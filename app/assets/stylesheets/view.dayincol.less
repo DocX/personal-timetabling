@@ -1,4 +1,5 @@
 
+@activity-box-border-color: saturate(darken(@mainmenu-background,40%),50%);
 
 .columns-view {
   @line-cell-shadow: inset 0px 1px 0px 0px rgba(104, 57, 0, 0.26);  
@@ -81,8 +82,7 @@
       position:absolute;
       left:0; right:0; top:0; bottom:0;
       
-      // nothing yet inside
-      display:none;
+      
     }
 
   } // .grid
@@ -143,17 +143,36 @@
     
     .activity-occurance-inner {
       background: fade(desaturate(@mainmenu-background,30%), 50%);
-      border: rgba(22, 111, 162, 1) 2px solid;
+      border: @activity-box-border-color 2px solid;
+      border-left: fade(@activity-box-border-color, 45%) 1px solid;
+      border-right: fade(@activity-box-border-color, 45%) 1px solid;
       position:absolute;
       top:1px;
-      left:0;
-      bottom:1px;
-      right:0;
+      left:5px;
+      bottom:0px;
+      right:5px;
       overflow: hidden;
       
       div.activity-occurance-labels {
         position:absolute;
-        padding-left: 5px;
+        left:10px;
+        right:10px;
+      }
+      div.activity-occurance-handle {
+        display:none;
+        height:5px;
+        background:fade(desaturate(@mainmenu-background,30%), 100%);
+        position:absolute;
+        left:0;
+        right:0;
+      }
+      div.columnbox-handle-front {
+        top:0;
+        cursor: n-resize;
+      }
+      div.columnbox-handle-back {
+        bottom:0;
+        cursor: s-resize;
       }
     }
     
@@ -163,13 +182,12 @@
         
         div.activity-occurance-labels {
           background: fade(desaturate(@mainmenu-background,30%), 100%);
-          top: -2px;
-          left:100%;
-          width:100%;
-          margin-left:4px;
-          
-          border: rgba(22, 111, 162, 1) 2px solid;
+          height:4em;
           z-index:100;
+        }
+        
+        div.activity-occurance-handle {
+          display:block;
         }
       }
     }
@@ -269,22 +287,48 @@
     
     
     .activity-occurance-inner {
-      top:0px;
+      top:20px;
       left:1px;
-      bottom:0px;
+      bottom:5px;
       right:0;
+      border: @activity-box-border-color 2px solid;
+      border-top: fade(@activity-box-border-color, 45%) 1px solid;
+      border-bottom: fade(@activity-box-border-color, 45%) 1px solid;
+      
+      div.activity-occurance-labels {
+        left:10px;
+        top:0px;
+        bottom:20px;
+        height: auto;
+        
+        span.end {
+          display:block;
+        }
+      }
+    }
+    div.activity-occurance-handle {
+      height:auto;
+      left:auto;
+      right:auto;
+      width:5px;
+      top:0;
+      bottom:0;
+    }
+    div.columnbox-handle-front {
+      left:0;
+      cursor: w-resize;
+    }
+    div.columnbox-handle-back {
+      right:0;
+      cursor: e-resize;
     }
     
     &:hover, &.ui-draggable-dragging {
       .activity-occurance-inner {
         
         div.activity-occurance-labels {
-          top: 100%;
-          left:-2px;
-          width:250px;
-          margin-top:4px;
-          margin-left:0;
-          
+          right:10px;
+          min-width: 15em;
         }
       }
     }
