@@ -19,40 +19,36 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
       "</div>" +
     "</div>",
  
-  activity_date_format: '{dd}.{MM}.{yy} {H}:{mm}',
+  activity_date_format: 'DD.MM.YY H:mm',
     
   initialize: function() {
     
     PersonalTimetabling.CalendarViews.ColumnsDaysView.prototype.initialize.apply(this);
     
-    this.listenTo(this.collection, 'add', this.update_data_view);
-    this.listenTo(this, 'columns_updated', this.update_data_view);
+    this.listenTo(this.collection, 'sync', this.update_data_view);
+    this.listenTo(this, 'columns_updated', this.fetch_data_view);
   },
 
-  // renders activities
-  update_data_view: function() {
-
+  fetch_data_view: function() {
     this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
-    this.visible_occurances_boxes = {};
-    
-    var first_date = this.drawing_columns_list.first().column_id;
-    var last_date =  this.drawing_columns_list.last().column_id;
 
-    var activities_to_show = this.collection.withOccurancesInRange(
-      this.geometry.get_date_of_line(first_date,0), 
-      this.geometry.get_date_of_line(last_date, this.drawing_columns_list.last().lines_labels.length)
+    var range = this.showing_dates();
+    this.collection.fetchRange(range.start, range.end);
+  },
+  
+  // renders activities
+  update_data_view: function() {    
+    var range = this.showing_dates();
+
+    var occurances_to_show = this.collection.inRange(
+      range.start, range.end
     );
 
-    for(var i = 0; i < activities_to_show.length; i++) {
-      var activity = activities_to_show[i];
-      activity.getOccurancesInRange(first_date, last_date, _.bind(function(activity_occurances){
-        for(var io = 0; io < activity_occurances.length; io++) {
-          var occurance = activity_occurances.at(io);
-          if (occurance.get('activity') == null)
-            continue;
-          this.add_activity_box(occurance);
-        }
-      }, this) );
+    for(var io = 0; io < occurances_to_show.length; io++) {
+      var occurance = occurances_to_show[io];
+      if (occurance.get('activity') == null)
+        continue;
+      this.add_activity_box(occurance);
     }
   },
   
@@ -81,7 +77,6 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     this.set_box_offset_and_size_for_column(box, start_coord.line, end_coord.line - start_coord.line);
     
     this.$grid_overlay_el.append(box);
-    this.visible_occurances_boxes[occurance.id] = box;
     /*
     box.draggable({
       grid:[this.drawing_column_line_height/this.column_line_steps, this.drawing_column_line_height/this.column_line_steps], 

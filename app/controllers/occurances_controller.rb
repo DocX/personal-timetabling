@@ -39,7 +39,7 @@ class OccurancesController < ApplicationController
     @occurances = Occurance.in_range start_date, end_date
     
     respond_to do |format|
-      format.json { render :json => @occurances}
+      format.json { render :json => @occurances, :except => [:end]}
     end    
   end
   

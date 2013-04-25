@@ -2,14 +2,30 @@
 
 PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
   
+  relations: [
+    {
+      type: Backbone.HasOne,
+      key: 'activity',
+      relatedModel: 'PersonalTimetabling.Models.Activity',
+      collectionType: 'PersonalTimetabling.Models.ActivityRelationalCollection',
+      reverseRelation: {
+        key: 'occurances',
+        type: Backbone.HasMany
+      },
+      keySource: 'activity_id',
+      parse: true,
+      autoFetch: true
+    }
+  ],
+  
   defaults: function() { return {
-    start: new Date(),
+    start: moment.utc(),
     duration: 3600
   }},
   
   validate: function(attrs, options) {
     if(attrs.end) {
-      attrs.duration = attrs.start.secondsUntil(attrs.end);
+      attrs.duration = attrs.end.diff(attrs.start, 's');
       delete attrs.end;
     }
     
@@ -28,7 +44,7 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
   },
   
   end: function () {
-   return this.get('start').clone().addSeconds(this.get('duration')); 
+   return this.get('start').clone().add('s', this.get('duration')); 
   },
   
   // occurance is partialy or full in the given time range
@@ -36,14 +52,18 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
     var start = this.get("start");
     var end = this.end();
     
-    return (start >= rangestart && start <= rangeend ) || (end <= rangeend && end >= rangestart) || (start < rangestart && end > rangeend)
+    // occurance starts or ends in the range
+    // or range starts or ends in the occurance
+    return (start.isBefore(rangeend) && end.isAfter(rangestart)) || 
+      (rangestart.isBefore(end) && rangeend.isAfter(start));
   },
 
   parse: function(data, options) {
-    data.start = new Date(data.start);
+    data.start = moment.utc(data.start);
     data.duration = Number(data.duration);
     if (data.end) {
-      data.duration = data.start.secondsUntil(data.end);
+      data.duration = moment.utc(data.end).diff(data.start,'seconds');
+      delete data.end;
     }
     return data;
   },
@@ -55,20 +75,7 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
 // High-level representation of activity
 PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
 
-  relations: [
-    {
-      type: Backbone.HasMany,
-      key: 'occurances',
-      relatedModel: 'PersonalTimetabling.Models.ActivityOccurance',
-      collectionType: 'PersonalTimetabling.Models.OccurancesCollection',
-      reverseRelation: {
-        key: 'activity',
-      },
-      keySource: 'occurance_ids',
-      keyDestination: 'occurances',
-      parse: true,
-    }
-  ],
+  urlRoot: '/activities', 
   
   defaults: {
     name: "",
@@ -93,16 +100,17 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
   createFixed: function(name, description, start, duration) {
     if (typeof name === 'object') {
         duration = name.duration;
-        if (name.end instanceof Date)
+        if (moment.isMoment(name.end))
           duration = name.end;
         start = name.start;
         description = name.description,
         name = name.name;
     }
     
-    if (duration instanceof Date)
+    // duration is containing end date
+    if (moment.isMoment(duration))
     {
-      duration = start.secondsUntil(duration);
+      duration = duration.diff(start, 's');
     }
     
 
@@ -122,13 +130,38 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
   },
 });
 
-PersonalTimetabling.Models.OccurancesCollection = Backbone.Collection.extend({
+PersonalTimetabling.Models.OccurancesRalationCollection = Backbone.Collection.extend({
 
   url: function(relatedModels) {
     return '/occurances/list/'+_.pluck(relatedModels,'id').join(';')
   },
 
 });
+
+PersonalTimetabling.Models.ActivityRalationalCollection = Backbone.Collection.extend({
+
+  url: function(relatedModels) {
+    return '/activities/list/'+_.pluck(relatedModels,'id').join(';')
+  },
+
+});
+
+
+PersonalTimetabling.Models.OccurancesCollection = Backbone.Collection.extend({
+
+  url: '/occurances/in_range',
+  
+  model: PersonalTimetabling.Models.ActivityOccurance,
+  
+  fetchRange: function(start, end) {
+    return this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+  },
+  
+  inRange: function(start, end) {
+    return this.filter(function(o) {return o.inRange(start,end);});
+  }
+  
+})
 
 PersonalTimetabling.Models.ActivityCollection = Backbone.Collection.extend({
 

@@ -7,6 +7,10 @@ class Occurance < ActiveRecord::Base
     occurance.end = occurance.start + Rational(occurance.duration, 86400)
   end
   
+  def start
+    return self['start'].to_datetime
+  end
+  
   def self.in_range(start_date, end_date)
     where('start < ? AND end > ?', end_date, start_date  )
   end

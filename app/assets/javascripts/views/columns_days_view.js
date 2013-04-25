@@ -4,7 +4,7 @@
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
 PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.CalendarViews.ColumnsView.extend({
   options: {
-      initial_date: Date.today()
+      initial_date: moment.utc()
   },
 
   buttons_template: 
@@ -154,6 +154,16 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       this.drawing_column_line_height = min_height + ((max_height - min_height) * ((this.zoom % 300) / 300));              
 
       PersonalTimetabling.CalendarViews.ColumnsView.prototype.resize.apply(this);      
+    },
+    
+    // returns hash with the range of rendered columns time as 'start' and 'end' date attributes
+    showing_dates: function() {
+      var first_col_id = this.drawing_columns_list.first().column_id;
+      var last_col_id =  this.drawing_columns_list.last().column_id;
+      var start_date = this.geometry.get_date_of_line(first_col_id,0);
+      var end_date = this.geometry.get_date_of_line(last_col_id,     this.drawing_columns_list.last().lines_labels.length);
+
+      return {start: start_date, end:end_date};
     }
     
 });

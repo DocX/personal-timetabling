@@ -4,11 +4,11 @@ PersonalTimetabling.App = Backbone.View.extend({
 
   initialize: function() {
 
-    this.activities = new PersonalTimetabling.Models.ActivityCollection();
+    this.occurances = new PersonalTimetabling.Models.OccurancesCollection();
 
     $("[data-submit=schedule-activity]").click(_.partial(this.schedule_activity_clicked, this));
     
-    this.calendar_view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#content"), collection: this.activities});
+    this.calendar_view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#content"), collection: this.occurances});
     this.$topbar = $("#topbar");
 
     $(window).resize(function(that) { return function() {that.resize();} } (this));
@@ -16,24 +16,6 @@ PersonalTimetabling.App = Backbone.View.extend({
 
     $(document).on('ajaxStart', function() {  $("#ajax-indicator").show(); });
     $(document).on('ajaxStop', function() {  $("#ajax-indicator").hide(); });
-    
-    this.activities.fetch({success: function(activities) {
-      // this is only for example
-      if (activities.length == 0) {
-        activities.create(PersonalTimetabling.Models.Activity.createFixed({
-          name: "Lunch 01",
-          description:"Lunch at Burger King",
-          start: new Date().beginningOfDay().addHours(11).addMinutes(15),
-          end: new Date().beginningOfDay().addHours(13).addMinutes(00)
-        }));
-        activities.create(PersonalTimetabling.Models.Activity.createFixed({
-          name: "Lunch 02",
-          description:"Lunch at Burger King",
-          start: new Date().beginningOfDay().addDays(1).addHours(11).addMinutes(15),
-          end: new Date().beginningOfDay().addDays(1).addHours(13).addMinutes(00)
-        }));
-      };
-    }});
   },
 
   render: function() {

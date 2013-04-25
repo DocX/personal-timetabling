@@ -97,55 +97,55 @@ PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarVie
     return this.global_geometry;
   },
   
-  next_column: function(date) { return new Date(date).addDays(1).getTime(); },
+  next_column: function(date) { return moment.utc(date).add('d',1).valueOf(); },
   
-  prev_column: function(date) { return new Date(date).addDays(-1).getTime(); },
+  prev_column: function(date) { return moment.utc(date).add('d',-1).valueOf(); },
   
   column_spec: function(date_id) {
-    var date = new Date(date_id);
-    var sun_or_sat = ((date.getWeekday() +6) % 7) >= 5;
+    var date = moment.utc(date_id);
+    var sun_or_sat = ((date.day() +6) % 7) >= 5;
     return {
         id: date_id,
-        title: date.format("{Dow} {d}. {M}. {yyyy}"),
+        title: date.format("ddd D. M. YYYY"),
         lines_labels: this.lines_prototype.map(function(el) {return {label: el, style: sun_or_sat ? 'shaded' : ''};})
       };
   },
   
   get_super_columns: function(column_start_id, columns) {
     // get left edge of column on the left edge of first column
-    column_start_id = new Date(column_start_id);
-    var left_date = column_start_id.clone().beginningOfWeek().addDays(1);
+    column_start_id = moment.utc(column_start_id);
+    var left_date = column_start_id.clone().startOf('week').day(1);
     
-    var end_date = column_start_id.clone().addDays(columns);
+    var end_date = column_start_id.clone().add('d', columns);
     supercols = [];
     
-    while(end_date > left_date) {
-      var week = left_date.getWeekOfYear();
+    while(end_date.isAfter(left_date)) {
+      var week = left_date.clone().day(1);
       supercols.push({
-        supercol_start_column: left_date.getTime(),
+        supercol_start_column: left_date.valueOf(),
         start_part: 0,
-        label: "Week " + week.week  + "/" + week.year});
+        label: "Week " + week.isoWeek()  + "/" + week.year()});
       
-      left_date = left_date.addDays(7);
+      left_date = left_date.add('w',1);
     }
     
     return supercols;
   },
   
   get_line_of_date: function(date) {
-    return {column_id: date.getMidnight().getTime(), line: date.getHours() + (date.getMinutes()/60)};
+    return {column_id: date.clone().startOf('day').valueOf(), line: date.hour() + (date.minute()/60)};
   },
   
   get_date_of_line: function(column_id, line, round_to_minutes) {
-    var date = new Date(column_id);
+    var date = moment.utc(column_id);
     
     if (!round_to_minutes)
       round_to_minutes = 1;
     
     minutes_since_zero = Math.round((line * 60) / round_to_minutes) * round_to_minutes;
     
-    date.setHours(Math.floor(minutes_since_zero / 60))
-    date.setMinutes(minutes_since_zero % 60);
+    date.hours(Math.floor(minutes_since_zero / 60))
+    date.minutes(minutes_since_zero % 60);
     return date;
   }
 });
@@ -170,54 +170,50 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   },
   
   get_line_of_date: function(date) {
-    var week_start = date.clone().beginningOfWeek().addDays(1);
-    if (week_start > date){
-      week_start.addDays(-7);
-    }
-    return {column_id: week_start.getTime(), line: date.minutesSince(week_start) / 1440};
+    // get monday of the week in which date is
+    var week_start = date.clone().day(1);
+    
+    return {column_id: week_start.valueOf(), line: date.diff(week_start, 'weeks', true)};
   },
   
-  next_column: function(date) { return new Date(date).addDays(7).getTime(); },
+  next_column: function(date) { return moment.utc(date).add('w',1).valueOf(); },
   
-  prev_column: function(date) { return new Date(date).addDays(-7).getTime(); },
+  prev_column: function(date) { return moment.utc(date).add('w',-1).valueOf(); },
   
   column_spec: function(date_id) {
-    var date = new Date(date_id);
+    var date = moment.utc(date_id);
     
     var lines = [];
     var line_date = date.clone();
     for(var i = 0; i<7; i++) {
-      var sun_or_sat = ((line_date.getWeekday() +6) % 7) >= 5;
-      lines.push({label: line_date.format("{Dow} {d}.{M}."), style: sun_or_sat ? 'shaded' : ''});
-      line_date.addDays(1);
+      var sun_or_sat = ((line_date.day() +6) % 7) >= 5;
+      lines.push({label: line_date.format("ddd D.M."), style: sun_or_sat ? 'shaded' : ''});
+      line_date.add('d',1);
     }
-    var week = date.getWeekOfYear();
+    var week = date.isoWeek();
     return {
         id: date_id,
-        title: (week.week + "/" + week.year),
+        title: (week + "/" + week.day(1).year()),
         lines_labels: lines
       };
   },
   
   get_super_columns: function(column_start_id, columns) {
     // get left edge of column on the left edge of first column
-    var column_date = new Date(column_start_id);
-    var left_date = column_date.beginningOfMonth();
+    var left_date = moment.utc(column_start_id);
+    column_date.startOf('month');
     
-    var end_date = left_date.clone().addDays(7*columns);
+    var end_date = left_date.clone().add('w',columns);
     supercols = [];
     
-    while(end_date > left_date) {
+    while(end_date.isAfter(left_date)) {
       // get months first day week - should be sure before left_date
-      var week = left_date.clone().beginningOfWeek().addDays(1);
-      if (week > left_date) {
-        week.addDays(-7);
-      }
+      var week = left_date.clone().day(1);
     
       supercols.push({
-        supercol_start_column: week.getTime(),
-        start_part: (week.minutesUntil(left_date) / (7*1440)),
-        label: left_date.format("{Month} {year}")});
+        supercol_start_column: week.valueOf(),
+        start_part: left_date.diff(week, 'weeks', true),
+        label: left_date.format("MMM YYYY")});
       
       left_date.addMonths(1);
     }
@@ -228,12 +224,12 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   
   
   get_date_of_line: function(column_id, line, round_to_minutes) {
-    var date = new Date(column_id);
+    var date = moment.utc(column_id);
     
     if (!round_to_minutes)
       round_to_minutes = 1;
     
-    date.addMinutes(Math.round(line * 1440 / round_to_minutes) * round_to_minutes);
+    date.add('minutes', Math.round(line * 1440 / round_to_minutes) * round_to_minutes);
     return date;
   }
 });
