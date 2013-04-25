@@ -6,5 +6,6 @@
 //= require backbone
 //= require backbone-relational
 //= require sugar.min
+//= require moment
 //= require Base
 //= require bootstrap

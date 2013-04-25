@@ -142,17 +142,18 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
     },
     
     resize: function() {
-        var max_lines = this.geometry.get_global_geometry().column_max_lines;
-        
-        // set height of lines
-        // minimum is to be fit to window height or 50px
-        var min_height = Math.min(200, Math.max(25, this.container_window_lines_size() / max_lines));
-        var max_height = 500;
-        
-        // compute height as linear function of zoom between min and max height
-        this.drawing_column_line_height = min_height + ((max_height - min_height) * ((this.zoom % 300) / 300));              
+      var max_lines = this.geometry.get_global_geometry().column_max_lines;
+      
+      // set height of lines
+      // minimum is to be fit to window height or 50px
+      var max_height = 500;
+      var min_height = Math.min(max_height, Math.max(25, this.container_window_lines_size() / max_lines));
+      
+      
+      // compute height as linear function of zoom between min and max height
+      this.drawing_column_line_height = min_height + ((max_height - min_height) * ((this.zoom % 300) / 300));              
 
-        PersonalTimetabling.CalendarViews.ColumnsView.prototype.resize.apply(this);      
+      PersonalTimetabling.CalendarViews.ColumnsView.prototype.resize.apply(this);      
     }
     
 });

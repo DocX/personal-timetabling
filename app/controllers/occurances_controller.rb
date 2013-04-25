@@ -28,8 +28,19 @@ class OccurancesController < ApplicationController
     @occurances = Occurance.where(:id => ids)
 
     respond_to do |format|
-      format.json { render :json => @occurances}
+      format.json { render :json => @occurances, :except => [:end]}
     end        
+  end
+  
+  def in_range
+    start_date = DateTime.parse params[:start]
+    end_date = DateTime.parse params[:end]
+    
+    @occurances = Occurance.in_range start_date, end_date
+    
+    respond_to do |format|
+      format.json { render :json => @occurances}
+    end    
   end
   
 end
