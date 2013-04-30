@@ -102,7 +102,7 @@ PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarVie
   prev_column: function(date) { return moment.utc(date).add('d',-1).valueOf(); },
   
   column_spec: function(date_id) {
-    var date = moment.utc(date_id);
+    var date = moment.utc(date_id).startOf('day');
     var sun_or_sat = ((date.day() +6) % 7) >= 5;
     return {
         id: date_id,
@@ -171,9 +171,9 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   
   get_line_of_date: function(date) {
     // get monday of the week in which date is
-    var week_start = date.clone().day(1);
+    var week_start = date.clone().startOf('week').day(1);
     
-    return {column_id: week_start.valueOf(), line: date.diff(week_start, 'weeks', true)};
+    return {column_id: week_start.valueOf(), line: date.diff(week_start, 'hours', true) / 24};
   },
   
   next_column: function(date) { return moment.utc(date).add('w',1).valueOf(); },
@@ -193,17 +193,17 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
     var week = date.isoWeek();
     return {
         id: date_id,
-        title: (week + "/" + week.day(1).year()),
+        title: (week + "/" + date.day(4).year()),
         lines_labels: lines
       };
   },
   
   get_super_columns: function(column_start_id, columns) {
     // get left edge of column on the left edge of first column
-    var left_date = moment.utc(column_start_id);
-    column_date.startOf('month');
+    var column_date = moment.utc(column_start_id);
+    var left_date = column_date.clone().startOf('month').day(1);
     
-    var end_date = left_date.clone().add('w',columns);
+    var end_date = column_date.clone().add('w',columns);
     supercols = [];
     
     while(end_date.isAfter(left_date)) {
@@ -215,7 +215,7 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
         start_part: left_date.diff(week, 'weeks', true),
         label: left_date.format("MMM YYYY")});
       
-      left_date.addMonths(1);
+      left_date.add('month', 1);
     }
     
     return supercols;

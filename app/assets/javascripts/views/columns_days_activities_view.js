@@ -4,45 +4,38 @@
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
 PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetabling.CalendarViews.ColumnsDaysView.extend({
 
-  activity_template: 
-    "<div data-type='activity-occurance' class='activity-occurance'>"+
-      "<div class='activity-occurance-inner'>" +
-        "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
-        "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
-        "<div class='activity-occurance-labels'>" +
-          "<div class='name' data-source='name'></div>" +
-          "<div class='time'>" +
-            "<span class='start' data-source='start'></span> - " +
-            "<span class='end' data-source='end'></span>" +
-          "</div>" +
-        "</div>" +
-      "</div>" +
-    "</div>",
- 
-  activity_date_format: 'DD.MM.YY H:mm',
+  
     
   initialize: function() {
     
     PersonalTimetabling.CalendarViews.ColumnsDaysView.prototype.initialize.apply(this);
     
-    this.listenTo(this.collection, 'sync', this.update_data_view);
-    this.listenTo(this, 'columns_updated', this.fetch_data_view);
+    //this.listenTo(this.collection, 'sync', this.update_data_view);
+    this.listenTo(this, 'columns_updated', this.reload_activities);
+    
+    this.$grid_overlay_el.mouse_events({
+      distance: 10,
+      onstart: _.bind(this.mouse_create_box, this)
+    });
   },
 
-  fetch_data_view: function() {
+  reload_activities: function() {
     this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
 
     var range = this.showing_dates();
-    this.collection.fetchRange(range.start, range.end);
+    this.collection.fetchRange(range.start, range.end)
+    .success(_.bind(this.update_data_view, this));
   },
   
   // renders activities
   update_data_view: function() {    
+    console.log('activities updating');
     var range = this.showing_dates();
 
     var occurances_to_show = this.collection.inRange(
       range.start, range.end
     );
+    this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
 
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
@@ -52,71 +45,41 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
     }
   },
   
-  add_activity_box: function(occurance) {
-    // determine column
-    var start_coord = this.geometry.get_line_of_date(occurance.get("start"));
-    var end_coord = this.geometry.get_line_of_date(occurance.get("end"));
-
-    // find column for start
-    var column = this.drawing_columns_list.find(function(k) {return k.column_id == start_coord.column_id;}); 
-    if (column == undefined)
-      return;
-    
-    var box = $(this.activity_template).data({
-      'occurance': occurance,
-      'column': column,
-      'start_date': occurance.get('start'),
-      'duration': occurance.get('duration'),
-    });
-    box.css(this.columns_size_attr, this.drawing_column_width);
-    box.css(this.columns_offset_attr, column.$column.position()[this.columns_offset_attr]);
-    box.find('[data-source=name]').text(occurance.get("activity").get("name")); 
-    box.find('[data-source=start]').text(occurance.get("start").format(this.activity_date_format));
-    box.find('[data-source=end]').text( occurance.get("end").format(this.activity_date_format));
-    
-    this.set_box_offset_and_size_for_column(box, start_coord.line, end_coord.line - start_coord.line);
-    
+  add_activity_box: function(occurance, is_new_resizing) {
+    var box = $("<div />");
     this.$grid_overlay_el.append(box);
-    /*
-    box.draggable({
-      grid:[this.drawing_column_line_height/this.column_line_steps, this.drawing_column_line_height/this.column_line_steps], 
-      containment: "parent", 
-      axis: this.axis == 'y' ? 'x' : 'y',
-      drag: _.bind(this.activity_box_moved,this),
-      stop: _.bind(this.activity_box_moving_stop, this)
-    });     
-    */
-    box.column_box({
+   
+    box.activity_occurance_box({
       view: this,
-      orientation: this.axis == 'x' ? 'y' : 'x',
       steps: this.column_step_minutes,
-      drag: _.bind(this.activity_box_moved,this),
-      stop: _.bind(this.activity_box_moving_stop, this)
+      occurance: occurance,
+      in_mouse_move: true,
+      remove: _.bind(this.delete_activity_occurance, this) 
     });
-  },
-    
-  activity_box_moved: function(e, ui) {
-    var $box = $(ui.el);
-    var occurance = $box.data('occurance');
-    var column = $box.data('column');
-    
-    occurance.set({
-      start: ui.date_front,
-      duration: ui.duration
-    });
-    
-    $box.find('[data-source=start]').text(ui.date_front.format(this.activity_date_format));
-    $box.find('[data-source=end]').text( occurance.get('end').format(this.activity_date_format));
-    
-    // align to new date time
-    return true;
   },
   
-  activity_box_moving_stop: function(e, ui) {
-    var $box = $(ui.el);
-    var occurance = $box.data('occurance');
-
-    occurance.save();
-  }
+  delete_activity_occurance: function(e, data) {
+    data.occurance.destroy();
+    data.element.remove();
+  },
+  
+  mouse_create_box: function(e) {
+    // determine mouse click position
+    var column_index = Math.floor(e[this.axis == 'x' ? 'offsetX' : 'offsetY'] / this.drawing_column_width);
+    var column_line = this.get_box_offset_in_column({left: e.offsetX, top: e.offsetY});
+    
+    var start = this.geometry.get_date_of_line(this.drawing_columns_list[column_index].column_id, column_line, this.column_step_minutes);
+    
+    var new_activity = 
+      PersonalTimetabling.Models.Activity.createFixed({
+        start: start ,
+        duration: 3600,
+        name: 'Nova aktivita'
+      });
+    
+    //this.collection.create(new_activity);
+    
+    this.add_activity_box(new_activity.get('occurances').models[0], true);
+  },
 
 });

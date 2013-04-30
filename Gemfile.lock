@@ -38,6 +38,7 @@ GEM
       execjs
     coffee-script-source (1.6.2)
     commonjs (0.2.6)
+    dynamic_form (1.1.4)
     erubis (2.7.0)
     execjs (1.4.0)
       multi_json (~> 1.0)
@@ -113,6 +114,9 @@ GEM
       actionpack (>= 3.1)
       execjs
       railties (>= 3.1)
+    twitter_bootstrap_form_for (1.0.5)
+      actionpack (~> 3)
+      railties (~> 3)
     tzinfo (0.3.37)
     uglifier (2.0.1)
       execjs (>= 0.3.0)
@@ -123,6 +127,7 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-rails (~> 3.2.1)
+  dynamic_form
   jquery-rails
   jquery-ui-rails
   less-rails
@@ -131,4 +136,5 @@ DEPENDENCIES
   sqlite3
   therubyracer
   twitter-bootstrap-rails
+  twitter_bootstrap_form_for
   uglifier (>= 1.0.3)

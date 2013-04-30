@@ -21,6 +21,12 @@ class OccurancesController < ApplicationController
   end
   
   def destroy
+    @occurance = Occurance.find(params[:id])
+    @occurance.destroy
+    
+    respond_to do |format|
+      format.json { render :json => true}
+    end    
   end
   
   def list

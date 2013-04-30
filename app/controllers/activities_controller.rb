@@ -3,7 +3,10 @@ class ActivitiesController < ApplicationController
   def index
     @activities = Activity.includes(:occurances).all
     respond_to do |format|
-      format.json { render :json => @activities,  :methods => [:occurance_ids] }
+      format.json { render :json => @activities,  :methods => [:occurance_ids]
+      format.html { render :index }    
+    }
+      
     end
   end
   
@@ -23,15 +26,25 @@ class ActivitiesController < ApplicationController
     end
   end
   
+  def new
+    @activity = Activity.new
+  end
+  
   def create
-    filtered_params = params.reject {|k,v| not ['name', 'description', 'occurances', 'type'].include? k}
-    filtered_params['occurances'] = filtered_params['occurances'].map {|o| Occurance.new(o)} if filtered_params.include? 'occurances' and filtered_params['occurances'].is_a? Array
+    @activity = Activity.new params[:activity]
     
-    @activity = Activity.new(filtered_params)
-    @activity.save
-    respond_to do |format|
-      format.json { render :json => @activity}
+    if @activity.save
+      respond_to do |format|
+        format.json { render :json => @activity}
+        format.html { redirect_to :action => index}
+      end
+    else 
+      respond_to do |format|
+        format.json { render :json => false}
+        format.html { render 'new' }
+      end
     end
+    
   end
   
   def destroy
@@ -45,5 +58,7 @@ class ActivitiesController < ApplicationController
       format.json { render :json => @activities}
     end    
   end
+  
+ 
   
 end

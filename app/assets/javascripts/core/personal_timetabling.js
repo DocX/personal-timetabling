@@ -4,37 +4,36 @@ PersonalTimetabling.App = Backbone.View.extend({
 
   initialize: function() {
 
-    this.occurances = new PersonalTimetabling.Models.OccurancesCollection();
 
     $("[data-submit=schedule-activity]").click(_.partial(this.schedule_activity_clicked, this));
-    
-    this.calendar_view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#content"), collection: this.occurances});
+        
     this.$topbar = $("#topbar");
 
     $(window).resize(function(that) { return function() {that.resize();} } (this));
-    this.render();
 
     $(document).on('ajaxStart', function() {  $("#ajax-indicator").show(); });
     $(document).on('ajaxStop', function() {  $("#ajax-indicator").hide(); });
+    
+    this.view = null;
+    
+    if ($("#calendar-view").length > 0) {
+      this.occurances = new PersonalTimetabling.Models.OccurancesCollection();
+      
+      this.view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#calendar-view"), collection: this.occurances});
+    }
+
+    this.render();
   },
 
   render: function() {
     this.resize();
-    this.calendar_view.render();
+    if (this.view != null)
+      this.view.render();
   },
 
   resize: function() {
-    this.calendar_view.resize();
-  },
-   
-  request_start: function(model, xhr, options) {
-    console.log('reuqest started');
-    var current_ref = this.request_ref;
-    $("#ajax-indicator").data('ref', this.request_ref).show();
-    xhr.always(
-      function() {if ($("#ajax-indicator").data('ref') == current_ref) $("#ajax-indicator").hide();}
-    );
-    this.request_ref++;
+    if (this.view != null)
+      this.view.resize();
   },
 
   schedule_activity_clicked: function(app, e) {

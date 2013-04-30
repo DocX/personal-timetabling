@@ -1,0 +1,2 @@
+module DomainTemplatesHelper
+end

@@ -1,0 +1,13 @@
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Details</th>
+  </tr>
+<% @activities.each do |a| %>
+  <tr>
+    <td><%= a.name %></td>
+    <td><%= a.activity_definition.to_s %></td>
+  </tr>
+<% end %>
+
+</table>

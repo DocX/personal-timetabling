@@ -15,6 +15,7 @@
 //= require Number.extended
 //= require jquery.ui.kineticdraggable
 //= require jquery.ui.columnbox
+//= require jquery.ui.mouse_events
 //
 //= require ./core/init
 //= require ./core/personal_timetabling
@@ -23,6 +24,7 @@
 //= require ./views/columns_view
 //= require ./views/columns_view.types
 //= require ./views/columns_days_view
+//= require ./views/activity_box
 //= require ./views/columns_days_activities_view
 
 
