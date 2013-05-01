@@ -9,7 +9,7 @@ class BoundlessIntervalRepeating < TimeDomain
   attr_accessor :reference_start, :duration, :period
   
   def self.from_attributes(attributes)
-    interval = self.new ''
+    interval = self.new
     interval.reference_start = DateTime.new attributes['from(1i)'].to_i, Integer(attributes['from(2i)'].to_i), Integer(attributes['from(3i)'].to_i), Integer(attributes['from(4i)'].to_i), Integer(attributes['from(5i)'].to_i)
     
     interval.duration = Duration.new attributes['duration']

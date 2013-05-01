@@ -49,8 +49,8 @@ class Duration
   end  
 
   def encode_with coder
-    coder['duration'] = @duration
-    coder['unit'] = @unit
+    coder['duration'] = @duration.to_i
+    coder['unit'] = @unit.to_i
   end
   
   def init_with coder

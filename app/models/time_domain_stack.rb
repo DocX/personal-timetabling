@@ -37,7 +37,7 @@ class TimeDomainStack < TimeDomain
     end
     
     def encode_with coder
-      coder['action'] = @action
+      coder['action'] = @action.to_i
       coder['time_domain'] = @time_domain
     end
     
@@ -50,7 +50,7 @@ class TimeDomainStack < TimeDomain
   attr_accessor :actions_stack
 
   def initialize
-    super(name)
+    super
     @actions_stack = []
   end
   

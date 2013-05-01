@@ -7,7 +7,7 @@
     <% elsif a.time_domain.is_a? BoundlessIntervalRepeating %>
       Repeat <%= a.time_domain.duration.to_s %> from <%= a.time_domain.reference_start %> each <%= a.time_domain.period.to_s %>
     <% elsif a.time_domain.is_a? BoundedInterval %>
-      Fixed from <%= a.time_domain.from %> to <%= a.time_domain.to %>
+      Fixed from <%= a.time_domain.start %> to <%= a.time_domain.end %>
     <% else %>
       <%= a.time_domain.inspect %>
     <% end %>

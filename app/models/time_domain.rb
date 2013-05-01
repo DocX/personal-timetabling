@@ -4,8 +4,7 @@ class TimeDomain
 
   attr_accessor :name
 
-  def initialize(name)
-    @name = name
+  def initialize
   end
   
   # This is only data layer for intended algorithm implemented in java
