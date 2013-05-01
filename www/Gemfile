@@ -43,3 +43,5 @@ gem 'twitter_bootstrap_form_for'
 
 # To use debugger
 # gem 'debugger'
+
+gem 'rjb'
