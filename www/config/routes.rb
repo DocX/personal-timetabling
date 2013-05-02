@@ -13,7 +13,9 @@ Webui::Application.routes.draw do
     get 'in_range', :on => :collection, :action => :in_range
   end
 
-  resources :domain_templates
+  resources :domain_templates do
+    post 'preview', :on => :collection, :action => :preview
+  end
     
   
 end

@@ -19,15 +19,43 @@ class DomainTemplatesController < ApplicationController
 
   def show
     @domain_template = DomainTemplate.find(params[:id])
+    #@domain_template.domain_stack.to_j
     
-    @intervals = @domain_template.domain_stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
-    
+     begin
+       @intervals = @domain_template.domain_stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
+      rescue
+         @intervals = []
+      end
+     
   end
   
   def destroy
     @domain_template = DomainTemplate.find(params[:id])
     @domain_template.destroy
     redirect_to :action => :index
+  end
+  
+  def preview
+    stack = TimeDomainStack.from_attributes get_native(params['domain_stack'])
+    
+    @intervals = stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
+    
+    respond_to do |format|
+      format.json { render :json => @intervals}
+    end
+  end
+  
+  protected 
+  
+  def get_native attributes
+    new_attributes = {}
+    attributes = attributes.each do |k,a|
+      if a['type'] == 'database'
+        a = {'action' => a['action'], 'type' => 'raw', 'object' => DomainTemplate.find(a['domain_template_id']).domain_stack}
+      end
+      new_attributes[k] = a
+    end
+    new_attributes
   end
   
 end

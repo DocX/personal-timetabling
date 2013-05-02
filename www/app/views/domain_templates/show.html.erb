@@ -3,11 +3,11 @@
 
   <h1>Domain template "<%= @domain_template.name %>"</h1>
   
-  <% if @domain_template.domain_stack.is_a? String %>
-    <pre><%= @domain_template.domain_stack %></pre>
-  <% else %>
+  <%# if @domain_template.domain_stack.is_a? String %>
+    <pre><%= @domain_template.domain_stack.inspect %></pre>
+  <%# else %>
     <%= render :partial => 'template_stack', :locals => {:stack => @domain_template.domain_stack} %>
-  <% end %>
+  <%# end %>
   
   <h2>Intervals in +-10 days from now</h2>
   <ul>

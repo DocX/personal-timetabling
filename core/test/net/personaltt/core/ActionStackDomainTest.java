@@ -6,6 +6,8 @@ package net.personaltt.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -62,6 +64,25 @@ public class ActionStackDomainTest {
                 intervals.toArray()
                 );
         
+    }
+    
+     @Test
+    public void testGetIntervalsIn3() {
+        System.out.println("getIntervalsIn add");
+        
+        ActionStackDomain d = new ActionStackDomain();
+        d.push(ActionStackDomain.ADD, new RepeatingIntervalDomain(new LocalDateTime(2008,01,05,0,0,0), Days.TWO,Days.SEVEN));
+        
+
+        IntervalsSet intervalset = d.getIntervalsIn(
+                new Interval(
+                    new LocalDateTime(DateTime.now()).minus(Days.days(10)), 
+                    new LocalDateTime(DateTime.now()).plus(Days.days(10))
+                )
+                );
+        List<Interval> intervals = intervalset.getIntervals();
+
+        // just dont throw anythink :]
     }
 
     

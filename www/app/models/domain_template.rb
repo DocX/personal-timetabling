@@ -22,14 +22,8 @@ class DomainTemplate < ActiveRecord::Base
   end
   
   def domain_stack_attributes=(attributes)
-    new_attributes = {}
-    attributes = attributes.each do |k,a|
-      if a['type'] == 'database'
-        a = {'action' => a['action'], 'type' => 'raw', 'object' => DomainTemplate.find(a['domain_template_id']).domain_stack}
-      end
-      new_attributes[k] = a
-    end
-    stack = TimeDomainStack.from_attributes new_attributes
+    
+    stack = TimeDomainStack.from_attributes attributes
     self.domain_stack = stack
   end
 end

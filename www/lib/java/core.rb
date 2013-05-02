@@ -71,6 +71,8 @@ module Webui
     module DurationMixin
       def to_j
         case self.unit
+        when Duration::HOUR
+          return PeriodHours.hours self.duration
         when Duration::DAY
           return PeriodDays.days self.duration
         when Duration::WEEK

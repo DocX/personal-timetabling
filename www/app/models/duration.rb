@@ -41,6 +41,13 @@ class Duration
     @errors = ActiveModel::Errors.new(self)
   end
   
+  def duration= value 
+    @duration = value.to_i
+  end
+  def unit= value 
+    @unit = value.to_i
+  end
+  
   def persisted?
     false
   end
@@ -55,8 +62,8 @@ class Duration
   end
   
   def init_with coder
-    @duration = coder['duration']
-    @unit = coder['unit']
+    @duration = coder['duration'].to_i
+    @unit = coder['unit'].to_i
     @errors = ActiveModel::Errors.new(self)
   end
   

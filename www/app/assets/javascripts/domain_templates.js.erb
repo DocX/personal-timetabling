@@ -2,12 +2,35 @@
 var objectify = function(arr) {
         var obj = {};
         for(var k in arr) {
-          obj[arr[k]['name']] = arr[k]['value'];
+          var indexes = arr[k]['name'].replace(/^\[/, '').replace(/\]$/, '').split('][');
+          var level = obj;
+          for(var i=0; i<indexes.length - 1; i++) {
+            if (!(indexes[i] in level)) {
+              level[indexes[i]] = {};
+            }
+            level = level[indexes[i]];
+          }
+          level[indexes[i]] = arr[k]['value'];
         }
         
         return obj;
       }
 
+var deobjectfy = function(hs) {
+  var obj = {};
+  for(var k in hs) {
+    if (typeof hs[k] == 'object') {
+      var deob = deobjectfy(hs[k]);
+      for(var d in deob) {
+        obj["["+k+"]"+d]=deob[d];
+      }
+    } else {
+      obj["["+k+"]"] = hs[k];
+    }
+  }
+  return obj;
+}
+      
   $(document).ready(function() {
     var domain_template_items = [];
   
@@ -21,6 +44,35 @@ var objectify = function(arr) {
       'mask': 'icon-filter'
     };
   
+  
+    var load_preview = function() {
+      var items_data = ($("#domain-template-sortable li.sortable-item").map(function() { return $(this).data('item-data').attributes;}));
+     
+      var items = $.makeArray(items_data);
+      var items_data = {'domain_stack': {}};
+     
+      for (var i = 0; i< items.length; i++) {
+        items_data['domain_stack'][i] = items[i];
+      }
+      
+      $.ajax({
+        url:'/domain_templates/preview',
+        type:'post',
+        dataType:'json',
+        data: JSON.stringify(items_data),
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+          $("#domain-template-preview").empty();
+          $.each(data, function() {
+            $("#domain-template-preview").append("<li>" + this.start + " - " + this.end + "</li>");
+          })
+        },
+        error: function() {
+          $("#domain-template-preview").empty().append("<li>Error</li>");
+        }
+      });
+    };
+ 
     $("[data-domain-template=save-btn]").click(function() {
       //serialize sortable items to hidden field json
       
@@ -34,12 +86,13 @@ var objectify = function(arr) {
       var form = $(this).closest('form');
       for(var i = 0; i < items_data.length; i++) {
         var namespace = 'domain_template[domain_stack_attributes][' + i + ']';
-        for(var k in items_data[i]) {
+        var itemdeobjectized = deobjectfy(items_data[i]);
+        for(var k in itemdeobjectized) {
           form.append(
           '<input type="hidden" name="' + 
           namespace + k + 
           '" value="'
-          + items_data[i][k] + 
+          + itemdeobjectized[k] + 
           '" />'
           );
         }
@@ -70,7 +123,8 @@ var objectify = function(arr) {
       forcePlaceholderSize: true,
       handle: ".handle",
       axis: 'y',
-      items: '> li.sortable-item'
+      items: '> li.sortable-item',
+      change: function() {load_preview();}
     }).disableSelection();
     
     $('#domain-template-sortable').on('click','a[data-domain-item-btn=action]', function(e) {
@@ -95,6 +149,7 @@ var objectify = function(arr) {
     
     $('#domain-template-sortable').on('click','a[data-domain-item-btn=remove]', function(e) {
       $(e.target).closest('li').remove();
+      load_preview();
     });
 
     $('#domain-template-sortable').on('click','a[data-domain-item-btn=edit]', function(e) {
@@ -129,21 +184,19 @@ var objectify = function(arr) {
         
       var item = {action: action_type, type: interval_type, attributes: {}};
       
-      
-      
       if (interval_type == 'boundless') {
         item.attributes = objectify($("#boundless-domain-form form").serializeArray());
         item.text = 
-          'Each ' + item.attributes['[period][duration]'] + ' ' + period_units[item.attributes['[period][unit]']] + 
-          ' repeat ' + item.attributes['[duration][duration]'] + ' ' + period_units[item.attributes['[duration][unit]']] +
-          ' from ' + item.attributes['[from(1i)]'] + '-' + item.attributes['[from(2i)]']+ '-' + item.attributes['[from(3i)]']+ ' ' + item.attributes['[from(4i)]']+ ':' + item.attributes['[from(5i)]'];
+          'Each ' + item.attributes.period.duration + ' ' + period_units[item.attributes.period.unit] + 
+          ' repeat ' + item.attributes.duration.duration + ' ' + period_units[item.attributes.duration.unit] +
+          ' from ' + item.attributes['from(1i)'] + '-' + item.attributes['from(2i)']+ '-' + item.attributes['from(3i)']+ ' ' + item.attributes['from(4i)']+ ':' + item.attributes['from(5i)'];
       }
       else if (interval_type == 'bounded') {
         item.attributes = objectify($("#bounded-domain-form form").serializeArray());
-        item.text = item.attributes['[from(1i)]'] + '-' + item.attributes['[from(2i)]']+ '-' + item.attributes['[from(3i)]']+ ' ' + item.attributes['[from(4i)]']+ ':' + item.attributes['[from(5i)]'] + ' to '+ item.attributes['[to(1i)]'] + '-' + item.attributes['[to(2i)]']+ '-' + item.attributes['[to(3i)]']+ ' ' + item.attributes['[to(4i)]']+ ':' + item.attributes['[to(5i)]'];
+        item.text = item.attributes['from(1i)'] + '-' + item.attributes['from(2i)']+ '-' + item.attributes['from(3i)']+ ' ' + item.attributes['from(4i)']+ ':' + item.attributes['from(5i)'] + ' to '+ item.attributes['to(1i)'] + '-' + item.attributes['to(2i)']+ '-' + item.attributes['to(3i)']+ ' ' + item.attributes['to(4i)']+ ':' + item.attributes['to(5i)'];
       }
       else if (Number(interval_type) > 0){
-        item.attributes = {'[domain_template_id]': interval_type };
+        item.attributes = {'domain_template_id': interval_type };
         interval_type = 'database';
         
         item.text = $("#domain-template-add-type option:selected").text()
@@ -151,10 +204,10 @@ var objectify = function(arr) {
       
       delete item.attributes['utf8'];
       delete item.attributes['authenticity_token'];
-      item.attributes['[type]'] = interval_type;
-      item.attributes['[action]'] = action_type;
+      item.attributes['type'] = interval_type;
+      item.attributes['action'] = action_type;
       
-      console.log ('atributes', item);
+      //console.log ('atributes', item);
       
       var itembox;
       if (editing_item == null) {
@@ -179,6 +232,8 @@ var objectify = function(arr) {
       itembox.find('[data-domain-item-btn=action] i').attr('class', actions_icons[item.action]);
       itembox.find('[data-domain-item=title]').text(item.text);
 
+      load_preview();
+      
       
       $("#domain-template-add-action").hide();
       $("#domain-template-add-type").val('0');
