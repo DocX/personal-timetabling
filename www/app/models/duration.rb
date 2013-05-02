@@ -5,6 +5,7 @@ class Duration
   include ActiveModel::Validations
   include ActiveModel::Conversion
   extend ActiveModel::Naming
+  include Webui::Core::DurationMixin
 
   MONTH = 4
   WEEK = 3

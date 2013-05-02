@@ -11,13 +11,21 @@ import org.joda.time.LocalDateTime;
  *
  * @author docx
  */
-public class Interval {
+public class Interval implements IIntervalsTimeDomain {
     LocalDateTime start;
     LocalDateTime end;
 
     public Interval(LocalDateTime start, LocalDateTime end) {
         this.start = start;
         this.end = end;
+    }
+
+    public LocalDateTime getEnd() {
+        return end;
+    }
+
+    public LocalDateTime getStart() {
+        return start;
     }
 
     @Override
@@ -39,6 +47,20 @@ public class Interval {
         hash = 83 * hash + Objects.hashCode(this.start);
         hash = 83 * hash + Objects.hashCode(this.end);
         return hash;
+    }
+
+    public IntervalsSet toIntervalsSet() {
+        IntervalsSet s = new IntervalsSet();
+        s.unionWith(this);
+        return s;
+    }
+    
+    @Override
+    public IntervalsSet getIntervalsIn(Interval i) {
+        //TODO dumb preobjectized implementation...
+        IntervalsSet s = toIntervalsSet();
+        s.intersectWith(i.toIntervalsSet());
+        return s;
     }
     
     

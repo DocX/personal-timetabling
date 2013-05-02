@@ -2,7 +2,8 @@
 # the infinity timeline into repeating circle and all describes one circle sector of it.
 
 class BoundlessIntervalRepeating < TimeDomain
-
+  include Webui::Core::BoundlessIntervalRepeatingMixin
+  
   # reference start is absolute datetime defining start of the circle
   # duration is definition of circle sector size
   # period is definition of the circle circumference from one start to the next. Theoretically, duration can overlap circumference of the period. 

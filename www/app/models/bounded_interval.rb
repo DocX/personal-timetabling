@@ -1,12 +1,20 @@
 # Bounded interval describes one particular interval in the universe timeline.
 
 class BoundedInterval < TimeDomain
-
+  include Webui::Core::BoundedIntervalMixin
+  
   attr_accessor :start, :end
 
   def initialize
     @start = DateTime.now
     @end = DateTime.now + 1
+  end
+  
+  def self.create (start, to)
+    b = BoundedInterval.new
+    b.start = start
+    b.end = to
+    b
   end
 
   def self.from_attributes(attributes)
@@ -15,5 +23,9 @@ class BoundedInterval < TimeDomain
     interval.end = DateTime.new Integer(attributes['to(1i)'].to_i), Integer(attributes['to(2i)'].to_i), Integer(attributes['to(3i)'].to_i), Integer(attributes['to(4i)'].to_i), Integer(attributes['to(5i)'].to_i)
     
     interval
+  end
+  
+  def to_s
+    @start.to_s + ' - ' + @end.to_s
   end
 end

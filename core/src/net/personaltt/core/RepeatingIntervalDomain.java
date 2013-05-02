@@ -14,7 +14,12 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.Months;
 
 /**
- *
+ * Repeating interval domain. Represents boundless repetition of interval given
+ * by starting reference in time continuum and partial (relative) duration. Period of 
+ * repeating is also given as partial duration.
+ * 
+ * This structure finds for all points in the time continuum if is in domain or 
+ * can retrieve set of intervals in given range.
  * @author docx
  */
 public class RepeatingIntervalDomain implements IIntervalsTimeDomain {

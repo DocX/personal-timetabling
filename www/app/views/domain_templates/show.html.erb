@@ -8,6 +8,13 @@
   <% else %>
     <%= render :partial => 'template_stack', :locals => {:stack => @domain_template.domain_stack} %>
   <% end %>
-
+  
+  <h2>Intervals in +-10 days from now</h2>
+  <ul>
+  <% @intervals.each do |i| %>
+    <li><%= i.to_s %></li>
+  <% end %>
+  </ul>
+  
 </div>
 </div>

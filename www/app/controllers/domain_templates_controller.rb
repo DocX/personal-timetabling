@@ -18,8 +18,9 @@ class DomainTemplatesController < ApplicationController
   end
 
   def show
-    
     @domain_template = DomainTemplate.find(params[:id])
+    
+    @intervals = @domain_template.domain_stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
     
   end
   

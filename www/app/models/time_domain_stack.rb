@@ -3,7 +3,8 @@
 # action in the stacks adds, removes or masks time intervals available in the level bellow. 
 
 class TimeDomainStack < TimeDomain
-
+  include Webui::Core::TimeDomainStackMixin
+  
   class Action
     ADD = 1
     REMOVE = 2

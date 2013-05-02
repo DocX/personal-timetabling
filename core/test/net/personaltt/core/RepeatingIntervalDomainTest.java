@@ -48,7 +48,7 @@ public class RepeatingIntervalDomainTest {
                 new Interval(new LocalDateTime(2010,1,6,0,0,0), new LocalDateTime(2010,1,20,0,0,0));
         RepeatingIntervalDomain instance = new RepeatingIntervalDomain(
                 new LocalDateTime(2010,1,12,0,0,0),
-                Days.TWO,
+                Days.TWO, 
                 Days.SEVEN
                 );
         IntervalsSet result = instance.getIntervalsIn(i);
