@@ -63,7 +63,34 @@ public class Interval implements IIntervalsTimeDomain {
         return s;
     }
     
+    /**
+     * Determine if intersection of this with given interval is not empty
+     * @param interval
+     * @return 
+     */
+    public boolean intersects(Interval interval ) {
+        // this      |  |
+        //        | |           false
+        //        |   |         true
+        //        |      |      true
+        //            ||        true
+        //            |     |   true
+        //                | |   false
+        return !(interval.end.isBefore(this.start) || interval.start.isAfter(this.end));
+            
+    }
     
-    
+    /**
+     * Determine if given interval is entire in this. Ie intersection of given interval with this 
+     * is equal to given interval
+     * @param interval
+     * @return 
+     */
+    public boolean overlaps(Interval interval) {
+        return 
+            (this.start.isBefore(interval.start) || this.start.isEqual(interval.start)) &&
+            (this.end.isAfter(interval.end) || this.end.isEqual(interval.end));        
+
+    }
     
 }

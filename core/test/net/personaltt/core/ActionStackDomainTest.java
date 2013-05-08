@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.Hours;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -104,6 +105,22 @@ public class ActionStackDomainTest {
                 expected.toArray(),
                 intervals.toArray()
                 );
+        
+    }
+    
+    @Test
+    public void testGetIntervalsIn4() {
+        System.out.println("getIntervalsIn add remove");
+        
+        ActionStackDomain d = new ActionStackDomain();
+        d.push(ActionStackDomain.ADD, 
+                new RepeatingIntervalDomain(new LocalDateTime(2010,1,1,0,0,0), Days.TWO, Days.SEVEN));
+        d.push(ActionStackDomain.MASK,
+                new RepeatingIntervalDomain(new LocalDateTime(2010,1,1,9,0,0), Hours.hours(10), Days.ONE));
+        
+        IntervalsSet intervalset = d.getIntervalsIn(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,5,0,0,0)));
+        List<Interval> intervals = intervalset.getIntervals();
+        
         
     }
     

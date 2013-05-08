@@ -20,7 +20,8 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
   
   defaults: function() { return {
     start: moment.utc(),
-    duration: 3600
+    duration: 3600,
+    
   }},
   
   validate: function(attrs, options) {
@@ -80,8 +81,9 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
   defaults: {
     name: "",
     description: "",
-    type: 'Fixed', /* others: 'Fluent', 'Repeating', 'Longterm' */
-    data: {},
+    period_start: null,
+    period_count: 1,
+    
   },
 
   getOccurancesInRange: function(start, end, callback) {

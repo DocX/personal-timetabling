@@ -22,7 +22,9 @@ class DomainTemplatesController < ApplicationController
     #@domain_template.domain_stack.to_j
     
      begin
-       @intervals = @domain_template.domain_stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
+       @intervals_from = (DateTime.now - 10)
+       @intervals_to = (DateTime.now + 10)
+       @intervals = @domain_template.domain_stack.get_intervals @intervals_from, @intervals_to
       rescue
          @intervals = []
       end

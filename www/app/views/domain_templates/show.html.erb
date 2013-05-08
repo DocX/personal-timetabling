@@ -10,6 +10,7 @@
   <%# end %>
   
   <h2>Intervals in +-10 days from now</h2>
+  <p><%=@intervals_from %> - <%= @intervals_to %></p>
   <ul>
   <% @intervals.each do |i| %>
     <li><%= i.to_s %></li>
