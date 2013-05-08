@@ -64,7 +64,7 @@ var deobjectfy = function(hs) {
         success: function(data) {
           $("#domain-template-preview").empty();
           $.each(data, function() {
-            $("#domain-template-preview").append("<li>" + moment.utc(this.start).format('llll') + " - " + moment.utc(this.end).format('llll') + "</li>");
+            $("#domain-template-preview").append("<li>" + this.start + " - " + this.end + "</li>");
           })
         },
         error: function() {

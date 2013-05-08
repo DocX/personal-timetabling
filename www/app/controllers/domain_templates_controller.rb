@@ -11,6 +11,7 @@ class DomainTemplatesController < ApplicationController
   end
   
   def create
+    params[:domain_template][:domain_stack_attributes] = get_native params[:domain_template][:domain_stack_attributes]
     @domain_template = DomainTemplate.new params[:domain_template]
     if @domain_template.save
       redirect_to :action => :index

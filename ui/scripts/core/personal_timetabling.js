@@ -16,10 +16,10 @@ PersonalTimetabling.App = Backbone.View.extend({
     
     this.view = null;
     
-    if ($("#calendar-view").length > 0) {
+    if ($("#content").length > 0) {
       this.occurances = new PersonalTimetabling.Models.OccurancesCollection();
       
-      this.view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#calendar-view"), collection: this.occurances});
+      this.view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: $("#content"), collection: this.occurances});
     }
 
     this.render();

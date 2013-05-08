@@ -14,9 +14,11 @@
    <script src="vendor/jquery-ui/js/jquery-ui.js"></script>
    <script src="vendor/bootstrap/js/bootstrap.js"></script>
    <script src="vendor/Base.js"></script>
+   <script src="vendor/sugar.js"></script>
+   <script src="vendor/moment.js"></script>
    
-   <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
-   <link href="lib/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css" />
+   <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
+   <link href="vendor/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
    
    <!-- own library extensions -->
    <script src="scripts/lib/jquery.ui.kineticdraggable.js"></script>
@@ -24,17 +26,17 @@
    <!-- main application scripts -->
    <script src="scripts/app.js"></script>   
    <script src="scripts/core/personal_timetabling.js"></script>
-   <script src="scripts/core/tasks_view_base.js"></script>
 
    <script src="scripts/models/activities.js"></script>
 
+   <script src="scripts/views/tasks_view_base.js"></script>
    <script src="scripts/views/columns_view.js"></script>
    <script src="scripts/views/columns_view.types.js"></script>
    <script src="scripts/views/columns_days_view.js"></script>
    <script src="scripts/views/columns_days_activities_view.js"></script>
    
    <link href="styles/application.less?version=1012" rel="stylesheet/less" type="text/css" />
-   <script src="lib/less.js"></script>
+   <script src="vendor/less.js"></script>
 </head>
 
 <body class='app-layout'>
@@ -45,6 +47,10 @@
       
       <div id="common-panel-place">
 
+        <div id='ajax-indicator' class='rightcomponents'>
+          AJAX...
+        </div>
+      
         <div id="buttons" class="rightcomponents" >
             <a href="#schedule-activity" data-toggle='modal' class="btn btn-inverse"><i class="icon-plus icon-white"></i> Schedule activity</a>
             <a href="#" class="btn btn-inverse">Show tasks</a>
