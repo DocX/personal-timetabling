@@ -15,14 +15,24 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     
     this.occurance = this.options.occurance;
       
-    //this.element.find('[data-source=name]').text(this.options.occurance.get("activity").get("name")); 
+    this.element.find('[data-source=name]').text(this.options.occurance.get("activity").get("name")); 
     var start_date = this.options.occurance.get("start").format(this.activity_date_format);
     var end_date =  this.options.occurance.get("end").format(this.activity_date_format);
     
     this.element.find('[data-source=start]').text(start_date);
     this.element.find('[data-source=end]').text(end_date);
 
-    this.element.tooltip({title: start_date + ' - ' + end_date});
+    this.element.tooltip({
+      title: 
+      this.options.occurance.get("activity").get("name") +
+      '<br>' +
+      start_date + 
+      ' - ' +
+      end_date,
+      html: true,
+      placement: this.options.view.axis == 'x' ? 'right' : 'top',
+      animation: false
+    });
     
    /* this.element.find('a[data-button=activity-occurance-btn-edit]')
       .click(_.bind(_.partial(this._trigger,'edit', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));
@@ -37,16 +47,8 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       "<div class='activity-occurance-inner'>" +
         "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
         "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
-        "<div class='activity-occurance-labels' style='display:none'>" +
+        "<div class='activity-occurance-labels'>" +
           "<div class='name' data-source='name'></div>" +
-          "<div class='time'>" +
-            "<span class='start' data-source='start'></span> - " +
-            "<span class='end' data-source='end'></span>" +
-          "</div>" +
-          "<div class='buttons'>" +
-            "<a href='#' data-button='activity-occurance-btn-edit'>Edit</a> " +
-            "<a href='#' data-button='activity-occurance-btn-remove'>Delete</a>" +
-          "</div>" +
         "</div>" +
       "</div>" +
     "",
@@ -63,8 +65,18 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       duration: ui.duration
     });
     
-    $box.find('[data-source=start]').text(ui.date_front.format(this.activity_date_format));
-    $box.find('[data-source=end]').text( occurance.get('end').format(this.activity_date_format));
+    var start_date = ui.date_front.format(this.activity_date_format);
+    var end_date =  occurance.get('end').format(this.activity_date_format);
+    $box.find('[data-source=start]').text();
+    $box.find('[data-source=end]').text();
+    
+    $box.attr('data-original-title',
+      occurance.get("activity").get("name") +
+      '<br>' +
+      start_date + 
+      ' - ' +
+      end_date
+     ).tooltip('fixTitle').tooltip('show');
     
     // align to new date time
     return true;
