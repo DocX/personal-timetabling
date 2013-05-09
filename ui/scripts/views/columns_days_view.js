@@ -7,61 +7,10 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       initial_date: moment.utc()
   },
 
-  buttons_template: 
-    "<div id='dayincolview-buttons' class='rightcomponents'>" +
-      "<div class='btn-group'>" +
-        "<a class='btn dropdown-toggle btn-inverse' data-toggle='dropdown'>" +
-          "Ka-Zoom-A" +
-          "<span class='caret'></span>" +
-        "</a>" +
-        
-        "<ul class='dropdown-menu'>" +
-          "<li><div data-role='zoom-slider' ></div></li>" +
-          "<li class='divider'></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='600'>Days</a></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='300'>Weeks</a></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='0'>Months</a></li>" +
-        "</ul>" +
-        "</div>" +
-
-        "<div class='btn-group'>" +
-          "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i>H</button>" +
-          "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i>V</button>" +
-        "</div>" +        
-        
-        "<div class='btn-group'>" +
-          "<button class='btn btn-inverse' data-role='scroll-left'><i class='icon-white icon-chevron-left'></i></button>" +
-          "<button class='btn btn-inverse' data-role='scroll-right'><i class='icon-white icon-chevron-right'></i></button>" +
-        "</div>" +
-      "</div>",
+ 
       
     initialize: function() {
-       PersonalTimetabling.CalendarViews.ColumnsView.prototype.initialize.apply(this);
-      
-      this.$buttons = $(this.buttons_template);
-      $("#content-panel-place").empty().append(this.$buttons);
-
-      this.$zoom_slider = this.$buttons.find("[data-role=zoom-slider]")
-        .slider({min: 0, max: 899, change:_.bind(this.set_zoom, this), slide:_.bind(this.set_zoom, this), value:600});
-
-      this.$buttons.find("[data-role=scroll-left]")
-        .click(_.bind(this.move_left, this));
-      this.$buttons.find("[data-role=scroll-right]")
-        .click(_.bind(this.move_right, this));
-      this.$buttons.find("[data-role=zoom-to]")
-        .click(_.partial(function(view) {view._set_zoom($(this).attr("data-zoom"), true)}, this));
-      var mode_vertical_btn = this.$buttons.find("[data-role=mode-vertical]");
-      var mode_horizontal_btn = this.$buttons.find("[data-role=mode-horizontal]");
-      mode_vertical_btn.click(_.bind(function() {
-          mode_vertical_btn.addClass('active');
-          mode_horizontal_btn.removeClass('active');
-          this.set_axis('x');
-      }, this));  
-      mode_horizontal_btn.click(_.bind(function() {
-          mode_vertical_btn.removeClass('active');
-          mode_horizontal_btn.addClass('active');
-          this.set_axis('y');
-      }, this));  
+      PersonalTimetabling.CalendarViews.ColumnsView.prototype.initialize.apply(this);
         
       this._set_geometry( new PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry(this,null) );
 
@@ -164,6 +113,20 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       var end_date = this.geometry.get_date_of_line(last_col_id,     this.drawing_columns_list.last().lines_labels.length);
 
       return {start: start_date, end:end_date};
-    }
+    },
+    
+    
+    /* INTERVALS HANDLING */
+    
+    clear_intervals: function() {
+      // just clear overlay div
+      this.$grid_overlay_el.empty();
+    },
+    
+    
+    add_interval_box: function(box) {
+      this.$grid_overlay_el.append(box);
+    },
+    
     
 });

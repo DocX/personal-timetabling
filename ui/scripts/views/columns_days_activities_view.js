@@ -2,27 +2,23 @@
 "use strict";
 
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
-PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetabling.CalendarViews.ColumnsDaysView.extend({
+PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.extend({
 
   
-    
   initialize: function() {
     
-    PersonalTimetabling.CalendarViews.ColumnsDaysView.prototype.initialize.apply(this);
+    this.calendar = new PersonalTimetabling.CalendarViews.ColumnsDaysView({el: this.el});
+    
+    this.collection = new PersonalTimetabling.Models.OccurancesCollection();
     
     //this.listenTo(this.collection, 'sync', this.update_data_view);
-    this.listenTo(this, 'columns_updated', this.reload_activities);
-    
-    this.$grid_overlay_el.mouse_events({
-      distance: 10,
-      onstart: _.bind(this.mouse_create_box, this)
-    });
+    this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
   },
 
   reload_activities: function() {
-    this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
+    this.calendar.clear_intervals();
 
-    var range = this.showing_dates();
+    var range = this.calendar.showing_dates();
     this.collection.fetchRange(range.start, range.end)
     .success(_.bind(this.update_data_view, this));
   },
@@ -30,12 +26,12 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   // renders activities
   update_data_view: function() {    
     console.log('activities updating');
-    var range = this.showing_dates();
+    var range = this.calendar.showing_dates();
 
     var occurances_to_show = this.collection.inRange(
       range.start, range.end
     );
-    this.$grid_overlay_el.find("[data-type='activity-occurance']").remove();
+    this.calendar.clear_intervals();
 
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
@@ -47,11 +43,12 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = PersonalTimetablin
   
   add_activity_box: function(occurance, is_new_resizing) {
     var box = $("<div />");
-    this.$grid_overlay_el.append(box);
+    
+    this.calendar.add_interval_box(box);
    
     box.activity_occurance_box({
-      view: this,
-      steps: this.column_step_minutes,
+      view: this.calendar,
+      steps: this.calendar.column_step_minutes,
       occurance: occurance,
       in_mouse_move: true,
       remove: _.bind(this.delete_activity_occurance, this) 

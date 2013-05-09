@@ -8,10 +8,6 @@ PT.App = null;
 PT.CalendarViews = {};
 PT.Models = {};
 
-PT.Config = {
-  apiRoot: 'http://localhost:3000/'
-}
-
 $(document).ready(function() {
    PT.AppInstance = new PT.App(); 
    PT.AppInstance.render();  

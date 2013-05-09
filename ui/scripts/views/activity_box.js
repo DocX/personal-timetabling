@@ -15,14 +15,19 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     
     this.occurance = this.options.occurance;
       
-    this.element.find('[data-source=name]').text(this.options.occurance.get("activity").get("name")); 
-    this.element.find('[data-source=start]').text(this.options.occurance.get("start").format(this.activity_date_format));
-    this.element.find('[data-source=end]').text( this.options.occurance.get("end").format(this.activity_date_format));
+    //this.element.find('[data-source=name]').text(this.options.occurance.get("activity").get("name")); 
+    var start_date = this.options.occurance.get("start").format(this.activity_date_format);
+    var end_date =  this.options.occurance.get("end").format(this.activity_date_format);
+    
+    this.element.find('[data-source=start]').text(start_date);
+    this.element.find('[data-source=end]').text(end_date);
 
-    this.element.find('a[data-button=activity-occurance-btn-edit]')
+    this.element.tooltip({title: start_date + ' - ' + end_date});
+    
+   /* this.element.find('a[data-button=activity-occurance-btn-edit]')
       .click(_.bind(_.partial(this._trigger,'edit', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));
     this.element.find('a[data-button=activity-occurance-btn-remove]')
-      .click(_.bind(_.partial(this._trigger,'remove', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));
+      .click(_.bind(_.partial(this._trigger,'remove', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));*/
     
     this._super();      
   },
@@ -32,7 +37,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       "<div class='activity-occurance-inner'>" +
         "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
         "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
-        "<div class='activity-occurance-labels'>" +
+        "<div class='activity-occurance-labels' style='display:none'>" +
           "<div class='name' data-source='name'></div>" +
           "<div class='time'>" +
             "<span class='start' data-source='start'></span> - " +

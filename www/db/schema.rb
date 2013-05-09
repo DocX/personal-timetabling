@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130429162305) do
+ActiveRecord::Schema.define(:version => 20130509180914) do
 
   create_table "activities", :force => true do |t|
     t.string   "name",        :null => false
@@ -27,10 +27,13 @@ ActiveRecord::Schema.define(:version => 20130429162305) do
   end
 
   create_table "occurances", :force => true do |t|
-    t.datetime "start",       :null => false
-    t.integer  "duration",    :null => false
+    t.datetime "start",             :null => false
+    t.integer  "duration",          :null => false
     t.integer  "activity_id"
     t.datetime "end"
+    t.text     "domain_definition"
+    t.integer  "min_duration"
+    t.integer  "max_duration"
   end
 
 end

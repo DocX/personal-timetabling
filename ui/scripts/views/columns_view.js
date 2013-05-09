@@ -97,7 +97,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
     },
     
     column_min_size: function() {
-      return this.axis == 'y' ? 100 : 200;
+      return this.axis == 'y' ? 50 : 100;
     },
     
     get_box_offset_in_column: function(position) {
