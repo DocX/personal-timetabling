@@ -193,7 +193,12 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   
   get_line_of_date: function(date) {
     // get monday of the week in which date is
-    var week_start = date.clone().startOf('week').day(1);
+    var week_start;
+    if (date.day() == 0) {
+      week_start = date.clone().day(-7).startOf('week').day(1);
+    } else {
+      week_start = date.clone().startOf('week').day(1);
+    }
     
     return {column_id: week_start.valueOf(), line: date.diff(week_start, 'hours', true) / 24};
   },

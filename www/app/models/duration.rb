@@ -29,6 +29,15 @@ class Duration
       self::HOUR => 'Hour',
     }
   end
+
+  def self.unit_strings
+    {
+      'month' => self::MONTH,
+      'day' => self::DAY,
+      'hour' => self::HOUR,
+      'week' => self::WEEK
+    }
+  end
   
   def initialize(attributes = {})
     @duration = 1
@@ -45,7 +54,7 @@ class Duration
     @duration = value.to_i
   end
   def unit= value 
-    @unit = value.to_i
+    @unit = Duration.unit_strings[value] || value.to_i
   end
   
   def persisted?

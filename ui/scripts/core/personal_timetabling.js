@@ -22,14 +22,18 @@ PersonalTimetabling.App = Backbone.View.extend({
     this.calendar_view = new PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView({el: this.layout.find("#mainview")});
     this.calendar_buttons = new PersonalTimetabling.Views.CalendarButtons({el: '#content-panel-place', calendar_view: this.calendar_view});
     
+    this.sidebar = null;
 
     $("a[href='#schedule-activity']").click(_.bind(function(){
       //open sidebar
-      if (this.layout.toggleClass('panel-open')) {
-        new PersonalTimetabling.Views.DomainTemplatePanel({
-          el: this.layout.find("#sidepanel"),
+      this.layout.toggleClass('panel-open');
+      if (this.layout.hasClass('panel-open')) {
+        this.sidebar = new PersonalTimetabling.Views.DomainTemplateEditor({
+          el: $("<div class='fill'/>").appendTo(this.layout.find("#sidepanel")),
           calendar_view: this.calendar_view.calendar
         });
+      } else {
+        this.sidebar.remove();
       }
     }, this));
 

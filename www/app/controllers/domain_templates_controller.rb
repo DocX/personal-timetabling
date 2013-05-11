@@ -50,7 +50,10 @@ class DomainTemplatesController < ApplicationController
   def preview
     stack = TimeDomainStack.from_attributes get_native(params['domain_stack'])
     
-    @intervals = stack.get_intervals (DateTime.now - 10), (DateTime.now + 10)
+    @intervals_from = params[:from] ? DateTime.iso8601(params[:from]) : (DateTime.now - 10) 
+    @intervals_to = params[:to] ? DateTime.iso8601(params[:to]) : (DateTime.now + 10)
+    
+    @intervals = stack.get_intervals @intervals_from, @intervals_to
     
     respond_to do |format|
       format.json { render :json => @intervals}
