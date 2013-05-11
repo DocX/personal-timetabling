@@ -2,89 +2,96 @@
 <html>
 
 <head>
-   <meta charset="utf-8" />
+	<meta charset="utf-8" />
 
-   <title>Personal timetabling</title>
+	<title>Personal timetabling</title>
 
-   <!-- stock libraries -->
-   <script src="vendor/jquery.js"></script>
-   <script src="vendor/underscore.js"></script>
-   <script src="vendor/backbone.js"></script>
-   <script src="vendor/backbone-relational.js"></script>
-   <script src="vendor/jquery-ui/js/jquery-ui.js"></script>
-   <script src="vendor/bootstrap/js/bootstrap.js"></script>
-   <script src="vendor/Base.js"></script>
-   <script src="vendor/sugar.js"></script>
-   <script src="vendor/moment.js"></script>
-   
-   <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
-   <link href="vendor/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
-   
-   <!-- own library extensions -->
-   <script src="scripts/lib/jquery.ui.kineticdraggable.js"></script>
-   <script src="scripts/lib/jquery.ui.mouse_events.js"></script>
-   <script src="scripts/lib/jquery.ui.columnbox.js"></script>
-   
-   <!-- main application scripts -->
-   <script src="scripts/app.js"></script>   
-   <script src="scripts/core/personal_timetabling.js"></script>
+	<!-- stock libraries -->
+	<script src="vendor/Base.js"></script>
+	<script src="vendor/sugar.js"></script>
+	<script src="vendor/moment.js"></script>
+	
+	<script src="vendor/jquery.js"></script>
+	<script src="vendor/jquery-ui/js/jquery-ui.js"></script>
 
-   <script src="scripts/models/activities.js"></script>
+	<script src="vendor/underscore.js"></script>
+	<script src="vendor/backbone.js"></script>
+	<script src="vendor/backbone-relational.js"></script>
 
-   <script src="scripts/views/tasks_view_base.js"></script>
-   <script src="scripts/views/columns_view.js"></script>
-   <script src="scripts/views/columns_view.types.js"></script>
-   <script src="scripts/views/columns_days_view.js"></script>
-   
-   <script src="scripts/views/activity_box.js"></script>
-   <script src="scripts/views/columns_days_activities_view.js"></script>
-   
-   <link href="styles/application.less?version=1012" rel="stylesheet/less" type="text/css" />
-   <script src="vendor/less.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.js"></script>
+
+	<link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
+	<link href="vendor/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+	<!-- own library extensions -->
+	<script src="scripts/lib/jquery.ui.kineticdraggable.js"></script>
+	<script src="scripts/lib/jquery.ui.mouse_events.js"></script>
+	<script src="scripts/lib/jquery.ui.columnbox.js"></script>
+
+	<!-- main application scripts -->
+	<script src="scripts/app.js"></script>   
+	<script src="scripts/core/personal_timetabling.js"></script>
+
+	<script src="scripts/models/activities.js"></script>
+	<script src="scripts/models/domain_templates.js"></script>
+
+	<script src="scripts/views/tasks_view_base.js"></script>
+	<script src="scripts/views/columns_view.js"></script>
+	<script src="scripts/views/columns_view.types.js"></script>
+	<script src="scripts/views/columns_days_view.js"></script>
+
+	<script src="scripts/views/calendar_buttons.js"></script>
+	<script src="scripts/views/domain_template_panel.js"></script>
+
+	<script src="scripts/views/activity_box.js"></script>
+	<script src="scripts/views/columns_days_activities_view.js"></script>
+
+	<link href="styles/application.less?version=1012" rel="stylesheet/less" type="text/css" />
+	<script src="vendor/less.js"></script>
 </head>
 
 <body class='app-layout'>
-   <div id="topbar">
-      <div id="logo">
-         <h1>Personal Timetabling</h1>
-      </div>
-      
-      <div id="common-panel-place">
+	<div id="topbar">
+		<div id="logo">
+			<h1>Personal Timetabling</h1>
+		</div>
 
-        <div id='ajax-indicator' class='rightcomponents' style="display:none;">
-          AJAX...
-        </div>
-      
-        <div id="buttons" class="rightcomponents" >
-            <a href="#schedule-activity" data-toggle='modal' class="btn btn-inverse"><i class="icon-plus icon-white"></i> Schedule activity</a>
-            <a href="#" class="btn btn-inverse">Show tasks</a>
-        </div>
+		<div id="common-panel-place">
+
+			<div id='ajax-indicator' class='rightcomponents' style="display:none;">
+				AJAX...
+			</div>
+			
+			<div id="buttons" class="rightcomponents" >
+				<a href="#schedule-activity" class="btn btn-inverse"><i class="icon-plus icon-white"></i> Schedule activity</a>
+				<a href="#" class="btn btn-inverse">Show tasks</a>
+			</div>
 
 
-        <div id="user"  class="rightcomponents">
-           <div class="btn-group ">
-              <button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Django Freeman</button>
-              <button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
-                  <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu pull-right">
-                  <li><a tabindex="-1" href="#">Export</a></li>
-                  <li><a tabindex="-1" href="#">Acount settings</a></li>
-                  <li><a tabindex="-1" href="#helpModal" data-toggle='modal'>Gimme some help... </a></li>
-                  <li class="divider"></li>
-                  <li><a tabindex="-1" href="#" ><i class="icon-off"></i> Lock and hide!</a></li>
-              </ul>
-          </div>
-      </div>
-      </div>
-      
-      <div id="content-panel-place">
-          
-      </div>
+			<div id="user"  class="rightcomponents">
+				<div class="btn-group ">
+					<button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Django Freeman</button>
+					<button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
+						<span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu pull-right">
+						<li><a tabindex="-1" href="#">Export</a></li>
+						<li><a tabindex="-1" href="#">Acount settings</a></li>
+						<li><a tabindex="-1" href="#helpModal" data-toggle='modal'>Gimme some help... </a></li>
+						<li class="divider"></li>
+						<li><a tabindex="-1" href="#" ><i class="icon-off"></i> Lock and hide!</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
 
-   </div>
-   
-   <div id="content"> </div>
+		<div id="content-panel-place">
+
+		</div>
+
+	</div>
+
+	<div id="content"> </div>
 
 </body>
 </html>

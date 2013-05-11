@@ -128,5 +128,40 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       this.$grid_overlay_el.append(box);
     },
     
+    // creates DOM elements on appropriate places for given interval
+    // and returns object for handling them
+    display_interval: function(from, to, box_setup_func) {
+    
+      // get splits to columns intervals for given interval
+      var columns_for_interval = this.geometry.get_lines_for_interval(from, to);
+
+      // walk throu column intervals and make boxes
+      var boxes = [];
+      for (var i = 0; i < columns_for_interval.length; i++) {
+        
+        var start = columns_for_interval[i][0];
+        var end = columns_for_interval[i][1];
+
+        var box = $("<div/>");
+        this.set_box_offset_and_size_for_column(box, start.line, end.line - start.line);
+        
+        // set column position and size for box
+        var column = this.drawing_columns_list.find(function(c) {return c.column_id == start.column_id});
+        if (column == undefined)
+          continue;
+
+        box.css(this.columns_size_attr, this.drawing_column_width);
+        box.css(this.columns_offset_attr, column.$column.position()[this.columns_offset_attr]);
+        box.css('position', 'absolute');
+
+        box_setup_func && box_setup_func(box);
+        boxes.push(box);
+
+        this.$grid_overlay_el.append(box);
+      };
+      return boxes;
+    
+    }
+    
     
 });

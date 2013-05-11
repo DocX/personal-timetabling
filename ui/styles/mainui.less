@@ -81,3 +81,43 @@ body.app-layout {
   top:0;left:0;right:0;bottom:0;
   overflow:auto;
 }
+
+/* panel layout */
+div.panel-layout {
+  position:abosolute;
+  left:0;
+  top:0;
+  right:0;
+  bottom:0;
+
+  #sidepanel, #mainview {
+    position:absolute;
+    top:0;
+    bottom:0;
+  }
+
+  #sidepanel {
+    display:none;
+    z-index:20;
+    background:  url("images/noisy.png");
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  }
+
+
+  #mainview {
+    left: 0;
+    right:0;
+  }
+
+  &.panel-open {
+    #sidepanel {
+      left: 0;
+      width:300px;
+      display:block;
+    }
+    #mainview {
+      left:300px;
+    }
+
+  }
+}

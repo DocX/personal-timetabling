@@ -7,6 +7,7 @@ var PT = PersonalTimetabling;
 PT.App = null;
 PT.CalendarViews = {};
 PT.Models = {};
+PT.Views = {};
 
 $(document).ready(function() {
    PT.AppInstance = new PT.App(); 

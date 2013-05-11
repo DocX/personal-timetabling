@@ -58,6 +58,24 @@ PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.exte
     return date;
   },
   
+  // returns array of line start and end for each column that given interval covers
+  get_lines_for_interval: function(from, to) {
+    var start_line = this.get_line_of_date(from);
+    var end_line = this.get_line_of_date(to);
+
+    var columns = [];
+    var current_start = start_line;
+    while (current_start.column_id != end_line.column_id) {
+      // get end of current_start's column
+      var current_column_end = {column_id: current_start.column_id, line: this.column_spec(current_start.column_id).lines_labels.length};
+      columns.push([current_start, current_column_end]);
+      current_start = {column_id: this.next_column(current_start.column_id), line: 0};
+    }
+    columns.push([current_start, end_line]);
+
+    return columns;
+  },
+
   /* abstract protected methods */
   
   next_column: function(col_id) {},
@@ -65,11 +83,15 @@ PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.exte
   prev_column: function(col_id) {},
   
   column_spec: function(col_id) {},
+
+
   
   week_days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   
   months: ["January", "February", "March", "April", "May", "June", "Jule", "August", "October", "November", "December"],
 });
+
+
 
 PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarViews.ColumnsView.TimeColumnGeometryBase.extend({
   constructor: function(view, model,  hours_lower, hours_upper) {

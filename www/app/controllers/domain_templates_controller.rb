@@ -2,6 +2,11 @@ class DomainTemplatesController < ApplicationController
 
   def index
     @domain_templates = DomainTemplate.select('name, id')
+
+    respond_to do |format|
+      format.html {render}
+      format.json {render :json => @domain_templates, :only => [:name, :id]}
+    end
   end
   
   
@@ -22,14 +27,18 @@ class DomainTemplatesController < ApplicationController
     @domain_template = DomainTemplate.find(params[:id])
     #@domain_template.domain_stack.to_j
     
-     begin
-       @intervals_from = (DateTime.now - 10)
-       @intervals_to = (DateTime.now + 10)
-       @intervals = @domain_template.domain_stack.get_intervals @intervals_from, @intervals_to
-      rescue
-         @intervals = []
-      end
+    begin
+      @intervals_from = params[:from] ? DateTime.iso8601(params[:from]) : (DateTime.now - 10) 
+      @intervals_to = params[:to] ? DateTime.iso8601(params[:to]) : (DateTime.now + 10)
+      @intervals = @domain_template.domain_stack.get_intervals @intervals_from, @intervals_to
+    rescue
+      @intervals = []
+    end
      
+    respond_to do |format|
+      format.html {render}
+      format.json {render :json => @intervals}
+    end
   end
   
   def destroy

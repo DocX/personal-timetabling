@@ -15,6 +15,10 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
   },
 
+  render: function() {
+    this.calendar.render();
+  },
+
   reload_activities: function() {
     this.calendar.clear_intervals();
 

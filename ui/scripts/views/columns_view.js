@@ -112,6 +112,8 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
       return setting;
     },
     
+    // offset: count of linesfrom the earl edge of column
+    // size: floating number of lines size
     set_box_offset_and_size_for_column: function($box, offset, size) {
       $box.css(this.box_offset_and_size_for_column(offset,size));
     },

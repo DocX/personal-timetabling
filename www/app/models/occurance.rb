@@ -1,5 +1,7 @@
 class Occurance < ActiveRecord::Base
-  attr_accessible :duration, :start
+  attr_accessible :duration, :start, :min_duration, :max_duration
+  
+  serialize :domain_definition
   
   belongs_to :activity
   
