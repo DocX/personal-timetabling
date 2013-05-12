@@ -120,4 +120,27 @@ public class RepeatingIntervalDomainTest {
 
         
     }
+    
+    /**
+     * Test of getIntervalsIn method, of class RepeatingIntervalDomain.
+     */
+    @Test
+    public void testGetIntervalsInRangeRepeating31DayInMonth() {
+        Interval i = new Interval(
+                new LocalDateTime(2009,1,6,0,0,0), 
+                new LocalDateTime(2010,10,20,0,0,0));
+        RepeatingIntervalDomain instance = new RepeatingIntervalDomain(
+                new LocalDateTime(2010,1,31,0,0,0),
+                Days.ONE, 
+                Months.ONE
+                );
+        IntervalsSet result = instance.getIntervalsIn(i);
+        
+        // check all intervals
+        Iterable<Interval> intervals = result.getIntervals();        
+        for (Interval interval : intervals) {
+            assertEquals(interval.start.getDayOfMonth(), 31);
+            assertTrue(interval.intersects(i));
+        }
+    }
 }

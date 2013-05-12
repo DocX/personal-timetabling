@@ -228,14 +228,19 @@ PersonalTimetabling.CalendarViews.ColumnsView.WeekColumnGeometry = PT.CalendarVi
   get_super_columns: function(column_start_id, columns) {
     // get left edge of column on the left edge of first column
     var column_date = moment.utc(column_start_id);
-    var left_date = column_date.clone().startOf('month').day(1);
+    var left_date = column_date.clone().startOf('month');
     
     var end_date = column_date.clone().add('w',columns);
     supercols = [];
     
     while(end_date.isAfter(left_date)) {
       // get months first day week - should be sure before left_date
-      var week = left_date.clone().day(1);
+      var week;
+      if (left_date.day() == 0) {
+        week = left_date.clone().day(-7).day(1);
+      } else {
+        week = left_date.clone().day(1);
+      }
     
       supercols.push({
         supercol_start_column: week.valueOf(),

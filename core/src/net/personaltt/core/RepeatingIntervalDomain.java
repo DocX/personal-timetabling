@@ -12,6 +12,7 @@ import org.joda.time.base.BaseSingleFieldPeriod;
 import org.joda.time.ReadablePeriod;
 import org.joda.time.LocalDateTime;
 import org.joda.time.Months;
+import org.joda.time.PeriodType;
 
 /**
  * Repeating interval domain. Represents boundless repetition of interval given
@@ -42,19 +43,26 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
         
         int periods = getNearestPeriodStartToAndBefore(i.start);
         
+        boolean checkDayInMonth = repeatingPeriod.getPeriodType() == PeriodType.months();
+        
         Period currentPeriod = repeatingPeriod.toPeriod().multipliedBy(periods);
         while(true) {
-            
             LocalDateTime intervalStart = referenceIntervalStart.plus(currentPeriod);
             LocalDateTime intervalEnd = intervalStart.plus(intervalDuration);
             
-            // ending after range
+                // ending after range
             if (intervalEnd.isAfter(i.end)) {
                 break;
             }
+ 
+            // if start do not match reference start and repeating pattern
+            // ie if repeating each month with reference on 31st day of month,
+            // months that have less than 31 days are not added
             
-            
-            set.unionWith(intervalStart, intervalEnd);
+            // so add interval only if not deviate condition
+            if (!checkDayInMonth || (intervalStart.getDayOfMonth() == referenceIntervalStart.getDayOfMonth())) {
+                set.unionWith(intervalStart, intervalEnd);
+            } 
             
             currentPeriod = currentPeriod.plus(repeatingPeriod);
         }

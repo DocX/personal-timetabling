@@ -9,10 +9,12 @@
 
 # Ignore the default SQLite database.
 /www/db/*.sqlite3
+/www/db/db
 
 # Ignore all logfiles and tempfiles.
 /www/log/*.log
 /www/tmp
+/www/log/log
+/tmp
 
 /core/build
-
