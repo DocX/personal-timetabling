@@ -159,9 +159,43 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
 
         this.$grid_overlay_el.append(box);
       };
-      return boxes;
+      return new PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle(boxes);
     
+    },
+
+    // renders all intervals in given array. 
+    // returns array with element for each interval, which is array of DOMs objects of that interval
+    display_intervals: function(intervals, box_setup_func) {
+      var intervals_boxes = [];
+      for (var i = intervals.length - 1; i >= 0; i--) {
+          var boxes = this.display_interval(
+            intervals[i].get('start'),
+            intervals[i].get('end'),
+            box_setup_func
+          );  
+          intervals_boxes.push(boxes);
+      };
+      return intervals_boxes;
     }
-    
-    
+});
+
+// simple handle wrapping internal behaviour of interval display
+PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle = Base.extend({
+  boxes: null,
+
+  // boxes is array of jQuery elements for one interval
+  constructor: function(boxes) {
+    this.boxes = boxes;
+  },
+
+  remove: function() {
+    if (this.boxes == null) 
+      return;
+
+    for (var i =  this.boxes.length - 1; i >= 0; i--) {
+        this.boxes[i].remove();
+    };
+
+    this.boxes = null;
+  }
 });

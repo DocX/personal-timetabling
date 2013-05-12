@@ -38,4 +38,13 @@ class BoundedInterval < TimeDomain
   def to_s
     @start.to_s + ' - ' + @end.to_s
   end
+
+  # returns number of days covering interval
+  def bounding_days
+      (self.end - self.start).ceil
+  end
+
+  def seconds 
+    ((self.end - self.start) * 86400).ceil
+  end
 end

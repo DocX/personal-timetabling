@@ -3,23 +3,45 @@ module Webui
     # load java classes to this module
     
     DomainStack = Rjb::import 'net.personaltt.core.ActionStackDomain'
-    RepeatingIntervalDomain = Rjb::import 'net.personaltt.core.RepeatingIntervalDomain'
     BoundedIntervalDomain = Rjb::import 'net.personaltt.core.Interval'
+    RepeatingIntervalDomain = Rjb::import 'net.personaltt.core.RepeatingIntervalDomain'
     
     LocalDateTime = Rjb::import 'org.joda.time.LocalDateTime'
     PeriodDays = Rjb::import 'org.joda.time.Days'
     PeriodHours = Rjb::import 'org.joda.time.Hours'
     PeriodMonths = Rjb::import 'org.joda.time.Months'
-    
 
-    module IntervalsSetBridge
-      def self.from_localdatetime (ldt)
+    module Utils
+      def Utils.from_localdatetime (ldt)
         DateTime.new ldt.getYear, ldt.getMonthOfYear, ldt.getDayOfMonth, ldt.getHourOfDay, ldt.getMinuteOfHour, ldt.getSecondOfMinute
       end
       
-      def self.to_localdatetime (ruby_datetime)
+      def Utils.to_localdatetime (ruby_datetime)
         LocalDateTime.new ruby_datetime.year, ruby_datetime.month, ruby_datetime.day, ruby_datetime.hour, ruby_datetime.minute, ruby_datetime.second
       end
+      
+      # bridges to RepeatingIntervalDomain.periodIntervals static method
+      def Utils.period_intervals start, duration, count 
+        j_intervals = RepeatingIntervalDomain.periodsIntervals to_localdatetime(start), duration.to_j, count
+
+        j_list_to_ary(j_intervals) {|i| BoundedInterval.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
+      end
+
+      def Utils.j_list_to_ary (j_list, &block)
+        ary = []
+        i = 0
+        size = j_list.size
+        
+        while i < size
+          item = j_list.get i
+          ary << block.call(item)
+          i += 1
+        end     
+        ary   
+      end
+    end
+
+    module IntervalsSetBridge
       
       def get_intervals (from, to)
         javainstance = to_j
@@ -30,17 +52,7 @@ module Webui
         intervalsset = javainstance.getIntervalsIn BoundedIntervalDomain.new(from_ldt, to_ldt)
         java_intervals = intervalsset.getIntervals
         
-        intervals = []
-        i = 0
-        size = java_intervals.size
-        while i < size
-          interval = java_intervals.get i
-          intervals << BoundedInterval.create( IntervalsSetBridge.from_localdatetime(interval.getStart), IntervalsSetBridge.from_localdatetime(interval.getEnd))
-          
-          i += 1
-        end
-        
-        intervals
+        Utils.j_list_to_ary(java_intervals) {|i| BoundedInterval.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
       end
     end
     
@@ -56,11 +68,12 @@ module Webui
       end
     end
     
+    # RepeatingIntervalDomain in here
     module BoundlessIntervalRepeatingMixin
       include IntervalsSetBridge
       
       def to_j
-        reference = IntervalsSetBridge.to_localdatetime(self.reference_start)
+        reference = Utils.to_localdatetime(self.reference_start)
         period = self.period.to_j
         duration = self.duration.to_j
         
@@ -87,12 +100,14 @@ module Webui
       include IntervalsSetBridge
       
       def to_j
-        start = IntervalsSetBridge.to_localdatetime(self.start)
-        enddate = IntervalsSetBridge.to_localdatetime(self.end)
+        start = Utils.to_localdatetime(self.start)
+        enddate = Utils.to_localdatetime(self.end)
         
         BoundedIntervalDomain.new start, enddate
       end
     end
+
+
     
   end
 end

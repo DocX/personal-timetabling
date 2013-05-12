@@ -26,18 +26,35 @@ PersonalTimetabling.App = Backbone.View.extend({
 
     $("a[data-role=add_domain_template]").click(_.bind(function(){
       //open sidebar
-      this.layout.toggleClass('panel-open');
-      if (this.layout.hasClass('panel-open')) {
-        this.sidebar = new PersonalTimetabling.Views.DomainTemplateEditor({
-          el: $("<div class='fill'/>").appendTo(this.layout.find("#sidepanel")),
+      this.open_panel(PersonalTimetabling.Views.DomainTemplateEditor, {
           calendar_view: this.calendar_view.calendar
         });
-      } else {
-        this.sidebar.remove();
-      }
     }, this));
 
+    $("a[data-role=add_activity]").click(_.bind(function(){
+      //open sidebar
+      this.open_panel(PersonalTimetabling.Views.NewActivityPanel, {});
+    }, this));
+
+
     this.render();
+  },
+
+  open_panel: function(view_class, options) {
+    if (this.sidebar) {
+      this.sidebar.remove();
+    }
+
+    this.layout.addClass('panel-open');
+
+    $.extend(options, {el: $("<div class='fill'/>").appendTo(this.layout.find("#sidepanel"))});
+
+    this.sidebar = new view_class(options);
+    this.listenTo(this.sidebar, 'removed', this.hide_panel);
+  },
+
+  hide_panel: function() {
+    this.layout.removeClass('panel-open')    
   },
 
   render: function() {

@@ -33,7 +33,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
 
         // setup view parametersdate
         this.drawing_column_width = 200;
-        this.drawing_columns_overlap = 6;
+        this.drawing_columns_overlap = 10;
     },
 
     reset_html: function() {

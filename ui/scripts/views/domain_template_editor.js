@@ -1,61 +1,64 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
+PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.PanelBase.extend({
 
 	template: 
-		"<div>" +
-			"<div>" +
-				"<label>Name</label>" +
-				"<input name='domain_name' type='text'/>" +
+		"<div id='domain_box'>" +
+			"<p><strong>New domain template</strong> <a class='btn' data-role='cancel_btn'>Cancel</a></p>" +
+
+			"<label>Name</label>" +
+			"<input name='domain_name' type='text'/>" +
+			"<label>Intervals actions:</label>" +
+			"<div class='well well-small'>" +
+			"<ul class='ui-menu'>" +
+				"<li class='first fixed' style='margin-bottom:5px;'><a href class='btn' id='addaction_btn' style='display:block; left:0;right:0;'>Add action</a></li>" +
+				"<li class='fixed'><span class='btn disabled' style='display:block;left:0;right:0;'>Empty domain at the bottom</span></li>" +
+			"</ul>" + 
 			"</div>" +
 			"<div>" +
-				"<div id='addaction'>" +
-					"<div>" +
-						"<label class='checkbox inline btn'><input type='radio' name='add_action_type' value='add' style='display:none'> Add</label>" +
-						"<label class='checkbox inline btn'><input type='radio' name='add_action_type' value='remove'  style='display:none'> Remove</label>" +
-						"<label class='checkbox inline btn'><input type='radio' name='add_action_type' value='mask'  style='display:none'> Mask</label>" +
-					"</div>" +
-					"<div>" +
-						"<select name='add_interval_type'>"+
-							"<option value=''>-- New interval --</option>" +
-							"<option value='bounded'>Bounded interval</option>" +
-							"<option value='boundless'>Repetitive</option>" +
-							"<option value='' disabled='disabled'>-- Add domain --</option>" +
-						"</select>"+
-					"</div>" +
-					"<div id='boundless_definition'>" +
-						"<label>Repeat interval starting at</label>" +
-						"<input type=text name='boundless_from' class='datetime' />" +
-						"<label>Lasting</label>" +
-						"<div class='input-append'>" +
-							"<input type=number min='1' name='boundless_duration' class='span2'> <span id='boundless_duration_unit'/>" +
-						"</div>" +
-						"<div class='input-append'>" +
-						"<label>Each</label>" +
-							"<input type=number min='1' name='boundless_period' class='span2'> <span id='boundless_period_unit'/>" +
-						"</div>" +
-					"</div>" +
-					"<div id='bounded_definition'>" +
-						"<label>From</label>" +
-						"<input type='text' name='bounded_from' class='datetime' />" +
-						"<label>To</label>" +
-						"<input type='text' name='bounded_to' class='datetime' />" +					
-					"</div>" +
-					"<div>" +
-						"<a href='#' class='btn btn-primary' data-role='add_action_btn'>Add</a> <a href='#' class='btn' data-role='add_action_cancel_btn'>Cancel</a>" +
-					"</div>" +					
+				"<lable>Save above domain template</label>" +
+				"<a href='#' class='btn btn-primary' data-role='save-domain'>Save domain template</a>" +
+			"</div>" +
+		"</div>" +
+		"<div id='addaction'>" +
+			"<p><strong>New intervals action</strong> <a href='#' class='btn' data-role='add_action_cancel_btn'>Back</a></p>" +
+			"<label>Action</label>" +
+			"<div class='btn-group'>" +
+				"<label class='btn'><input type='radio' name='add_action_type' value='add' style='display:none'> Add</label>" +
+				"<label class='btn'><input type='radio' name='add_action_type' value='remove'  style='display:none'> Remove</label>" +
+				"<label class='btn'><input type='radio' name='add_action_type' value='mask'  style='display:none'> Mask</label>" +
+			"</div>" +
+			"<label>Interval definition</label>" +
+			"<div>" +
+				"<select name='add_interval_type'>"+
+					"<option value=''>-- New interval --</option>" +
+					"<option value='bounded'>Bounded interval</option>" +
+					"<option value='boundless'>Repetitive</option>" +
+					"<option value='' disabled='disabled'>-- Add domain --</option>" +
+				"</select>"+
+			"</div>" +
+			"<div id='boundless_definition'>" +
+				"<label>Repeat interval starting at</label>" +
+				"<input type=text name='boundless_from' class='datetime' />" +
+				"<label>Lasting</label>" +
+				"<div class='input-append'>" +
+					"<input type=number min='1' name='boundless_duration' class='span2'> <span id='boundless_duration_unit'/>" +
 				"</div>" +
-				"<div id='domain_box'>" +
-					"<ul class='ui-menu'>" +
-						"<li class='first fixed'><a href class='btn' id='addaction_btn'>Add action</a></li>" +
-						"<li class='fixed'><span class='btn disabled' style='display:block;left:0;right:0;'>Empty domain at the bottom</span></li>" +
-					"</ul>" + 
-					"<div>" +
-						"<a href='#' class='btn btn-primary' data-role='save-domain'>Save domain template</a>" +
-					"</div>" +
+				"<div class='input-append'>" +
+				"<label>Each</label>" +
+					"<input type=number min='1' name='boundless_period' class='span2'> <span id='boundless_period_unit'/>" +
 				"</div>" +
 			"</div>" +
+			"<div id='bounded_definition'>" +
+				"<label>From</label>" +
+				"<input type='text' name='bounded_from' class='datetime' />" +
+				"<label>To</label>" +
+				"<input type='text' name='bounded_to' class='datetime' />" +					
+			"</div>" +
+			"<div>" +
+				"<a href='#' class='btn btn-primary' data-role='add_action_btn'>Add</a>" +
+			"</div>" +					
 		"</div>",
 
 	duration_unit_template: 
@@ -67,14 +70,14 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 		"</select>", 
 
 	domain_stack_item_template: 
-		'<li class="sortable-item btn">' +
+		'<li class="sortable-item btn disabled" style="display:block;">' +
 			'<div class="btn-group">' +
 				'<a class="btn handle"><i class="icon-resize-vertical"></i></a>' +
 				'<a class="btn" data-domain-item-btn="action"><i class="icon-minus"></i></a>' +
 				'<a class="btn" data-domain-item-btn="edit"><i class="icon-pencil"></i></a>' +
 				'<a class="btn" data-domain-item-btn="remove"><i class="icon-trash"></i></a>' +
 			'</div>' +
-			'<span class="btn" data-domain-item="title"></span>' +
+			'<p class="" data-domain-item="title" style="margin:0; margin-top:0.5em"></p>' +
 		'</li>',
 
 	action_icons: {
@@ -88,10 +91,11 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 		'change select[name=add_interval_type]': 'changeAddType',
 		'change input[name=add_action_type]': 'changeActionType',
 		'click [data-role=add_action_btn]': 'addAction',
-		'click [data-role=add_action_close_btn]': 'closeAddAction',
+		'click [data-role=add_action_cancel_btn]': 'closeAddAction',
 		'click a[data-domain-item-btn=remove]': 'removeStackItem',
 		'click a[data-domain-item-btn=action]': 'changeStackItemAction',
 		'click a[data-role=save-domain]': 'save',
+		'click a[data-role=cancel_btn]': 'remove',
 	},
 
 	initialize: function() {
@@ -127,6 +131,10 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 
 		this.listenTo(this.options.calendar_view, 'columns_updated', this.refresh_preview);
 		this.load_domain_templates();
+
+		this.model = new PersonalTimetabling.Models.DomainTemplate();
+
+		this.listenTo(this.model, 'change', this.refresh_preview);
 	},
 
 	load_domain_templates: function() {
@@ -154,9 +162,7 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 			return;
 
 		for (var i = this.handling_boxes.length - 1; i >= 0; i--) {
-			for (var y = this.handling_boxes[i].length - 1; y >= 0; y--) {
-				this.handling_boxes[i][y].remove();
-			};
+			this.handling_boxes[i].remove();
 		};		
 	},
 
@@ -172,43 +178,28 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
       	return domain_stack;
 	},
 
+	set_model_stack: function() {
+		this.model.set({
+			'domain_stack': this.domain_stack_json(),
+			'name': this.$el.find('[name=domain_name]').val()
+		}); 
+	},
+
 	refresh_preview: function() {
 
       	// gets display date range
       	var range = this.options.calendar_view.showing_dates();
 
-      	var items_data = {
-      		'domain_stack': this.domain_stack_json(),
-      		'from': range.start,
-      		'to': range.end
-      	};
+      	var xhr = this.model.fetchIntervals(range.start, range.end);
 
-      	var panel_view = this;
-
-      	$.ajax({
-      		url:'/domain_templates/preview',
-      		type:'post',
-      		dataType:'json',
-      		data: JSON.stringify(items_data),
-      		contentType: "application/json; charset=utf-8",
-      		success: function(intervals) {
-      			panel_view.remove_preview_intervals_display();
-      			panel_view.handling_boxes = [];
-
-				_.forEach(intervals, function(interval) {
-					var boxes = panel_view.options.calendar_view.display_interval(
-						moment.utc(interval.start),
-						moment.utc(interval.end),
-						function(boxdom) {boxdom.addClass('domain-highlight');}
-						);	
-					panel_view.handling_boxes.push(boxes);
-				});
-      		},
-      		error: function() {
-      			
-      		}
-      	});
-
+      	xhr && xhr.success(_.bind(function() {
+			this.remove_preview_intervals_display();
+			this.handling_boxes = this.options.calendar_view.display_intervals(
+				this.model.intervals_collection.models,
+				function(box) {box.addClass('domain-highlight')}
+				);
+		}, this)
+		);
 	},
 
 	changeActionType: function() {
@@ -254,6 +245,12 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 		}
 	},
 
+	closeAddAction: function() {
+		this.$addaction_box.hide();
+      	this.$domain_box.show();
+      	return true;
+	},
+
 	addAction: function() {
 		var action = {
 			action: this.selectedAddActionType(),
@@ -271,7 +268,7 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 		if (action.type == 'boundless') {
 			$.extend(action, {
 				// discard timezone part
-				from: moment.utc(moment(this.$el.find('input[name=boundless_from]').datetimepicker('getDate')).format("YYYY-MM-DDTHH:mm:ss")),
+				from: moment.asUtc(this.$el.find('input[name=boundless_from]').datetimepicker('getDate')),
 				duration: {
 					duration: this.$el.find('input[name=boundless_duration]').val(),
 					unit: this.$el.find('[name=boundless_duration_unit]').val(),
@@ -284,8 +281,8 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action);
 		} else if(action.type == 'bounded') {
 			$.extend(action, {
-				from: moment.utc(moment(this.$el.find('input[name=bounded_from]').datetimepicker('getDate')).format("YYYY-MM-DDTHH:mm:ss")),
-				to: moment.utc(moment(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')).format("YYYY-MM-DDTHH:mm:ss")),
+				from: moment.asUtc(this.$el.find('input[name=bounded_from]').datetimepicker('getDate')),
+				to: moment.asUtc(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')),
 			});
 			title = _.template('<%= from %> - <%= to %>', action);
 		} else {
@@ -307,14 +304,14 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
       	this.$addaction_box.hide();
       	this.$domain_box.show();
 
-      	this.refresh_preview();
+      	this.set_model_stack();
 
       	return false;
 	},
 
 	removeStackItem: function(e) {
 		$(e.target).closest('li').remove();
-		this.refresh_preview();
+		this.set_model_stack();
 	},
 
 	changeStackItemAction: function(e) {
@@ -334,7 +331,7 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
 		}
 
 		$(e.target).find('i').removeClass().addClass(this.action_icons[itemdata.action]);	
-		this.refresh_preview();		
+		this.set_model_stack();
 	},
 
 	save: function() {
@@ -352,14 +349,22 @@ PersonalTimetabling.Views.DomainTemplateEditor = Backbone.View.extend({
       		dataType:'json',
       		data: JSON.stringify({'domain_template': domain_template}),
       		contentType: "application/json; charset=utf-8",
-      		success: function(intervals) {
+      		success: _.bind(function(intervals) {
       			alert('saving ok');
-      		},
+      			this.remove();
+      		}, this),
       		error: function() {
       			alert('saving error');
       		}
       	});
 
+	},
+
+	remove: function() {
+		// remove currently displayed intervals
+		this.remove_preview_intervals_display();
+
+		PersonalTimetabling.Views.PanelBase.prototype.remove.apply(this);
 	},
 
 });

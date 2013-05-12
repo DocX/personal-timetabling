@@ -1,6 +1,8 @@
 # Time domain representes set of intervals in which some time variable (activity occurence) can occure
 # This implementation is using concept of stack of interval templates actions. On the bottom of the stack, no time is defined. Each
 # action in the stacks adds, removes or masks time intervals available in the level bellow. 
+#
+# First item in stack is at the top (applying on the next item's domain)
 
 class TimeDomainStack < TimeDomain
   include Webui::Core::TimeDomainStackMixin

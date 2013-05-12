@@ -1,5 +1,9 @@
 class Activity < ActiveRecord::Base
-  attr_accessible :description, :name, :occurances, :activity_definition_attributes
+  # Regular: true/false = all occurences if repeating is enabled will be linked by period 
+  #   and period_start to maintain their offset from each period start
+
+
+  attr_accessible :description, :name, :occurances#, :regular
     
   has_many :occurances
 
@@ -22,10 +26,5 @@ class Activity < ActiveRecord::Base
   def activity_definition=(definition)
     self.data = {} if data.nil?
     self.data[:definition] = definition
-  end
-  
-  def activity_definition_attributes=(attributes)
-    Rails.logger.debug 'activity_definition_attributes='
-    self.activity_definition = ActivityDefinition.new attributes     
   end
 end

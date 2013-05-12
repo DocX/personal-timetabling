@@ -81,9 +81,7 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
   defaults: {
     name: "",
     description: "",
-    period_start: null,
-    period_count: 1,
-    
+    definition: null,
   },
 
   getOccurancesInRange: function(start, end, callback) {
@@ -99,37 +97,52 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
   }
 
 }, {
-  createFixed: function(name, description, start, duration) {
-    if (typeof name === 'object') {
-        duration = name.duration;
-        if (moment.isMoment(name.end))
-          duration = name.end;
-        start = name.start;
-        description = name.description,
-        name = name.name;
-    }
-    
-    // duration is containing end date
-    if (moment.isMoment(duration))
-    {
-      duration = duration.diff(start, 's');
-    }
-    
+  // Alias for creating activity with definition containing domain with one fixed interval
+  fixed: function(attributes) {
+    var values = _.extend({
+      name: '',
+      description: '',
+      start: moment.utc(),
+      end: moment.utc(),
+    }, attributes);
 
-    var fixed = new PersonalTimetabling.Models.Activity({
-      name: name,
-      description: description,
-      type: 'Fixed',
+    return new PersonalTimetabling.Models.Activity({
+      name: values.name, 
+      description: values.description,
+      definition: {
+        type: 'fixed',
+        from: values.start.toJSON(),
+        to: values.end.toJSON(),
+        repeating: false
+      }
     });
-
-    var occurance = new PersonalTimetabling.Models.ActivityOccurance({
-      start: start,
-      duration: duration, 
-      activity: fixed
-    });
-    
-    return fixed;
   },
+
+  floating: function(attributes) {
+    var values = _.extend({
+      name: '',
+      description: '',
+      start: moment.utc(),
+      end: moment.utc(),
+      min_duration: 60,
+      max_duration: 120,
+      domain_template_id: 0
+    }, attributes);
+
+    return new PersonalTimetabling.Models.Activity({
+      name: values.name,
+      description: values.description,
+      definition: {
+      type: 'floating',
+        domain_template_id: values.domain_template_id,
+        from: values.start.toJSON(),
+        to: values.end.toJSON(),
+        duration_min: values.min_duration,
+        duration_mx: values.max_duration,
+      }
+    });
+  },
+
 });
 
 PersonalTimetabling.Models.OccurancesRalationCollection = Backbone.Collection.extend({

@@ -33,6 +33,12 @@ class ActivitiesController < ApplicationController
   def create
     @activity = Activity.new params[:activity]
     
+
+    if params[:activity][:definition] && params[:activity][:definition][:type] == 'fixed'
+      @activity.occurances = ActivityDefinition.fixed(params[:activity][:definition]).create_occurences @activity
+    end
+
+
     if @activity.save
       respond_to do |format|
         format.json { render :json => @activity}
