@@ -24,7 +24,7 @@ PersonalTimetabling.App = Backbone.View.extend({
     
     this.sidebar = null;
 
-    $("a[href='#schedule-activity']").click(_.bind(function(){
+    $("a[data-role=add_domain_template]").click(_.bind(function(){
       //open sidebar
       this.layout.toggleClass('panel-open');
       if (this.layout.hasClass('panel-open')) {

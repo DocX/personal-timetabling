@@ -13,6 +13,11 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     
     //this.listenTo(this.collection, 'sync', this.update_data_view);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
+
+    this.calendar.$grid_overlay_el.mouse_events({
+      distance: 10,
+      onstart: _.bind(this.mouse_create_box, this)
+    });
   },
 
   render: function() {
@@ -66,10 +71,12 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
   
   mouse_create_box: function(e) {
     // determine mouse click position
-    var column_index = Math.floor(e[this.axis == 'x' ? 'offsetX' : 'offsetY'] / this.drawing_column_width);
-    var column_line = this.get_box_offset_in_column({left: e.offsetX, top: e.offsetY});
+    var column_index = Math.floor(e[this.axis == 'x' ? 'offsetX' : 'offsetY'] / this.calendar.drawing_column_width);
+    var column_line = this.calendar.get_box_offset_in_column({left: e.offsetX, top: e.offsetY});
     
-    var start = this.geometry.get_date_of_line(this.drawing_columns_list[column_index].column_id, column_line, this.column_step_minutes);
+    var start = this.calendar.geometry.get_date_of_line(
+      this.calendar.drawing_columns_list[column_index].column_id, 
+      column_line, this.calendar.column_step_minutes);
     
     var new_activity = 
       PersonalTimetabling.Models.Activity.createFixed({

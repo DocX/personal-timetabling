@@ -50,7 +50,7 @@
 	<script src="scripts/views/activity_box.js"></script>
 	<script src="scripts/views/columns_days_activities_view.js"></script>
 
-	<link href="styles/application.less?version=1012" rel="stylesheet/less" type="text/css" />
+	<link href="styles/application.less?version=1013" rel="stylesheet/less" type="text/css" />
 	<script src="vendor/less.js"></script>
 </head>
 
@@ -67,8 +67,13 @@
 			</div>
 			
 			<div id="buttons" class="rightcomponents" >
-				<a href="#schedule-activity" class="btn btn-inverse"><i class="icon-plus icon-white"></i> Schedule activity</a>
-				<a href="#" class="btn btn-inverse">Show tasks</a>
+				<div class='btn-group'>
+					<a class="btn dropdown-toggle btn-inverse" data-toggle='dropdown'><i class="icon-plus icon-white"></i> Create</a>
+					<ul class="dropdown-menu pull-right">
+						<li><a tabindex="-1" data-role='add_domain_template'>Domain template</a></li>
+						<li><a tabindex="-1" data-role='add_activity'>Activity</a></li>
+					</ul>
+				</div>
 			</div>
 
 
