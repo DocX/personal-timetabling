@@ -39,11 +39,8 @@ class ActivityDefinition
   def self.fixed attributes
     definition = ActivityDefinition.new
 
-    definition.domain_template = TimeDomainStack.new 
-
     fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to]) 
-
-    definition.domain_template.push fixed_interval
+    definition.domain_template = fixed_interval
 
     # made period simply larger than given fixed duration
     # so period will not take any effect when masking domain template
@@ -57,6 +54,16 @@ class ActivityDefinition
     definition.occurence_max_duration = fixed_interval.seconds
 
     definition
+  end
+
+
+  # Creates activity definition from fixed signature of definition
+  # Receives hash containing
+  # - from: datetime 
+  # - to: datetime
+  # - repeating: false | repeating definition
+  def self.floating attributes
+
   end
 
   def initialize(attributes = {})

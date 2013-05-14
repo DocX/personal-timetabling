@@ -45,8 +45,22 @@ class OccurancesController < ApplicationController
     @occurances = Occurance.in_range start_date, end_date
     
     respond_to do |format|
-      format.json { render :json => @occurances, :except => [:end]}
+      format.json { render :json => @occurances, :except => [:end, :domain_definition]}
     end    
+  end
+
+  def domain_in_range
+    start_date = DateTime.parse params[:start]
+    end_date = DateTime.parse params[:end]
+    
+    @occurance = Occurance.find params[:id]
+
+    @intervals = @occurance.domain_definition.get_intervals start_date, end_date
+    
+    
+    respond_to do |format|
+      format.json { render :json => @intervals}
+    end
   end
   
 end

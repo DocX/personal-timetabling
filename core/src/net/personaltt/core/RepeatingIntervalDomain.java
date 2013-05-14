@@ -4,6 +4,8 @@
  */
 package net.personaltt.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.naming.OperationNotSupportedException;
 import org.joda.time.Days;
 import org.joda.time.Hours;
@@ -45,8 +47,10 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
         
         boolean checkDayInMonth = repeatingPeriod.getPeriodType() == PeriodType.months();
         
-        Period currentPeriod = repeatingPeriod.toPeriod().multipliedBy(periods);
+        
         while(true) {
+            Period currentPeriod = repeatingPeriod.toPeriod().multipliedBy(periods);
+            
             LocalDateTime intervalStart = referenceIntervalStart.plus(currentPeriod);
             LocalDateTime intervalEnd = intervalStart.plus(intervalDuration);
             
@@ -64,7 +68,7 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
                 set.unionWith(intervalStart, intervalEnd);
             } 
             
-            currentPeriod = currentPeriod.plus(repeatingPeriod);
+            periods += 1;
         }
         
         return set;
@@ -87,6 +91,30 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
                 throw new UnsupportedOperationException();
         }
         return periods < 0 ? periods  : periods;
+    }
+    
+    /**
+     * Generate list of seamless intervals for repeating period
+     * @param start start date of first period
+     * @param period partial duration of period
+     * @param count count of periods to generate
+     * @return List of intervals for each period.
+     */
+    public static List<Interval> periodsIntervals(LocalDateTime start, BaseSingleFieldPeriod period, int count) {
+        
+        ArrayList<Interval> periods = new ArrayList<>();
+        
+        Period p = period.toPeriod();
+        
+        for (int i = 0; i < count; i++) {
+            periods.add(new Interval(
+                    start.plus(p.multipliedBy(i)),
+                    start.plus(p.multipliedBy(i+1))
+                    ));
+        }
+        
+        return periods;
+        
     }
     
 }

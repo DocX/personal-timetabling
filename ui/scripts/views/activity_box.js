@@ -85,4 +85,8 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
   activity_box_moving_stop: function(e, ui) {
     this.occurance.save();
   },
+
+  getOccurance: function() {
+    return this.occurance;
+  }
 });

@@ -18,6 +18,10 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
     }
   ],
   
+  initialize: function() { 
+    this.domain_intervals = new PersonalTimetabling.Models.OccuranceDomainCollection(null, {id: this.id});
+  },
+
   defaults: function() { return {
     start: moment.utc(),
     duration: 3600,
@@ -176,7 +180,7 @@ PersonalTimetabling.Models.OccurancesCollection = Backbone.Collection.extend({
     return this.filter(function(o) {return o.inRange(start,end);});
   }
   
-})
+});
 
 PersonalTimetabling.Models.ActivityCollection = Backbone.Collection.extend({
 
@@ -187,4 +191,21 @@ PersonalTimetabling.Models.ActivityCollection = Backbone.Collection.extend({
   withOccurancesInRange: function(start, end) {
     return this.models;
   }
+});
+
+PersonalTimetabling.Models.OccuranceDomainCollection = Backbone.Collection.extend({
+
+  url: '/occurances/<%= occurance_id %>/domain',
+
+  initialize: function(models, options) {
+    this.url = _.template(this.url, {occurance_id: options.id});
+  },
+
+  
+  model: PersonalTimetabling.Models.Interval,
+  
+  fetchRange: function(start, end) {
+    return this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+  },
+  
 });

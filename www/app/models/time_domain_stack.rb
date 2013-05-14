@@ -58,6 +58,8 @@ class TimeDomainStack < TimeDomain
   end
   
   def push(action)
+    throw 'Only TimeDomainStack::Action objects can be pushed' unless action.is_a? Action
+
     @actions_stack << action;
   end
   

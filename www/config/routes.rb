@@ -11,6 +11,7 @@ Webui::Application.routes.draw do
   resources :occurances do
     get 'list/:ids', :on => :collection, :action => :list
     get 'in_range', :on => :collection, :action => :in_range
+    get 'domain', :on => :member, :action => :domain_in_range
   end
 
   resources :domain_templates do

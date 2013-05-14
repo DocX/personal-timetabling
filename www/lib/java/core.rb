@@ -46,8 +46,8 @@ module Webui
       def get_intervals (from, to)
         javainstance = to_j
         
-        from_ldt =  IntervalsSetBridge.to_localdatetime(from)
-        to_ldt =  IntervalsSetBridge.to_localdatetime(to)
+        from_ldt =  Utils.to_localdatetime(from)
+        to_ldt =  Utils.to_localdatetime(to)
         
         intervalsset = javainstance.getIntervalsIn BoundedIntervalDomain.new(from_ldt, to_ldt)
         java_intervals = intervalsset.getIntervals

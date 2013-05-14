@@ -23,4 +23,16 @@ class BoundlessIntervalRepeating < TimeDomain
     interval
   end
 
+  def encode_with coder
+    coder['reference_start'] = @reference_start
+    coder['duration'] = @duration
+    coder['period'] = @period
+  end
+
+  def init_with coder
+    @reference_start = coder['reference_start']
+    @duration = coder['duration']
+    @period = coder['period']
+  end
+
 end

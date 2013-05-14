@@ -185,14 +185,17 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 		}); 
 	},
 
+	preview_xhr: null,
+
 	refresh_preview: function() {
 
       	// gets display date range
       	var range = this.options.calendar_view.showing_dates();
 
-      	var xhr = this.model.fetchIntervals(range.start, range.end);
+		this.preview_xhr && this.preview_xhr.abort();
+      	this.preview_xhr = this.model.fetchIntervals(range.start, range.end);
 
-      	xhr && xhr.success(_.bind(function() {
+      	this.preview_xhr.success(_.bind(function() {
 			this.remove_preview_intervals_display();
 			this.handling_boxes = this.options.calendar_view.display_intervals(
 				this.model.intervals_collection.models,

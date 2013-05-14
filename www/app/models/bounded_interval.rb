@@ -47,4 +47,14 @@ class BoundedInterval < TimeDomain
   def seconds 
     ((self.end - self.start) * 86400).ceil
   end
+
+  def encode_with coder
+    coder['start'] = @start
+    coder['end'] = @end
+  end
+
+  def init_with coder
+    @start = coder['start']
+    @end = coder['end']
+  end
 end

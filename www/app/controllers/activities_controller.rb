@@ -13,7 +13,7 @@ class ActivitiesController < ApplicationController
   def show
     @activity = Activity.includes(:occurances).find params[:id]
     respond_to do |format|
-      format.json { render :json => @activity}
+      format.json { render :json => @activity, :exclude => [:domain_definition]}
     end
   end
   
@@ -31,22 +31,29 @@ class ActivitiesController < ApplicationController
   end
   
   def create
-    @activity = Activity.new params[:activity]
+
+    definition = params.delete :definition
+
+    @activity = Activity.new params.except(:action, :controller, :occurances)
     
 
-    if params[:activity][:definition] && params[:activity][:definition][:type] == 'fixed'
-      @activity.occurances = ActivityDefinition.fixed(params[:activity][:definition]).create_occurences @activity
+    if definition and definition[:type] == 'fixed'
+      @activity.occurances = ActivityDefinition.fixed(definition).create_occurences @activity
+    else 
+      if params[:occurances] then
+        @activity.update_attributes( {:occurances => params[:occurances]} )
+      end
     end
 
 
     if @activity.save
       respond_to do |format|
-        format.json { render :json => @activity}
-        format.html { redirect_to :action => index}
+        format.json { render :json => @activity }
+        format.html { redirect_to :action => :index}
       end
     else 
       respond_to do |format|
-        format.json { render :json => false}
+        format.json { render :json => {:error => @activity.errors}, :status => :bad_request}
         format.html { render 'new' }
       end
     end

@@ -94,7 +94,9 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 			name: this.$el.find('[name=activty_name]').val()
 		});
 
-		activity_model.save();
+		activity_model.save()
+		.success(_.bind(function() {this.trigger('added'); this.remove()}, this))
+		.error(function() {alert('Error')});
 	},
 
 	get_fixed_model: function() {
