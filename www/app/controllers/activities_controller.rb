@@ -37,8 +37,8 @@ class ActivitiesController < ApplicationController
     @activity = Activity.new params.except(:action, :controller, :occurances)
     
 
-    if definition and definition[:type] == 'fixed'
-      @activity.occurances = ActivityDefinition.fixed(definition).create_occurences @activity
+    if definition
+      @activity.occurances = ActivityDefinition.from_typed(definition).create_occurences @activity
     else 
       if params[:occurances] then
         @activity.update_attributes( {:occurances => params[:occurances]} )

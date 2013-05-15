@@ -53,7 +53,7 @@ $.widget("pt.column_box", $.ui.mouse, {
         // determine new size
         el_duration += el_start.diff(handle_position[0], 'seconds');
         el_start = handle_position[0];
-        if (el_duration <= 0)
+        if (el_duration <= 0 || !this._check(el_start, el_duration))
           return false;
         
         var size = this.options.view.box_offset_and_size_for_column(
@@ -65,7 +65,7 @@ $.widget("pt.column_box", $.ui.mouse, {
       else if (this.mode == 'resize-back') {
         // determine new size
         el_duration = handle_position[0].diff(el_start, 'seconds');
-        if (el_duration <= 0)
+        if (el_duration <= 0 || !this._check(el_start, el_duration))
           return false;
         
         var start_line = this.options.view.geometry.get_line_of_date(el_start).line;
@@ -76,18 +76,25 @@ $.widget("pt.column_box", $.ui.mouse, {
         this.element.css(size);
       }
       else if (this.mode == 'move') {
+        // process move from columns
+        var column_move = this._getMouseColumn(x_delta, y_delta);
+        handle_position = this._getDateOfHandle(column_move[0], x_delta, y_delta);
+        el_start = handle_position[0];
+
+        if (!this._check(el_start, el_duration)) { return false };
+
         // move box
         this.element.css(handle_position[1]);  
         // process potential inter-column move
-        this._processInterColumnMove(column, x_delta, y_delta);
-        
-        el_start = handle_position[0];
+        this._processInterColumnMove(column_move);
       }
 
       this.el_start = el_start;      
       this.el_duration = el_duration;
       this._trigger("drag", event, {el: this.element, date_front:el_start, duration: el_duration});      
    },
+
+   _check: function() {},
    
    _getDateOfHandle: function(column, x_delta, y_delta) {
       var new_position = $.extend({},this.start_position);
@@ -109,7 +116,7 @@ $.widget("pt.column_box", $.ui.mouse, {
       return [mouse_date, date_offset, date_column];
    },
    
-   _processInterColumnMove: function(column, x_delta, y_delta) {
+   _getMouseColumn: function(x_delta, y_delta) {
       var columns_delta = 
         // |    box       |
         // |        ^mouse|
@@ -122,15 +129,22 @@ $.widget("pt.column_box", $.ui.mouse, {
         Math.floor(columns_delta / this.options.view.drawing_column_width);
       
       if (columns_delta - this.current_columns_delta != 0) {        
-        column = this.options.view.column_of_id(column.column_id, columns_delta - this.current_columns_delta);
-        if (column != null) {         
-          this.column = column;
-          
-          this.current_columns_delta = columns_delta;
-          
-          this.element.css(this.options.view.columns_offset_attr, column.$column.position()[this.options.view.columns_offset_attr] )
-        }
-      }     
+        var column = this.options.view.column_of_id(this.column.column_id, columns_delta - this.current_columns_delta);
+        return [column, columns_delta]
+      }
+      return [this.column,0];
+   },
+
+   _processInterColumnMove: function(move_column) {
+
+      if (move_column[0] != null && move_column[0] != this.column) {         
+        this.column = move_column[0];
+        
+        this.current_columns_delta = move_column[1];
+        
+        this.element.css(this.options.view.columns_offset_attr, this.column.$column.position()
+          [this.options.view.columns_offset_attr] );
+      }
    },
     
    _mouseStop: function(event) {

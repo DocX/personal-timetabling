@@ -173,6 +173,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         console.log("render_columns");
       
         this.$grid_el.empty();
+        this.$grid_overlay_el.empty();
         this.$headers_el.empty();
 
         // keep first column id
@@ -249,6 +250,7 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
         // update supercolumns
         this.update_header_columns();
         
+        this.$grid_overlay_el.empty();
         this.trigger("columns_updated");
     },
     

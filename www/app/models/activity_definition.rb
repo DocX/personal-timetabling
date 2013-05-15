@@ -56,14 +56,55 @@ class ActivityDefinition
     definition
   end
 
-
-  # Creates activity definition from fixed signature of definition
+  # Creates activity definition from floating signature of definition
   # Receives hash containing
   # - from: datetime 
   # - to: datetime
   # - repeating: false | repeating definition
-  def self.floating attributes
+  def self.fixed attributes
+    definition = ActivityDefinition.new
 
+    fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to]) 
+    definition.domain_template = fixed_interval
+
+    # made period simply larger than given fixed duration
+    # so period will not take any effect when masking domain template
+    definition.period = Duration.new({
+      :unit => Duration::DAY,
+      :duration => fixed_interval.bounding_days
+    })
+    definition.period_start = fixed_interval.start
+    definition.periods_count = 1
+    definition.occurence_min_duration = fixed_interval.seconds
+    definition.occurence_max_duration = fixed_interval.seconds
+
+    definition
+  end  
+
+
+  # Creates activity definition from fixed signature of definition
+  # Receives hash containing
+  # - from: datetime 
+  # - period: Hash for Duration instance of floating period cropping domain template
+  # - domaint_template_id: id of DomainTemplate model
+  # - duration_min: integer, seconds of min duration
+  # - duration_max: integer, seconds of max duration
+    # - repeating: false | repeating definition
+  def self.floating attributes
+    definition = ActivityDefinition.new
+
+    # made period simply larger than given fixed duration
+    # so period will not take any effect when masking domain template
+    definition.period = Duration.new attributes[:period]
+    definition.period_start = DateTime.iso8601(attributes[:from])
+    definition.periods_count = 1
+    definition.occurence_min_duration = attributes[:duration_min].to_i
+    definition.occurence_max_duration = attributes[:duration_max].to_i
+    definition.domain_template = DomainTemplate.find(attributes[:domain_template_id]).domain_stack
+
+    throw 'Domain template not found' if definition.domain_template.nil?
+
+    definition
   end
 
   def initialize(attributes = {})
@@ -140,9 +181,18 @@ class ActivityDefinition
       period_domain.push TimeDomainStack::Action.new(TimeDomainStack::Action::MASK, period_interval)
       period_domain.push TimeDomainStack::Action.new(TimeDomainStack::Action::ADD, @domain_template)
 
+      # get first interval of domain cut
+      period_domain_intervals = period_domain.get_intervals period_interval.start, period_interval.end
+
+      # if zero intervals in this period, skip to the next and dont create occurence
+      if period_domain_intervals.size == 0
+        counter += 1
+        next
+      end
+
       occurence = Occurance.new
       occurence.activity = for_activity
-      occurence.start = period_interval.start
+      occurence.start = period_domain_intervals[0].start
       occurence.duration = @occurence_min_duration
       occurence.min_duration = @occurence_min_duration
       occurence.max_duration = @occurence_max_duration

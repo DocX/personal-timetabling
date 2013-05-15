@@ -92,7 +92,8 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 		'change input[name=add_action_type]': 'changeActionType',
 		'click [data-role=add_action_btn]': 'addAction',
 		'click [data-role=add_action_cancel_btn]': 'closeAddAction',
-		'click a[data-domain-item-btn=remove]': 'removeStackItem',
+		'click a[data-domain-item-btn=remove]': 'removeStackItem',	
+		'click a[data-domain-item-btn=edit]': 'editStackItem',
 		'click a[data-domain-item-btn=action]': 'changeStackItemAction',
 		'click a[data-role=save-domain]': 'save',
 		'click a[data-role=cancel_btn]': 'remove',
@@ -188,6 +189,8 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 	preview_xhr: null,
 
 	refresh_preview: function() {
+		if (!this.model.get('domain_stack'))
+			return true;
 
       	// gets display date range
       	var range = this.options.calendar_view.showing_dates();
@@ -217,9 +220,12 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 
 		// reset all inputs
 		this.$addaction_box.find('input[type!=radio]').val(null);
+		this.$addaction_box.find('select').val(null);
 		this.$addaction_box.find('input[type=radio]').attr('checked', false);
 		this.$addaction_bounded_box.hide();
 		this.$addaction_boundless_box.hide();
+
+		this.editing_item = null;
 
 		return false;
 	},
@@ -271,7 +277,7 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 		if (action.type == 'boundless') {
 			$.extend(action, {
 				// discard timezone part
-				from: moment.asUtc(this.$el.find('input[name=boundless_from]').datetimepicker('getDate')),
+				from: moment.asUtc(this.$el.find('input[name=boundless_from]').datetimepicker('getDate')).toJSON(),
 				duration: {
 					duration: this.$el.find('input[name=boundless_duration]').val(),
 					unit: this.$el.find('[name=boundless_duration_unit]').val(),
@@ -284,8 +290,8 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action);
 		} else if(action.type == 'bounded') {
 			$.extend(action, {
-				from: moment.asUtc(this.$el.find('input[name=bounded_from]').datetimepicker('getDate')),
-				to: moment.asUtc(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')),
+				from: moment.asUtc(this.$el.find('input[name=bounded_from]').datetimepicker('getDate')).toJSON(),
+				to: moment.asUtc(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')).toJSON(),
 			});
 			title = _.template('<%= from %> - <%= to %>', action);
 		} else {
@@ -296,12 +302,14 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 		}
 
 
-		var sortable_list_item = $(this.domain_stack_item_template);
+		var sortable_list_item = this.editing_item ? this.editing_item : $(this.domain_stack_item_template);
 		sortable_list_item.data('action', action);
 		sortable_list_item.find('[data-domain-item-btn=action] i').attr('class', this.action_icons[action.action]);
       	sortable_list_item.find('[data-domain-item=title]').text(title);
 
-      	this.$stack_list.find('.first').after(sortable_list_item);
+
+      	this.editing_item || this.$stack_list.find('.first').after(sortable_list_item);
+      	this.editing_item = null;
 
       	//hide adding and show domain
       	this.$addaction_box.hide();
@@ -335,6 +343,32 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 
 		$(e.target).find('i').removeClass().addClass(this.action_icons[itemdata.action]);	
 		this.set_model_stack();
+	},
+
+	editStackItem: function(e) {
+		
+
+		this.openAdd();
+
+		this.editing_item = $(e.target).closest('li');
+
+		var action = this.editing_item.data('action');
+		this.$el.find('select[name=add_interval_type]').val(action.type);
+		this.$el.find('input[name=add_action_type][value='+action.action+']').attr('checked', 'checked');
+		if (action.type == 'boundless') {
+			this.$el.find('input[name=boundless_from]').datetimepicker('setDate', moment(action.from.replace(/Z$/,'')).toDate());
+			this.$el.find('input[name=boundless_duration]').val(action.duration.duration);
+			this.$el.find('[name=boundless_duration_unit]').val(action.duration.unit);
+			this.$el.find('input[name=boundless_period]').val(action.period.duration);
+			this.$el.find('[name=boundless_period_unit]').val(action.period.unit);
+		} else if(action.type == 'bounded') {
+			this.$el.find('input[name=bounded_from]').datetimepicker('setDate', moment(action.from.replace(/Z$/,'')).toDate());
+			this.$el.find('input[name=bounded_to]').datetimepicker('setDate', moment(action.to.replace(/Z$/,'')).toDate());
+		} else {
+			this.$el.find('select[name=add_interval_type]').val(action.domain_template_id);
+		}
+
+		this.changeAddType();
 	},
 
 	save: function() {

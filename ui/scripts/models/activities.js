@@ -72,6 +72,11 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
     }
     return data;
   },
+
+  validDuration: function(duration){
+
+    return this.get('min_duration') <= duration && this.get('max_duration') >= duration;
+  },
   
   urlRoot: '/occurances', 
 });
@@ -127,10 +132,10 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
       name: '',
       description: '',
       start: moment.utc(),
-      end: moment.utc(),
-      min_duration: 60,
-      max_duration: 120,
-      domain_template_id: 0
+      duration_min: 60,
+      duration_max: 120,
+      domain_template_id: 0,
+      period: {duration: 0, unit: 'days'}
     }, attributes);
 
     return new PersonalTimetabling.Models.Activity({
@@ -140,9 +145,12 @@ PersonalTimetabling.Models.Activity = Backbone.RelationalModel.extend({
       type: 'floating',
         domain_template_id: values.domain_template_id,
         from: values.start.toJSON(),
-        to: values.end.toJSON(),
-        duration_min: values.min_duration,
-        duration_mx: values.max_duration,
+        period: {
+          duration: values.period.duration,
+          unit: values.period.unit
+        },
+        duration_min: values.duration_min,
+        duration_max: values.duration_max,
       }
     });
   },
@@ -173,7 +181,7 @@ PersonalTimetabling.Models.OccurancesCollection = Backbone.Collection.extend({
   model: PersonalTimetabling.Models.ActivityOccurance,
   
   fetchRange: function(start, end) {
-    return this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+    return this.fetch({remove: false, data: {start: start.toJSON(), end: end.toJSON()}});
   },
   
   inRange: function(start, end) {
@@ -200,12 +208,17 @@ PersonalTimetabling.Models.OccuranceDomainCollection = Backbone.Collection.exten
   initialize: function(models, options) {
     this.url = _.template(this.url, {occurance_id: options.id});
   },
-
   
   model: PersonalTimetabling.Models.Interval,
   
   fetchRange: function(start, end) {
     return this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
   },
+
+  // determine if interval given by start date and duration in seconds
+  // is inside any of intervals in this collection (which is mostly intervals for currently displayed window)
+  isFeasible: function(start, duration) {
+    return this.any(function(i) {return i.isInInterval(start, duration);});
+  }
   
 });

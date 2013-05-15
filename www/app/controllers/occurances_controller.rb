@@ -1,6 +1,10 @@
 class OccurancesController < ApplicationController
 
   def index
+    @occurances = Occurance.where(:activity_id => params[:activity_id])
+    respond_to do |format|
+      format.json { render :json => @occurances, :only => [:id, :activity_id, :start, :duration, :min_duration, :max_duration]}
+    end    
   end
   
   def show

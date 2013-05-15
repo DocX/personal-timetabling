@@ -18,6 +18,14 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
       distance: 10,
       onstart: _.bind(this.mouse_create_box, this)
     });
+    this.calendar.$grid_overlay_el.click(_.bind(function(e){
+      if (e.target != this.calendar.$grid_overlay_el.get()[0] )
+        return;
+
+      this.active_id = null;
+      this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
+      this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
+    }, this));
   },
 
   render: function() {
@@ -41,13 +49,12 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     var occurances_to_show = this.collection.inRange(
       range.start, range.end
     ); 
-    this.calendar.clear_intervals();
+    this.calendar.clear_intervals('.activity');
 
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
       if (occurance.get('activity') == null)
         continue;
-      //this.listenTo(occurance, 'relational:add:activity', this.refresh);
       this.add_activity_box(occurance);
     }
   },
@@ -64,13 +71,25 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
       remove: _.bind(this.delete_activity_occurance, this) 
     });
 
-    box.click(function(that) { return function() { that.activate_box(this) } }(this));
+    box.mousedown(function(that) { return function() { that.activate_box(this) } }(this));
+
+    if (occurance.id == this.active_id) {
+      this.activate_box(box);
+    }
   },
 
   activate_box: function(box) {
-    //get its intervals and shows them
+    if ($(box).hasClass('active'))
+      return;
 
+    this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
+
+    //get its intervals and shows them
     var occurance = $(box).closest('.activity-occurance').activity_occurance_box('getOccurance');
+    this.active_id = occurance.id;
+
+    this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
+    $(box).addClass('active');
 
     var range = this.calendar.showing_dates();
     occurance.domain_intervals.fetchRange(range.start, range.end)
@@ -78,7 +97,9 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
   },
 
   show_domain: function(occurance) {
-    this.options.calendar_view.display_intervals(
+    
+
+    this.domain_intervals_display = this.calendar.display_intervals(
         occurance.domain_intervals.models,
         function(box) {box.addClass('domain-highlight')}
         );

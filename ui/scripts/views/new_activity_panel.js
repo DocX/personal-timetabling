@@ -24,11 +24,13 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 			"<div id='activity_definition_floating'>" +
 				"<label>Domain template</label>" +
 				"<select name='floating_domain_template'></select>" +
-				"<label>Between</label>" +
-				"<input type='text' name='fixed_from' class='datetime' />" +
-				"<label>and</label>" +
-				"<input type='text' name='fixed_to' class='datetime' />" +
-				"<label>Length in minutes</label>" +
+				"<label>From</label>" +
+				"<input type='text' name='floating_from' class='datetime' />" +
+				"<label>size of window</label>" +
+				"<div class='input-append'>" +
+					"<input type=number min='1' name='floating_to_duration' class='span2'> <span id='floating_to_duration_unit'/>" +
+				"</div>" +
+				"<label>Length in minutes <span id='floating_duration'></span></label>" +
 				"<div id='floating_length_slider'></div>" +
 			"</div>" +
 
@@ -38,6 +40,14 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 			"</div>" +
 
 		"</div>",
+
+	duration_unit_template: 
+		"<select class='input-mini'>" +
+			"<option value='hour'>Hours</option>" +
+			"<option value='day'>Days</option>" +
+			"<option value='week'>Weeks</option>" +
+			"<option value='month'>Months</option>" +
+		"</select>", 
 
 	events: {
 		'click a[data-role=activity_cancel_btn]': 'remove',
@@ -53,15 +63,50 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 		// initialize datetimepickers
 		this.$el.find('.datetime').datetimepicker();
 
+		this.$el.find('#floating_to_duration_unit').append($(this.duration_unit_template).attr('name', 'floating_to_duration_unit'));
+
 		// hide definition boxes
 		this.$fixed_definition_box.hide();
 		this.$floating_definition_box.hide();
 
-		this.$el.find('#floating_length_slider').slider({
+		this.$floating_slider = this.$el.find('#floating_length_slider').slider({
 			range:true,
-			min: 1,
-			max: 600
+			min: 15,
+			max: 600,
+			values: [60,120],
+			step: 15,
+			change: _.bind(this.set_slider_values, this),
+			slide: _.bind(this.set_slider_values, this),
 		});
+
+		this.set_slider_values(null, {values:[60,120]});
+		this.load_domain_templates();
+	},
+
+	set_slider_values: function(e,ui) {
+		this.$el.find('#floating_duration').text(
+			Math.floor(ui.values[0] / 60) + 'h' + (ui.values[0] % 60).pad(2) + 'm' +
+			' - ' + 
+			Math.floor(ui.values[1] / 60) + 'h' + (ui.values[1] % 60).pad(2) + 'm' );
+	},
+
+	load_domain_templates: function() {
+		this.domains_collection = new PersonalTimetabling.Models.DomainTemplatesCollection();
+		this.$domain_selectbox = this.$el.find('select[name=floating_domain_template]');
+
+		this.domains_collection.fetch()
+			.success(_.bind(function() {
+				this.$domain_selectbox.append("<option value=''></option>");
+				var $domain_selectbox = this.$domain_selectbox;
+
+				this.domains_collection.forEach(function(domain) {
+					$domain_selectbox.append($("<option/>").attr({
+						value: domain.get('id')
+					}).text(domain.get('name')))
+				});
+
+			}, this)
+		);
 	},
 
 	selected_activity_type: function() {
@@ -74,7 +119,7 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 		if(this.selected_activity_type() == 'fixed') {
 			this.$fixed_definition_box.show();
 			this.$floating_definition_box.hide();
-		} else if (selected_activity_type == 'floating') {
+		} else if (this.selected_activity_type() == 'floating') {
 			this.$fixed_definition_box.hide();
 			this.$floating_definition_box.show();
 		}
@@ -86,8 +131,10 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 		var activity_model;
 		if (type == 'fixed') {
 			activity_model = this.get_fixed_model();
-		} else if (activity.type == 'floating') {
+		} else if (type == 'floating') {
 			activity_model = this.get_floating_model();
+		} else {
+			return false;
 		}
 
 		activity_model.set({
@@ -103,6 +150,19 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 		return PersonalTimetabling.Models.Activity.fixed({
 			start: moment.asUtc(this.$el.find('[name=fixed_from]').datetimepicker('getDate')),
 			end: moment.asUtc(this.$el.find('[name=fixed_to]').datetimepicker('getDate')),
+		});
+	},
+
+	get_floating_model: function() {
+		return PersonalTimetabling.Models.Activity.floating({
+			domain_template_id: this.$domain_selectbox.val(),
+			start: moment.asUtc(this.$el.find('[name=floating_from]').datetimepicker('getDate')),
+			period: {
+				duration: this.$el.find('[name=floating_to_duration]').val(),
+				unit: this.$el.find('[name=floating_to_duration_unit]').val(),
+				}, 
+			duration_min: (this.$floating_slider.slider('values')[0] * 60),
+			duration_max: (this.$floating_slider.slider('values')[1] * 60)
 		});
 	}
 

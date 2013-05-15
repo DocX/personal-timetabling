@@ -34,7 +34,7 @@ PersonalTimetabling.App = Backbone.View.extend({
     $("a[data-role=add_activity]").click(_.bind(function(){
       //open sidebar
       this.open_panel(PersonalTimetabling.Views.NewActivityPanel, {});
-      this.listenTo(this.sidebar, 'added', function() {this.calendar_view.refresh();});
+      this.listenTo(this.sidebar, 'added', function() {this.calendar_view.reload_activities();});
     }, this));
 
   },

@@ -49,7 +49,7 @@ PersonalTimetabling.Views.CalendarButtons = Backbone.View.extend({
       this.$buttons.find("[data-role=scroll-right]")
          .click(_.bind(this.calendar_view.calendar.move_right, this.calendar_view.calendar));
       this.$buttons.find("[data-role=zoom-to]")
-         .click(_.partial(function(view) {view.set_zoom($(this).attr("data-zoom"), true)}, this.calendar_view.calendar));
+         .click(_.partial(function(view) {view.set_zoom(null, {value:$(this).attr("data-zoom")})}, this.calendar_view.calendar));
       
       var mode_vertical_btn = this.$buttons.find("[data-role=mode-vertical]");
       var mode_horizontal_btn = this.$buttons.find("[data-role=mode-horizontal]");

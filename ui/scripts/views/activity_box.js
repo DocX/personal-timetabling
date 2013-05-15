@@ -53,13 +53,28 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       "</div>" +
     "",
  
+  _check: function(start, duration){
+    var occurance = this.options.occurance;
+    //check against domain
+    if (occurance.domain_intervals && !occurance.domain_intervals.isFeasible(start, duration)) {
+      return false;
+    }
+
+    //check against duration limits
+    if (!occurance.validDuration(duration)) {
+      return false;
+    }
+
+    return true;
+  },
+
   activity_date_format: 'DD.MM.YY H:mm',
   
   activity_box_moved: function(e, ui) {
     var $box = $(ui.el);
     var occurance = this.options.occurance;
     var column = this.column;
-    
+
     occurance.set({
       start: ui.date_front,
       duration: ui.duration

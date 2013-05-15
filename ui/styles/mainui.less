@@ -99,8 +99,8 @@ div.panel-layout {
   #sidepanel {
     display:none;
     z-index:20;
-    background:  url("images/noisy.png");
-    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+    background:  url("images/noisy.png"), lighten(desaturate(@mainmenu-background, 30%), 20%);
+    box-shadow: 0 0 5px rgba(0,0,0,0.6);
 
     &>div {
       padding: 1em;

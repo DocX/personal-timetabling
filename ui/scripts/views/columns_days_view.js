@@ -118,9 +118,9 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
     
     /* INTERVALS HANDLING */
     
-    clear_intervals: function() {
+    clear_intervals: function(selector) {
       // just clear overlay div
-      this.$grid_overlay_el.empty();
+      this.$grid_overlay_el.find(selector).remove();
     },
     
     
