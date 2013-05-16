@@ -83,12 +83,6 @@ PersonalTimetabling.CalendarViews.ColumnsView.TimeColumnGeometryBase = Base.exte
   prev_column: function(col_id) {},
   
   column_spec: function(col_id) {},
-
-
-  
-  week_days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  
-  months: ["January", "February", "March", "April", "May", "June", "Jule", "August", "October", "November", "December"],
 });
 
 
@@ -128,7 +122,7 @@ PersonalTimetabling.CalendarViews.ColumnsView.DayColumnGeometry = PT.CalendarVie
     var sun_or_sat = ((date.day() +6) % 7) >= 5;
     return {
         id: date_id,
-        title: date.format("ddd D. M. YYYY"),
+        title: date.format("ddd D.[&nbsp;]M.[&nbsp;]YYYY"),
         lines_labels: this.lines_prototype.map(function(el) {return {label: el, style: sun_or_sat ? 'shaded' : ''};})
       };
   },

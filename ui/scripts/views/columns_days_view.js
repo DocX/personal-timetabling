@@ -128,10 +128,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
       this.$grid_overlay_el.append(box);
     },
     
-    // creates DOM elements on appropriate places for given interval
-    // and returns object for handling them
-    display_interval: function(from, to, box_setup_func) {
-    
+    render_interval: function(from, to, box_setup_func) {
       // get splits to columns intervals for given interval
       var columns_for_interval = this.geometry.get_lines_for_interval(from, to);
 
@@ -159,8 +156,24 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
 
         this.$grid_overlay_el.append(box);
       };
-      return new PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle(boxes);
-    
+
+      return boxes;
+    },
+
+    // creates DOM elements on appropriate places for given interval
+    // and returns object for handling them
+    display_interval: function(from, to, box_setup_func) {
+      var boxes = this.render_interval(from, to, box_setup_func);
+
+      var handle = new PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle({
+        'boxes':boxes, 
+        'interval_start': from,
+        'interval_end': to, 
+        'box_setup_func': box_setup_func,
+        'view': this
+      });
+
+      return handle;
     },
 
     // renders all intervals in given array. 
@@ -180,22 +193,41 @@ PersonalTimetabling.CalendarViews.ColumnsDaysView = PersonalTimetabling.Calendar
 });
 
 // simple handle wrapping internal behaviour of interval display
-PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle = Base.extend({
-  boxes: null,
+PersonalTimetabling.CalendarViews.ColumnsDaysView.IntervalDisplayHandle = Backbone.Model.extend({
+  
+  default: {
+    boxes: null,
+    interval_start:null,
+    interval_end:null,
+    box_setup_func:null,
+    view: null,
+  },
 
-  // boxes is array of jQuery elements for one interval
-  constructor: function(boxes) {
-    this.boxes = boxes;
+  initialize: function() {
+    this.listenTo(this.attributes.view, 'columns_updated', this.render);
+  },
+  
+  render: function() {
+    this.attributes.boxes = this.attributes.view.render_interval(
+      this.attributes.interval_start, 
+      this.attributes.interval_end, 
+      this.attributes.box_setup_func
+      );
   },
 
   remove: function() {
-    if (this.boxes == null) 
+    if (this.attributes.boxes == null) 
       return;
 
-    for (var i =  this.boxes.length - 1; i >= 0; i--) {
-        this.boxes[i].remove();
+    for (var i =  this.attributes.boxes.length - 1; i >= 0; i--) {
+        this.attributes.boxes[i].remove();
     };
 
-    this.boxes = null;
+    this.attributes.boxes = null;
+
+    this.attributes.view = null;
+
+    this.stopListening();
+
   }
 });

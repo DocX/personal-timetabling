@@ -11,7 +11,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     
     this.collection = new PersonalTimetabling.Models.OccurancesCollection();
     
-    //this.listenTo(this.collection, 'sync', this.refresh);
+    this.listenTo(this.collection, 'related:activity:fetch', this.refresh);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
 
     this.calendar.$grid_overlay_el.mouse_events({
@@ -34,8 +34,10 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
   },
 
   reload_activities: function() {
-    this.calendar.clear_intervals();
+    // render first current state of collection
+    this.refresh();
 
+    // fetch new view
     var range = this.calendar.showing_dates();
     this.collection.fetchRange(range.start, range.end)
     .success(_.bind(this.refresh, this));
@@ -49,7 +51,7 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     var occurances_to_show = this.collection.inRange(
       range.start, range.end
     ); 
-    this.calendar.clear_intervals('.activity');
+    this.calendar.clear_intervals('.activity-occurance');
 
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
@@ -82,11 +84,13 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     if ($(box).hasClass('active'))
       return;
 
-    this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
 
     //get its intervals and shows them
     var occurance = $(box).closest('.activity-occurance').activity_occurance_box('getOccurance');
     this.active_id = occurance.id;
+
+    // display again last intervals in activity memory
+    //this.show_domain(occurance);
 
     this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
     $(box).addClass('active');
@@ -97,7 +101,8 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
   },
 
   show_domain: function(occurance) {
-    
+     // remove currenlty displaying intervals
+    this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});   
 
     this.domain_intervals_display = this.calendar.display_intervals(
         occurance.domain_intervals.models,

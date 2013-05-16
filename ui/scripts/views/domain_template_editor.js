@@ -326,7 +326,8 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 	},
 
 	changeStackItemAction: function(e) {
-		var itemdata = $(e.target).closest('li').data('action');
+		var listitem =  $(e.target).closest('li');
+		var itemdata = listitem.data('action');
       
 		switch(itemdata.action)
 		{
@@ -341,8 +342,10 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 				break;
 		}
 
-		$(e.target).find('i').removeClass().addClass(this.action_icons[itemdata.action]);	
+		listitem.find('a[data-domain-item-btn=action] i').removeClass().addClass(this.action_icons[itemdata.action]);	
 		this.set_model_stack();
+
+		this.refresh_preview();
 	},
 
 	editStackItem: function(e) {

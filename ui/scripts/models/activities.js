@@ -14,7 +14,12 @@ PersonalTimetabling.Models.ActivityOccurance = Backbone.RelationalModel.extend({
       },
       keySource: 'activity_id',
       parse: true,
-      autoFetch: true
+      autoFetch: {
+        success: function(model) {
+          console.log('occurance fetchreleated done for activity id', model.id);
+          model.get('occurances').each(function(o) {o.collection.trigger('related:activity:fetch')});
+        }
+      }
     }
   ],
   
