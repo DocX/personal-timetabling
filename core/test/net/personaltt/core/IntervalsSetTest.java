@@ -176,6 +176,98 @@ public class IntervalsSetTest {
         
         assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
     }
+    
+    /**
+     * Test of minus method, of class IntervalsSet.
+     */
+    @Test
+    public void testMinus2() {
+        // remove from outer to innner
+        IntervalsSet instance = new IntervalsSet();
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,2,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        instance.minus(new Interval(new LocalDateTime(2000,1,5,0,0,0), new LocalDateTime(2000,1,8,0,0,0)));
+        
+        ArrayList<Interval> expected = new ArrayList<>();
+        expected.add(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,2,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,1,8,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        
+        assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
+    }
+    
+    /**
+     * Test of minus method, of class IntervalsSet.
+     */
+    @Test
+    public void testMinus3() {
+        // remove inner to inner
+        IntervalsSet instance = new IntervalsSet();
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,2,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        instance.minus(new Interval(new LocalDateTime(2000,1,8,0,0,0), new LocalDateTime(2000,1,8,15,0,0)));
+        
+        ArrayList<Interval> expected = new ArrayList<>();
+        expected.add(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,2,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,8,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,1,8,15,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        
+        assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
+    }
+    
+    /**
+     * Test of minus method, of class IntervalsSet.
+     */
+    @Test
+    public void testMinus4() {
+        // remove inner to outer
+        IntervalsSet instance = new IntervalsSet();
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,4,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        instance.minus(new Interval(new LocalDateTime(2000,1,3,0,0,0), new LocalDateTime(2000,1,6,15,0,0)));
+        
+        ArrayList<Interval> expected = new ArrayList<>();
+        expected.add(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,3,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        
+        assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
+    }
+    
+    /**
+     * Test of minus method, of class IntervalsSet.
+     */
+    @Test
+    public void testMinus5() {
+        // remove inner throught outer to inner
+        IntervalsSet instance = new IntervalsSet();
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,4,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        instance.minus(new Interval(new LocalDateTime(2000,1,3,0,0,0), new LocalDateTime(2000,1,8,15,0,0)));
+        
+        ArrayList<Interval> expected = new ArrayList<>();
+        expected.add(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,3,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,1,8,15,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        
+        assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
+    }
+    
+     /**
+     * Test of minus method, of class IntervalsSet.
+     */
+    @Test
+    public void testMinus6() {
+        // remove outer to outer
+        IntervalsSet instance = new IntervalsSet();
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,4,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,1,7,0,0,0), new LocalDateTime(2000,1,9,0,0,0)));
+        instance.unionWith(new Interval(new LocalDateTime(2000,2,7,0,0,0), new LocalDateTime(2000,2,9,0,0,0)));        
+        instance.minus(new Interval(new LocalDateTime(2000,1,6,0,0,0), new LocalDateTime(2000,1,12,15,0,0)));
+        
+        ArrayList<Interval> expected = new ArrayList<>();
+        expected.add(new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,4,0,0,0)));
+        expected.add(new Interval(new LocalDateTime(2000,2,7,0,0,0), new LocalDateTime(2000,2,9,0,0,0)));
+        
+        assertArrayEquals(expected.toArray(), instance.getIntervals().toArray());
+    }
 
     
 }

@@ -25,23 +25,26 @@ public class IntervalsSet {
         setMap = new TreeMap<>();
     }
     
-    
-    public void unionWith(IntervalsSet i) {
-        // union with each interval
-        for (Iterator<Entry<LocalDateTime, Boolean>> it = i.setMap.entrySet().iterator(); it.hasNext();) {
-            Entry<LocalDateTime, Boolean> object = it.next();
-            // start and has next
-            if (object.getValue() && it.hasNext())  {
-                Entry<LocalDateTime, Boolean> end = it.next();
-                
-                unionWith(object.getKey(), end.getKey());
-            }
-        }
+    public IntervalsSet(Interval interval) {
+        setMap = new TreeMap<>();
+        setMap.put(interval.start, Boolean.TRUE);
+        setMap.put(interval.end, Boolean.FALSE);
     }
-    void unionWith(Interval interval) {
+    
+    /**
+     * Union with single interval
+     * @param interval 
+     */
+    public void unionWith(Interval interval) {
         this.unionWith(interval.start, interval.end);
     }
-    void unionWith(LocalDateTime start, LocalDateTime end) {
+    
+    /**
+     * Union with single interval in O(n log n)
+     * @param start
+     * @param end 
+     */
+    public void unionWith(LocalDateTime start, LocalDateTime end) {
         
         // remove all edges inside adding interval
         // O(n log n) - find start
@@ -64,9 +67,34 @@ public class IntervalsSet {
             // add start
             setMap.put(end, Boolean.FALSE);
         }
-        
-    }
+    }  
     
+  
+    
+   /**
+     * Intersection merge operation
+     */
+    private class UnionMerge implements MergeFunction {
+        @Override
+        public boolean mergeEdge(boolean state_a, boolean state_b) {
+            return state_a || state_b;
+        }    
+    }    
+    
+    public void unionWith(IntervalsSet mask) {        
+       this.merge(mask, new UnionMerge());
+    }
+   
+    
+    /**
+     * Intersection merge operation
+     */
+    private class IntersectMerge implements MergeFunction {
+        @Override
+        public boolean mergeEdge(boolean state_a, boolean state_b) {
+            return state_a && state_b;
+        }    
+    }    
     
     public void intersectWith(IntervalsSet mask) {
         // cases:
@@ -74,92 +102,35 @@ public class IntervalsSet {
         // mask:   |--------|   |-----------|
         // rslt:   |---|  |-|     |-----|
         
-        Iterator<Entry<LocalDateTime, Boolean>> it_this = this.setMap.entrySet().iterator(); 
-        Iterator<Entry<LocalDateTime, Boolean>> it_mask = mask.setMap.entrySet().iterator(); 
-        
-        TreeMap<LocalDateTime, Boolean> intersection = new TreeMap<>();
-
-        // get first steps
-        boolean state_this = false;
-        boolean state_mask = false;
-        Entry<LocalDateTime, Boolean> cu_this = it_this.hasNext() ? it_this.next() : null;
-        Entry<LocalDateTime, Boolean> cu_mask = it_mask.hasNext() ? it_mask.next() : null;
-        
-        while(cu_this != null && cu_mask != null) {
-            Entry<LocalDateTime, Boolean> edge;
-            boolean state_intersection = state_this && state_mask;
-            
-            if (cu_this.getKey().isBefore(cu_mask.getKey())) {
-                edge = cu_this;
-                state_this = edge.getValue();
-                cu_this = it_this.hasNext() ? it_this.next() : null;
-            } else {
-                edge = cu_mask;
-                state_mask = edge.getValue();
-                cu_mask = it_mask.hasNext() ? it_mask.next() : null;
-            }
-            
-            // now in state_* is current state of both sets just >after< the edge
-            // in the state_intersection is AND state of sets just >before< the edge
-            // and in edge is edge causing this stop
-            
-            // if is endging enge and is in intersection before
-            // or is starting edge and is in intersection after and not before
-            if ((edge.getValue() == false && state_intersection == true) || 
-                    (edge.getValue() == true && !state_intersection && state_this && state_mask) ) {
-                // add ending edge to intersection
-                intersection.put(edge.getKey(), edge.getValue());
-            }
-        }
-        
-        // construct new intervals set from edges list
-        this.setMap = intersection;
+       this.merge(mask, new IntersectMerge());
+    }
+   
+    
+    /**
+    * Minus merge operation
+    */
+    private class MinusMerge implements MergeFunction {
+        @Override
+        public boolean mergeEdge(boolean state_a, boolean state_b) {
+            return state_a && !state_b;
+        }    
     }
 
-    void minus(IntervalsSet subtrahend_set) {
+    public void minus(Interval subtrahend){
+        IntervalsSet s = new IntervalsSet();
+        s.unionWith(subtrahend);
+        this.minus(s);
+    }
+    
+    public void minus(IntervalsSet subtrahend_set) {
         // cases:
-        // this: |-----|  |---|   |-----|   |----|   
-        // minu:   |--------|   |-----------|
-        // rslt: |-|        |-|             |----|
+        // this: |-----|  |---|   |-----|   |----|     |-----| |-----|
+        // minu:   |--------|   |-----------|         
+        // rslt: |-|        |-|             |----|     |-----| |-----|
         
-        Iterator<Entry<LocalDateTime, Boolean>> it_this = this.setMap.entrySet().iterator(); 
-        Iterator<Entry<LocalDateTime, Boolean>> it_mask = subtrahend_set.setMap.entrySet().iterator(); 
-        
-        TreeMap<LocalDateTime, Boolean> intersection = new TreeMap<>();
-
-        // get first steps
-        boolean state_this = false;
-        boolean state_mask = false;
-        Entry<LocalDateTime, Boolean> cu_this = it_this.hasNext() ? it_this.next() : null;
-        Entry<LocalDateTime, Boolean> cu_mask = it_mask.hasNext() ? it_mask.next() : null;
-        
-        while(cu_this != null && cu_mask != null) {
-            LocalDateTime edge_date; boolean edge_state;
-            boolean state_before = state_this && !state_mask;
-            
-            if (cu_this.getKey().isBefore(cu_mask.getKey())) {
-                edge_date = cu_this.getKey();
-                edge_state = cu_this.getValue();
-                state_this = edge_state;
-                cu_this = it_this.hasNext() ? it_this.next() : null;
-            } else {
-                edge_date = cu_mask.getKey();
-                edge_state = !cu_mask.getValue(); // minus is inverted intersection
-                state_mask = cu_mask.getValue();
-                cu_mask = it_mask.hasNext() ? it_mask.next() : null;
-            }
-            
-            if ((edge_state == false && state_before == true) || 
-                    (edge_state == true && !state_before && state_this && !state_mask) ) {
-                // add ending edge to intersection
-                intersection.put(edge_date, edge_state);
-            }
-            
-        }
-        
-        // construct new intervals set from edges list
-        this.setMap = intersection;
+        this.merge(subtrahend_set, new MinusMerge());
     }
+    
     
     public List<Interval> getIntervals() {
         ArrayList<Interval> intervals = new ArrayList<>();
@@ -178,4 +149,77 @@ public class IntervalsSet {
         
         return intervals;
     }
+    
+    
+    private interface MergeFunction {    
+        /*
+         * Determine state of resulting interval set on the edge in given states of two intervals sets
+         */
+        boolean mergeEdge(boolean state_a, boolean state_b);
+    }
+    
+    /*
+     * Merge walk througt edges from both intervals sets (this and given) and calls merge function 
+     * implementation for each of them
+     */
+    private void merge(IntervalsSet second, MergeFunction operation) {
+        Iterator<Entry<LocalDateTime, Boolean>> this_iterator = this.setMap.entrySet().iterator(); 
+        Iterator<Entry<LocalDateTime, Boolean>> second_iterator = second.setMap.entrySet().iterator(); 
+        
+        TreeMap<LocalDateTime, Boolean> result = new TreeMap<>();
+        boolean lastResultState = false;
+       
+        // get first steps
+        Entry<LocalDateTime, Boolean> this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
+        Entry<LocalDateTime, Boolean> second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
+ 
+        while(this_edge != null || second_edge != null) {
+            // intervals are here considered as closed-open - so if edge start, is inside
+            // and if edge is end, it is outside.
+            boolean this_state;
+            boolean second_state;
+            LocalDateTime step_time;
+            
+            // walk first this until is before second or second has no more edges
+            if (this_edge != null && (second_edge == null || this_edge.getKey().isBefore(second_edge.getKey()))) {
+                // in this, we are on the edge - if out-in edge, we are in, if in-out, we are out
+                this_state = this_edge.getValue();
+                step_time = this_edge.getKey();
+                
+                // in second, we are somewhere between edges, so state is determined by first next edge:
+                second_state = second_edge == null ? false : !second_edge.getValue();
+                
+                this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
+            // else walk on second
+            } else if (second_edge != null && (this_edge == null || second_edge.getKey().isBefore(this_edge.getKey()))) {
+                // in second, we are on the edge - if out-in edge, we are in, if in-out, we are out
+                second_state = second_edge.getValue();
+                step_time = second_edge.getKey();
+                
+                // in this, we are somewhere between edges, so state is determined by first next edge:
+                this_state = this_edge == null ? false : !this_edge.getValue();
+                
+                second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
+            // else must be equal not null
+            } else {
+                this_state = this_edge.getValue();
+                second_state = second_edge.getValue();
+                step_time = this_edge.getKey();
+                
+                // move both
+                this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
+                second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
+            }
+            
+            // if result of merging current state on the edge is other than current state 
+            // in the result interval set, add switch edge
+            boolean result_state_of_edge = operation.mergeEdge(this_state, second_state);
+            if (result_state_of_edge != lastResultState) {
+                result.put(step_time, result_state_of_edge);
+                lastResultState = result_state_of_edge;
+            }
+        }
+        
+        this.setMap = result;
+    }    
 }

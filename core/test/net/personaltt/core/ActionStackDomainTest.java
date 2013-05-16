@@ -150,6 +150,7 @@ public class ActionStackDomainTest {
         
     }
     
+    @Test
      public void testGetIntervalsRepeatingAddThenRemove() {
         System.out.println("getIntervalsIn add remove");
         
@@ -177,6 +178,74 @@ public class ActionStackDomainTest {
       
         assertArrayEquals(expecteds.toArray(), intervals.toArray());
         
+    }
+     
+    @Test
+     public void testGetIntervalsRepeatingAddThenRemoveBounded() {
+        
+        ActionStackDomain d = new ActionStackDomain();
+        d.push(ActionStackDomain.ADD, 
+                new RepeatingIntervalDomain(new LocalDateTime(2010,1,1,0,0,0), Days.THREE, Days.SEVEN));
+        d.push(ActionStackDomain.REMOVE,
+                new Interval(new LocalDateTime(2010,1,7,0,0,0), new LocalDateTime(2010,1,8,3,0,0)));
+        
+        Interval range = new Interval(
+                new LocalDateTime(2010,1,1,0,0,0), 
+                new LocalDateTime(2010,1,20,0,0,0)
+            );
+        
+        // should
+        // 1.1. 0:0 - 4.1. 0:0
+        //  8.1. 0:0 - 11.1. 0:0 -- 7.1. 0:0 - 8.1. 3:0 = 
+        // 8.1. 3:0 - 11.1. 0:0
+        // 15.1 0:0 - 18.1.
+        //
+        // x 21.1 
+        
+        IntervalsSet intervalset = d.getIntervalsIn(range);
+        List<Interval> intervals = intervalset.getIntervals();
+        
+        ArrayList<Interval> expecteds = new ArrayList<>();
+        expecteds.add(new Interval(new LocalDateTime(2010,1,1,0,0,0), new LocalDateTime(2010,1,4,0,0,0)));
+        expecteds.add(new Interval(new LocalDateTime(2010,1,8,3,0,0), new LocalDateTime(2010,1,11,0,0,0)));
+        expecteds.add(new Interval(new LocalDateTime(2010,1,15,0,0,0), new LocalDateTime(2010,1,18,0,0,0)));
+      
+        assertArrayEquals(expecteds.toArray(), intervals.toArray());
+    }
+     
+    @Test
+    public void testGetIntervalsRepeatingAddThenRemoveBounded2() {
+        
+        ActionStackDomain d = new ActionStackDomain();
+        d.push(ActionStackDomain.ADD, 
+                new RepeatingIntervalDomain(new LocalDateTime(2010,1,1,0,0,0), Days.THREE, Days.SEVEN));
+        d.push(ActionStackDomain.REMOVE,
+                new Interval(new LocalDateTime(2010,1,8,5,0,0), new LocalDateTime(2010,1,8,13,0,0)));
+        
+        Interval range = new Interval(
+                new LocalDateTime(2010,1,5,0,0,0), 
+                new LocalDateTime(2010,1,20,0,0,0)
+            );
+        
+        // should
+        // 1.1. 0:0 - 4.1. 0:0
+        //  8.1. 0:0 - 11.1. 0:0 -- 8.1. 05:0 - 8.1. 13:0 = 
+        // 8.1. 0:0 - 8.1. 5:0
+        // 8.1 13:00 - 11.1. 0:0
+        // 15.1 0:0 - 18.1. 0:0
+        //
+        // x 21.1 
+        
+        IntervalsSet intervalset = d.getIntervalsIn(range);
+        List<Interval> intervals = intervalset.getIntervals();
+        
+        ArrayList<Interval> expecteds = new ArrayList<>();
+        expecteds.add(new Interval(new LocalDateTime(2010,1,1,0,0,0), new LocalDateTime(2010,1,4,0,0,0)));
+        expecteds.add(new Interval(new LocalDateTime(2010,1,8,0,0,0), new LocalDateTime(2010,1,8,5,0,0)));
+        expecteds.add(new Interval(new LocalDateTime(2010,1,8,13,0,0), new LocalDateTime(2010,1,11,0,0,0)));
+        expecteds.add(new Interval(new LocalDateTime(2010,1,15,0,0,0), new LocalDateTime(2010,1,18,0,0,0)));
+      
+        assertArrayEquals(expecteds.toArray(), intervals.toArray());
     }
     
    
