@@ -25,7 +25,7 @@ require.config({
   		deps:[],
   		exports: 'Base'
   	},
-    'bootstrap': ['jquery'],
+    'bootstrap': ['jquery', 'jquery-ui'],
 
   }
 });

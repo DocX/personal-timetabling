@@ -11,8 +11,8 @@ var $ = require('jquery'),
     WeekColumnGeometry = require('views/columns_days_view.week_geometry');
     
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
-var ColumnsDayView;
-return ColumnsDayView = ColumnsView.extend({
+var ColumnsDaysView;
+return ColumnsDaysView = ColumnsView.extend({
   options: {
       initial_date: moment.utc()
   },
