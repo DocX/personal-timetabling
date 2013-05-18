@@ -59,7 +59,9 @@ return Backbone.View.extend({
           axis: this.axis,
           drag: _.bind(this.on_drag, this, this.$container),
           stop: _.bind(this.on_drag, this, this.$container)
-        });      
+        });   
+
+        this.$el.resize(_.bind(this.resize, this));   
     },
     
     move_left: function() {

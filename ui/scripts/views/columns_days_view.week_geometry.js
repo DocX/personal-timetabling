@@ -64,7 +64,7 @@ return TimeColumnGeometryBase.extend({
     var left_date = column_date.clone().startOf('month');
     
     var end_date = column_date.clone().add('w',columns);
-    supercols = [];
+    var supercols = [];
     
     while(end_date.isAfter(left_date)) {
       // get months first day week - should be sure before left_date

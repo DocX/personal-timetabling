@@ -23,7 +23,6 @@ return Backbone.View.extend({
       
   
   initialize: function() {
-    $(window).resize(function(that) { return function() {that.resize();} } (this));
 
     $(document).on('ajaxStart', function() {  $("#ajax-indicator").show(); });
     $(document).on('ajaxStop', function() {  $("#ajax-indicator").hide(); });
