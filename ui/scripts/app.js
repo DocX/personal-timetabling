@@ -1,16 +1,20 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-var PersonalTimetabling = {};
-var PT = PersonalTimetabling;
+define([
+	// load app wide libraries
+	'core/personal_timetabling'
+	], function(PT) {
+		// define PersonalTimetabling application structure
+		var app = {};
+		app.initialize = function() {
+			$(document).ready(function() {
+				var pt_app = new PT();
+				pt_app.render();  
+			}); 
+		};
 
-PT.App = null;
-PT.CalendarViews = {};
-PT.Models = {};
-PT.Views = {};
-
-$(document).ready(function() {
-   PT.AppInstance = new PT.App(); 
-   PT.AppInstance.render();  
-  }); 
+		return app;
+	}
+);
 

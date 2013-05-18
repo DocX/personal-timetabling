@@ -1,9 +1,13 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-// Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
-PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBase.extend({
+define(function(require) {
 
+var $ = require('jquery'),
+    Backbone = require('backbone'),
+    jQueryKineticDraggable = require('lib/jquery.ui.kineticdraggable');
+
+return Backbone.View.extend({
     
     layout_template:
       "<div class='columns-view horizontal-columns'>" +
@@ -481,3 +485,4 @@ PersonalTimetabling.CalendarViews.ColumnsView = PersonalTimetabling.TasksViewBas
     }
 });
 
+});

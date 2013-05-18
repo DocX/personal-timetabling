@@ -1,7 +1,16 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.PanelBase.extend({
+define(function(require) {
+
+var $ = require('jquery'),
+    Backbone = require('backbone'),
+    moment = require('moment'),
+    momentAddons = require('lib/moment.addons'),
+    PanelBase = require('components/panel_base'),
+    DomainTemplatesCollection = require('models/domain_templates_collection');
+    
+return PanelBase.extend({
 
 	template: 
 		"<div id='domain_box'>" +
@@ -139,7 +148,7 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 	},
 
 	load_domain_templates: function() {
-		this.domains_collection = new PersonalTimetabling.Models.DomainTemplatesCollection();
+		this.domains_collection = new DomainTemplatesCollection();
 		this.$domain_selectbox = this.$el.find('select[name=add_interval_type]');
 
 		this.domains_collection.fetch()
@@ -404,7 +413,9 @@ PersonalTimetabling.Views.DomainTemplateEditor = PersonalTimetabling.Views.Panel
 		// remove currently displayed intervals
 		this.remove_preview_intervals_display();
 
-		PersonalTimetabling.Views.PanelBase.prototype.remove.apply(this);
+		PanelBase.prototype.remove.apply(this);
 	},
+
+});
 
 });

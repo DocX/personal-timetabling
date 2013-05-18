@@ -1,3 +1,9 @@
+// (c) 2013 Lukas Dolezal
+"use strict";
+
+define(['jquery', 'jquery-ui', 'lib/jquery.ui.columnbox'], function($) {
+
+
 // box moving and resizing in column view
 $.widget("pt.activity_occurance_box", $.pt.column_box, {
   
@@ -104,4 +110,6 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
   getOccurance: function() {
     return this.occurance;
   }
+});
+
 });

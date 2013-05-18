@@ -1,4 +1,7 @@
 // (c) 2013 Lukas Dolezal
+"use strict";
+
+define(['jquery', 'jquery-ui'], function($) {
 
 // box moving and resizing in column view
 $.widget("pt.column_box", $.ui.mouse, {
@@ -185,4 +188,7 @@ $.widget("pt.column_box", $.ui.mouse, {
         
         this.element.addClass('ui-draggable-dragging');
     }
+});
+
+
 });

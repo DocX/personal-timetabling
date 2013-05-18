@@ -1,7 +1,14 @@
 // (c) 2013 Lukas Dolezal
+"use strict";
 
+define(function(require) {
+
+var $ = require('jquery'),
+    Backbone = require('backbone'),
+    moment = require('moment');
+    
 // View controller for calendar buttons
-PersonalTimetabling.Views.CalendarButtons = Backbone.View.extend({
+return Backbone.View.extend({
 
  buttons_template: 
     "<div id='dayincolview-buttons' class='rightcomponents'>" +
@@ -65,6 +72,9 @@ PersonalTimetabling.Views.CalendarButtons = Backbone.View.extend({
         this.calendar_view.calendar.set_axis('y');
       }, this));  
    },
+
+
+});
 
 
 });

@@ -1,4 +1,7 @@
 // (c) 2013 Lukas Dolezal
+"use strict";
+
+define(['jquery', 'jquery-ui'], function($) {
 
 // linear deceleration easing
 $.easing.lineardeceleration = function(t) {
@@ -113,5 +116,8 @@ $.widget("pt.kinetic_draggable", $.ui.mouse, {
       avg.yv = 1000 * avg.yv / time;
       return avg;
    }
+
+});
+
 
 });

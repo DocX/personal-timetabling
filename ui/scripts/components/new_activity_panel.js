@@ -1,7 +1,16 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase.extend({
+define(function(require) {
+
+var $ = require('jquery'),
+    Backbone = require('backbone'),
+    moment = require('moment'),
+    momentAddons = require('lib/moment.addons'),
+    PanelBase = require('components/panel_base'),
+    DomainTemplatesCollection = require('models/domain_templates_collection');
+    
+return PanelBase.extend({
 
 	template: 
 		"<div>" +
@@ -91,7 +100,7 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 	},
 
 	load_domain_templates: function() {
-		this.domains_collection = new PersonalTimetabling.Models.DomainTemplatesCollection();
+		this.domains_collection = new DomainTemplatesCollection();
 		this.$domain_selectbox = this.$el.find('select[name=floating_domain_template]');
 
 		this.domains_collection.fetch()
@@ -165,5 +174,7 @@ PersonalTimetabling.Views.NewActivityPanel = PersonalTimetabling.Views.PanelBase
 			duration_max: (this.$floating_slider.slider('values')[1] * 60)
 		});
 	}
+
+});
 
 });

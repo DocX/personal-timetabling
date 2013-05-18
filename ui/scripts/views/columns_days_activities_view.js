@@ -1,23 +1,28 @@
 // (c) 2013 Lukas Dolezal
 "use strict";
 
-// Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
-PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.extend({
+define(function(require) {
 
+var $ = require('jquery'),
+    Backbone = require('backbone'),
+    ColumnsDaysView = require('views/columns_days_view'),
+    OccurancesCollection = require('models/occurances_collection'),
+    jQueryAvcitivityBox = require('lib/jquery.ui.activitybox');
+    
+
+// Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
+return Backbone.View.extend({
   
   initialize: function() {
     
-    this.calendar = new PersonalTimetabling.CalendarViews.ColumnsDaysView({el: this.el});
+    this.calendar = new ColumnsDaysView({el: this.el});
     
-    this.collection = new PersonalTimetabling.Models.OccurancesCollection();
+    this.collection = new OccurancesCollection();
     
     this.listenTo(this.collection, 'related:activity:fetch', this.refresh);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
 
-    this.calendar.$grid_overlay_el.mouse_events({
-      distance: 10,
-      onstart: _.bind(this.mouse_create_box, this)
-    });
+
     this.calendar.$grid_overlay_el.click(_.bind(function(e){
       if (e.target != this.calendar.$grid_overlay_el.get()[0] )
         return;
@@ -135,4 +140,6 @@ PersonalTimetabling.CalendarViews.ColumnsDaysActivitiesView = Backbone.View.exte
     
     this.add_activity_box(new_activity.get('occurances').models[0], true);
   },
+});
+
 });
