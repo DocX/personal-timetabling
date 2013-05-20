@@ -8,6 +8,8 @@ var moment = require('moment'),
 
 
 return TimeColumnGeometryBase.extend({
+  line_seconds: 86400 * 7,
+
   constructor: function(view, model) {
     this.base(view, model);
     

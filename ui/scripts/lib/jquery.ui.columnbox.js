@@ -12,183 +12,212 @@ $.widget("pt.column_box", $.ui.mouse, {
     resize_handle_class_prefix: 'columnbox-handle-'
   },
   
-   _create: function() {
-      this._mouseInit();
-      
-      this.options.orientation = this.options.view.axis == 'x' ? 'y' : 'x';
-      
-      // determine column
-      var start_coord = this.options.view.geometry.get_line_of_date(this.options.start);
-      var end_coord = this.options.view.geometry.get_line_of_date(this.options.start.clone().add('seconds', this.options.duration));
+  _create: function() {
+    this._mouseInit();
 
-      // find column for start
-      var column = this.options.view.column_of_id(start_coord.column_id); 
-      if (column == null)
-        return;
-      
-      this.column = column;
-      this.el_start = this.options.start;
-      this.el_duration = this.options.duration;
-      
-      // set sizes to fit column
-      this.element.css(this.options.view.columns_size_attr, this.options.view.drawing_column_width);
-      this.element.css(this.options.view.columns_offset_attr, column.$column.position()[this.options.view.columns_offset_attr]);
-
-      this.options.view.set_box_offset_and_size_for_column(this.element, start_coord.line, end_coord.line - start_coord.line);
-
-      // init sizes
-   },
-
-   _mouseDrag: function(event) {     
-      var x_delta = event.pageX - this.click.x;
-      var y_delta = event.pageY - this.click.y;
-      
-      // get date of current lines
-      var column = this.column;
-      var el_start = this.el_start;
-      var el_duration = this.el_duration;
-      var handle_position = this._getDateOfHandle(column, x_delta, y_delta);
-
-      if (handle_position == false)
-        return false;
-      
-      if (this.mode == 'resize-front') {
-        // determine new size
-        el_duration += el_start.diff(handle_position[0], 'seconds');
-        el_start = handle_position[0];
-        if (el_duration <= 0 || !this._check(el_start, el_duration))
-          return false;
-        
-        var size = this.options.view.box_offset_and_size_for_column(
-          handle_position[2].line,
-          this.options.view.geometry.get_line_of_date(el_start.clone().add(el_duration,'s')).line - handle_position[2].line);
-        // move box and resize
-        this.element.css(size);
-      }
-      else if (this.mode == 'resize-back') {
-        // determine new size
-        el_duration = handle_position[0].diff(el_start, 'seconds');
-        if (el_duration <= 0 || !this._check(el_start, el_duration))
-          return false;
-        
-        var start_line = this.options.view.geometry.get_line_of_date(el_start).line;
-        var size = this.options.view.box_offset_and_size_for_column(
-          start_line,
-          handle_position[2].line - start_line);
-        // move box and resize
-        this.element.css(size);
-      }
-      else if (this.mode == 'move') {
-        // process move from columns
-        var column_move = this._getMouseColumn(x_delta, y_delta);
-        handle_position = this._getDateOfHandle(column_move[0], x_delta, y_delta);
-        el_start = handle_position[0];
-
-        if (!this._check(el_start, el_duration)) { return false };
-
-        // move box
-        this.element.css(handle_position[1]);  
-        // process potential inter-column move
-        this._processInterColumnMove(column_move);
-      }
-
-      this.el_start = el_start;      
-      this.el_duration = el_duration;
-      this._trigger("drag", event, {el: this.element, date_front:el_start, duration: el_duration});      
-   },
-
-   _check: function() {},
-   
-   _getDateOfHandle: function(column, x_delta, y_delta) {
-      var new_position = $.extend({},this.start_position);
-      new_position.left += x_delta;
-      new_position.top += y_delta;
-
-      var handle_line_in_col = this.options.view.get_box_offset_in_column(new_position);
-      // if handle is out of column
-      if (handle_line_in_col < 0)
-        return false;
-      
-      // gets rounded date of line and then move element to pixel corresponding to date
-      var mouse_date = this.options.view.geometry.get_date_of_line(column.column_id, handle_line_in_col, this.options.step_minutes);
-      var date_column = this.options.view.geometry.get_line_of_date(mouse_date);
-      var date_offset = this.options.view.box_offset_and_size_for_column(date_column.line, 0);
-      delete date_offset.height;
-      delete date_offset.width;
-      
-      return [mouse_date, date_offset, date_column];
-   },
-   
-   _getMouseColumn: function(x_delta, y_delta) {
-      var columns_delta = 
-        // |    box       |
-        // |        ^mouse|
-        // |              |   ^mousenow => +1
-        this.options.orientation == 'x' ?
-        (this.element_click.y + y_delta) :
-        (this.element_click.x + x_delta);
-        //console.log('column_delta', columns_delta, this.options.view.drawing_column_width);
-      var columns_delta = 
-        Math.floor(columns_delta / this.options.view.drawing_column_width);
-      
-      if (columns_delta - this.current_columns_delta != 0) {        
-        var column = this.options.view.column_of_id(this.column.column_id, columns_delta - this.current_columns_delta);
-        return [column, columns_delta]
-      }
-      return [this.column,0];
-   },
-
-   _processInterColumnMove: function(move_column) {
-
-      if (move_column[0] != null && move_column[0] != this.column) {         
-        this.column = move_column[0];
-        
-        this.current_columns_delta = move_column[1];
-        
-        this.element.css(this.options.view.columns_offset_attr, this.column.$column.position()
-          [this.options.view.columns_offset_attr] );
-      }
-   },
+    this.orientation = this.options.view.axis == 'x' ? 'y' : 'x';
     
-   _mouseStop: function(event) {
-      // start kinetic animation
-     this.element.removeClass('ui-draggable-dragging');
-     this._trigger("stop", event, {el:this.element});
-   },
-
-   _mouseStart: function(event) {
-        if($(event.toElement).is('.' + this.options.resize_handle_class_prefix + 'front')) {
-          this.mode = 'resize-front';
-          this.start_position = this.element.position();
-        } else if($(event.toElement).is('.' + this.options.resize_handle_class_prefix + 'back')) {
-          this.mode = 'resize-back';
-          this.start_position = this.element.position();
-          this.start_position[this.options.view.in_column_offset_attr] += 
-          this.element[this.options.view.in_column_size_attr].call(this.element);
-        }
-        else {
-          this.mode = 'move';
-          this.start_position = this.element.position();
-        }
-
-        
-        
-        this.current_columns_delta = 0;
-        var element_offset = this.element.offset();
-        this.element_click = {
-          x: event.pageX - element_offset.left,
-          y: event.pageY - element_offset.top,
-        }
-        //console.log('offset click', this.element_click);
-        
-        this.click = { //Where the click started
-          x: event.pageX ,
-          y: event.pageY
-        };
-        
-        this.element.addClass('ui-draggable-dragging');
+    if(!this.options.group) {
+      this.options.group = {
+        start: this.options.start,
+        duration: this.options.duration,
+        update: _.bind(this._update, this),
+        check: _.bind(this._check, this),
+      };
+      this.group_first = true;
     }
-});
+    if (!this.options.offset_in_group) {
+      this.options.offset_in_group =  0;
+    }
+    
+    // init position and size
+    this._update();
+  },
 
+  _mouseStart: function(event) {
+    if($(event.toElement).is('.' + this.options.resize_handle_class_prefix + 'front')) {
+      this.mode = 'resize-front';
+    } else if($(event.toElement).is('.' + this.options.resize_handle_class_prefix + 'back')) {
+      this.mode = 'resize-back';
+    }
+    else {
+      this.mode = 'move';
+    }
+
+    var element_offset = this.element.offset();
+    this.mouse_start_element = {
+      x: event.pageX - element_offset.left,
+      y: event.pageY - element_offset.top,
+    }
+
+    this.mouse_start_offset_in_group = this.options.offset_in_group;
+
+    this.element.addClass('ui-draggable-dragging');
+  },    
+
+  _mouseDrag: function(event) {        
+    switch(this.mode) {
+      case 'resize-front':
+        this.front_to(this._get_date_of_coordinates(event.pageX, event.pageY));
+        break;
+      case 'resize-back':
+        this.back_to(this._get_date_of_coordinates(event.pageX, event.pageY));
+        break;
+      case 'move': 
+        this.move_this_to(this._get_date_of_coordinates(
+          event.pageX - (this.orientation == 'x' ? this.mouse_start_element.x : 0), 
+          event.pageY - (this.orientation == 'y' ? this.mouse_start_element.y : 0)
+        ));
+        break;
+    }
+
+    this._trigger("drag", event, {el: this.element, date_front:this.options.group.start, duration: this.options.group.duration, mouse:true});  
+  },
+
+  _mouseStop: function(event) {
+    // start kinetic animation
+    this.element.removeClass('ui-draggable-dragging');
+    if (!this.options.master) {
+      this._trigger("stop", event, {el:this.element});
+    }
+  },
+
+
+
+  front_to: function(date) {
+    // determine new size
+    var new_duration = this.options.group.duration + this.options.group.start.diff(date, 'seconds');
+    this.set_date(date, new_duration);      
+  },
+
+  back_to: function(date) {
+    // determine new size
+    var new_duration = date.diff(this.options.group.start, 'seconds');
+    this.set_date(this.options.group.start, new_duration);
+  },
+
+  move_to: function(date) {
+    this.set_date(date, this.options.group.duration);
+  },
+
+  move_this_to: function(date) {
+    // add in group offset to date
+    date.add('s', -this.mouse_start_offset_in_group);
+    this.set_date(date, this.options.group.duration);
+  },
+
+  // sets date of whole group
+  set_date: function(start, duration) {
+    if (!this.options.group.check(start, duration)) {
+     return false
+    };
+
+    this.options.group.start = start;
+    this.options.group.duration = duration;
+
+    // update only if first otherwise delegate update to the first
+    if (this.group_first) {
+      //console.log ('first group member updated', this.options.group.start.format(), this.options.group.duration);
+      this._update();
+    } else {
+      //console.log ('not first group member updated', this.options.group.start.format(), this.options.group.duration);
+      this.options.group.update();
+    }
+  },
+
+  _update: function() {
+    //console.log ('updated', this.group_first, this.options.group.start.format(), this.options.group.duration);
+    var start_line = this.options.view.geometry.get_line_of_date(this.options.group.start.clone().add('s', this.options.offset_in_group));
+    var end_date = this.options.group.start.clone().add('s', this.options.group.duration);
+    var end_line = this.options.view.geometry.get_line_of_date(end_date);
+    
+    //find column in view
+    var start_column = this.options.view.column_of_id(start_line.column_id);
+    var end_column = this.options.view.column_of_id(end_line.column_id);
+
+    if (start_column && end_column) {
+      var size = this.options.view.box_offset_and_size_for_column(
+        start_line.line,
+        end_column.column_id > start_column.column_id ? start_column.lines_labels.length - start_line.line : end_line.line - start_line.line);
+
+      // move box and resize
+      this.element.css(size);
+      this.element.css(this.options.view.columns_size_attr, this.options.view.drawing_column_width);
+      this.element.css(this.options.view.columns_offset_attr, start_column.$column.position()[this.options.view.columns_offset_attr]);
+
+      this._process_overflow();
+    }
+
+    //this._trigger("drag", event, {el: this.element, date_front:this.options.group.start, duration: this.options.group.duration, mouse:false});
+  },
+
+  _process_overflow: function(){
+    var start_date = this.options.group.start.clone().add('s', this.options.offset_in_group);
+    var start_line = this.options.view.geometry.get_line_of_date(start_date);
+    var start_column_end = this.options.view.geometry.get_end_of_column(start_line.column_id);
+    var end_date = this.options.group.start.clone().add('s', this.options.group.duration);
+
+    var next_group_offset = start_column_end.diff(this.options.group.start, 'seconds');
+
+    if (start_column_end.isAfter(end_date) || start_column_end.isSame(end_date)) {
+      if (this.group_next_box)  {
+        this._destroy_box(this.group_next_box);
+        this.group_next_box.remove();
+        this.group_next_box = null;
+      }
+
+      return;
+    }
+
+    if (this.group_next_box) {
+      this.group_next_box.column_box('set_group_offset', next_group_offset);
+    }else {
+      // copy HTML of element including its own outer HTML
+      this.group_next_box = $('<div/>').append(this.element.clone());
+      this.group_next_box = $(this.group_next_box.html());
+
+      this.element.after(this.group_next_box);
+      var next_options = $.extend(
+          {},
+          this.options, 
+          {offset_in_group: next_group_offset}
+        );
+      this.group_next_box.column_box(next_options);
+      this.group_next_box.column_box('set_group', this.options.group);
+      this._setup_box(this.group_next_box);
+    }
+  },
+
+  // override to setup box created for overflow
+  _setup_box: function(box) {},
+  _destroy_box: function(box) {},
+
+  set_group: function(group_object) {
+    this.options.group = group_object;
+  },
+
+  set_group_offset: function(offset){
+    this.options.offset_in_group = offset;
+    this._update();
+  },
+
+  // override to implement validation of moving
+  _check: function(start, duration) {
+    return duration > 0;
+  },
+
+  _get_date_of_coordinates: function(x, y) {
+    var plane_offset = this.options.view.get_plane_offset_to_document();
+    var coordinates = {left: x - plane_offset.left, top:y - plane_offset.top};
+
+    var column_line = this.options.view.get_column_line_by_offset(coordinates);
+    
+    // gets rounded date of line and then move element to pixel corresponding to date
+    var mouse_date = this.options.view.geometry.get_date_of_line(column_line.column_id, column_line.line, this.options.step_minutes);    
+    return mouse_date;
+  },
+
+
+});
 
 });

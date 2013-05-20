@@ -28,17 +28,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     this.element.find('[data-source=start]').text(start_date);
     this.element.find('[data-source=end]').text(end_date);
 
-    this.element.tooltip({
-      title: 
-      this.options.occurance.get("activity").get("name") +
-      '<br>' +
-      start_date + 
-      ' - ' +
-      end_date,
-      html: true,
-      placement: this.options.view.axis == 'x' ? 'right' : 'top',
-      animation: false
-    });
+    this._setup_box(this.element);    
     
    /* this.element.find('a[data-button=activity-occurance-btn-edit]')
       .click(_.bind(_.partial(this._trigger,'edit', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));
@@ -49,16 +39,37 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
   },
   
   template: 
-    ""+
-      "<div class='activity-occurance-inner'>" +
-        "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
-        "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
-        "<div class='activity-occurance-labels'>" +
-          "<div class='name' data-source='name'></div>" +
-        "</div>" +
+    "<div class='activity-occurance-inner' data-animation='false' data-html='true' >" +
+      "<div class='columnbox-handle-front activity-occurance-handle'></div>" +
+      "<div class='columnbox-handle-back activity-occurance-handle'></div>" +
+      "<div class='activity-occurance-labels'>" +
+        "<div class='name' data-source='name'></div>" +
       "</div>" +
-    "",
+    "</div>",
  
+  _setup_box: function(box) {
+    var start_date = this.options.occurance.get("start").format(this.activity_date_format);
+    var end_date =  this.options.occurance.get("end").format(this.activity_date_format);
+    box.tooltip({
+      title: 
+      this.options.occurance.get("activity").get("name") +
+      '<br>' +
+      start_date + 
+      ' - ' +
+      end_date,
+      html: true,
+      placement: this.options.view.axis == 'x' ? 'right' : 'top',
+      animation: false
+    });
+
+    this._trigger('box_setup', null, box);
+
+  },
+
+  _destroy_box: function(box) {
+    box.tooltip('destroy');
+  },
+
   _check: function(start, duration){
     var occurance = this.options.occurance;
     //check against domain
@@ -97,7 +108,11 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       start_date + 
       ' - ' +
       end_date
-     ).tooltip('fixTitle').tooltip('show');
+     ).tooltip('fixTitle');
+    
+    if(ui.mouse) {
+      $box.tooltip('show');
+    }
     
     // align to new date time
     return true;

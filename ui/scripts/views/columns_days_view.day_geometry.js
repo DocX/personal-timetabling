@@ -7,6 +7,8 @@ var moment = require('moment'),
     TimeColumnGeometryBase = require('views/columns_view.geometry_base');
 
 return TimeColumnGeometryBase.extend({
+  line_seconds: 86400,
+
   constructor: function(view, model,  hours_lower, hours_upper) {
     this.base(view, model);
     
@@ -83,6 +85,8 @@ return TimeColumnGeometryBase.extend({
     date.minutes(minutes_since_zero % 60);
     return date;
   }
+
+
 });
 
 

@@ -64,6 +64,11 @@ return Base.extend( {
     return columns;
   },
 
+  // returns date of the right edge of given column
+  get_end_of_column: function(column_id){
+    return this.get_date_of_line(this.next_column(column_id), 0);
+  },
+
   /* abstract protected methods */
 
   // return supercolumns grouping columns between given bounds.

@@ -20,6 +20,7 @@ return Backbone.View.extend({
     this.collection = new OccurancesCollection();
     
     this.listenTo(this.collection, 'related:activity:fetch', this.refresh);
+    this.listenTo(this.collection, 'destroy', this.refresh);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
 
 
@@ -27,10 +28,11 @@ return Backbone.View.extend({
       if (e.target != this.calendar.$grid_overlay_el.get()[0] )
         return;
 
-      this.active_id = null;
-      this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
-      this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
+      this.clear_selection();
     }, this));
+
+    $(window).resize(_.bind(this.calendar.resize, this.calendar));
+    $(window).keyup(_.bind(this.keyup, this));
   },
 
   render: function() {
@@ -65,20 +67,37 @@ return Backbone.View.extend({
       this.add_activity_box(occurance);
     }
   },
+
+  keyup: function(e) {
+    if (e.which == 46 && this.active_id) {
+      this.collection.findWhere({id: this.active_id}).destroy();
+      this.clear_selection();
+    }
+  },
+
+  clear_selection: function() {
+    this.active_id = null;
+    this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
+    this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
+  },
   
   add_activity_box: function(occurance, is_new_resizing) {
     var box = $("<div />");
     
     this.calendar.add_interval_box(box);
    
+    var activate_fn = function(that) { return function() { that.activate_box(this) } }(this);
+
     box.activity_occurance_box({
       view: this.calendar,
       steps: this.calendar.column_step_minutes,
       occurance: occurance,
-      remove: _.bind(this.delete_activity_occurance, this) 
+      remove: _.bind(this.delete_activity_occurance, this),
+      'box_setup': function(e, box) { box.mousedown(activate_fn); box.data('occurance', occurance); },
     });
+    box.data('occurance', occurance);
 
-    box.mousedown(function(that) { return function() { that.activate_box(this) } }(this));
+    box.mousedown(activate_fn);
 
     if (occurance.id == this.active_id) {
       this.activate_box(box);
@@ -91,14 +110,17 @@ return Backbone.View.extend({
 
 
     //get its intervals and shows them
-    var occurance = $(box).closest('.activity-occurance').activity_occurance_box('getOccurance');
+    var occurance = $(box).closest('.activity-occurance').data('occurance');
     this.active_id = occurance.id;
 
     // display again last intervals in activity memory
     //this.show_domain(occurance);
 
     this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
-    $(box).addClass('active');
+    this.calendar.$grid_overlay_el.find('.activity-occurance')
+    .filter(function() {
+      return $(this).data('occurance').id == occurance.id
+    }).addClass('active');
 
     var range = this.calendar.showing_dates();
     occurance.domain_intervals.fetchRange(range.start, range.end)

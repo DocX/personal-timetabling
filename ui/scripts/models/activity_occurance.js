@@ -102,16 +102,19 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
       this.url = _.template(this.url, {occurance_id: options.id});
     },
     
+    fetched: false,
     model: Interval,
     
     fetchRange: function(start, end) {
-      return this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+      var xhr = this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+      xhr.success(_.bind(function() {this.fetched = true;}, this));
+      return xhr;
     },
 
     // determine if interval given by start date and duration in seconds
     // is inside any of intervals in this collection (which is mostly intervals for currently displayed window)
     isFeasible: function(start, duration) {
-      return this.any(function(i) {return i.isInInterval(start, duration);});
+      return !this.fetched || this.any(function(i) {return i.isInInterval(start, duration);});
     }
     
   }),

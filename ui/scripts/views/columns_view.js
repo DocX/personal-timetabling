@@ -60,8 +60,6 @@ return Backbone.View.extend({
           drag: _.bind(this.on_drag, this, this.$container),
           stop: _.bind(this.on_drag, this, this.$container)
         });   
-
-        this.$el.resize(_.bind(this.resize, this));   
     },
     
     move_left: function() {
@@ -128,6 +126,7 @@ return Backbone.View.extend({
       this.geometry = geometry;
     },
     
+    // returns reference to offset column ahead from column_id if column_id is visible in current display
     column_of_id: function(column_id, offset) {
       if (offset == undefined)
         offset = 0;
@@ -142,7 +141,30 @@ return Backbone.View.extend({
         this.drawing_columns_list[i] : null;
       
     },
+
+    // returns column reference for column under given coordinates on the calendar plane
+    get_column_by_offset: function(coordinates) {
+      var column_index = Math.floor(coordinates[this.columns_offset_attr] / this.drawing_column_width);
+      return this.drawing_columns_list[column_index] || null;
+    },
     
+    get_plane_offset_to_document: function() {
+      return this.$grid_overlay_el.offset();
+    },
+
+    // gets column id and line of given coordinates on the calendar plane
+    get_column_line_by_offset: function(coordinates) {
+      var column = this.get_column_by_offset(coordinates);
+
+      var line_offset = coordinates[this.in_column_offset_attr];
+      while (line_offset < 0) {
+        column = this.geometry.get_columns(1,column.column_id || column.id,-1)[0];
+        line_offset = (column.lines_labels.length * this.drawing_column_line_height) + line_offset;
+      }
+
+      return {column_id: column.id || column.column_id, line: (line_offset / this.drawing_column_line_height)};
+    },
+
     // redraws whole view
     render: function() {
         this.resize();
