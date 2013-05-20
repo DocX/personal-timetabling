@@ -5,9 +5,11 @@ define(function(require) {
 
 var $ = require('jquery'),
     Backbone = require('backbone'),
+    jQueryDateTimePicker= require('jquery-ui-timepicker'),
     moment = require('moment'),
     momentAddons = require('lib/moment.addons'),
     PanelBase = require('components/panel_base'),
+    DomainTemplate = require('models/domain_template'),
     DomainTemplatesCollection = require('models/domain_templates_collection');
     
 return PanelBase.extend({
@@ -142,7 +144,7 @@ return PanelBase.extend({
 		this.listenTo(this.options.calendar_view, 'columns_updated', this.refresh_preview);
 		this.load_domain_templates();
 
-		this.model = new PersonalTimetabling.Models.DomainTemplate();
+		this.model = new DomainTemplate();
 
 		this.listenTo(this.model, 'change', this.refresh_preview);
 	},

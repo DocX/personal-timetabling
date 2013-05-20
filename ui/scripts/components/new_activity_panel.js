@@ -5,8 +5,10 @@ define(function(require) {
 
 var $ = require('jquery'),
     Backbone = require('backbone'),
+    jQueryDateTimePicker= require('jquery-ui-timepicker'),
     moment = require('moment'),
     momentAddons = require('lib/moment.addons'),
+    Activity = require('models/activity'),
     PanelBase = require('components/panel_base'),
     DomainTemplatesCollection = require('models/domain_templates_collection');
     
@@ -156,14 +158,14 @@ return PanelBase.extend({
 	},
 
 	get_fixed_model: function() {
-		return PersonalTimetabling.Models.Activity.fixed({
+		return Activity.fixed({
 			start: moment.asUtc(this.$el.find('[name=fixed_from]').datetimepicker('getDate')),
 			end: moment.asUtc(this.$el.find('[name=fixed_to]').datetimepicker('getDate')),
 		});
 	},
 
 	get_floating_model: function() {
-		return PersonalTimetabling.Models.Activity.floating({
+		return Activity.floating({
 			domain_template_id: this.$domain_selectbox.val(),
 			start: moment.asUtc(this.$el.find('[name=floating_from]').datetimepicker('getDate')),
 			period: {

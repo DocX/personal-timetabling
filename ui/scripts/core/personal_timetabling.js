@@ -5,7 +5,6 @@ define(function(require) {
 
 var $ = require('jquery'),
     Backbone = require('backbone'),
-
     ColumnsDaysActivitiesView = require('views/columns_days_activities_view'),
     CalendarButtons = require('components/calendar_buttons'),
     DomainTemplateEditor = require('components/domain_template_editor'),

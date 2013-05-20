@@ -28,8 +28,8 @@ return Backbone.View.extend({
         "</div>" +
 
         "<div class='btn-group'>" +
-          "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i>H</button>" +
-          "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i>V</button>" +
+          "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i></button>" +
+          "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i></button>" +
         "</div>" +        
         
         "<div class='btn-group'>" +

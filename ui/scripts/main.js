@@ -20,7 +20,7 @@ require.config({
   		exports: 'Backbone'
   	},
   	'backbone.relational': ['backbone'],
-  	'jquery.ui.timepicker': ['jquery-ui'],
+  	'jquery-ui-timepicker': ['jquery-ui'],
   	'base': {
   		deps:[],
   		exports: 'Base'
