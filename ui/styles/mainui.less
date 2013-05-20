@@ -10,7 +10,7 @@ body.app-layout {
 #topbar {
     height:40px;
     
-    background: url("images/noisy.png"), @mainmenu-background ;
+    background: @mainmenu-background ;
     border-bottom: rgba(0, 0, 0, 0.16) 2px solid;
     box-shadow: 0px 0px 10px rgb(0, 0, 0);
     position: absolute;
@@ -99,7 +99,7 @@ div.panel-layout {
   #sidepanel {
     display:none;
     z-index:20;
-    background:  url("images/noisy.png"), lighten(desaturate(@mainmenu-background, 30%), 20%);
+    background:  lighten(desaturate(@mainmenu-background, 30%), 20%);
     box-shadow: 0 0 5px rgba(0,0,0,0.6);
 
     &>div {
@@ -124,4 +124,11 @@ div.panel-layout {
     }
 
   }
+}
+
+.icon-white.icon-pt-horizontal {
+  background: url('images/icons.png') left top;
+}
+.icon-white.icon-pt-vertical {
+  background: url('images/icons.png') right top;
 }
