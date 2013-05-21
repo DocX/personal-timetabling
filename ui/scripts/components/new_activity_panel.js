@@ -10,7 +10,8 @@ var $ = require('jquery'),
     momentAddons = require('lib/moment.addons'),
     Activity = require('models/activity'),
     PanelBase = require('components/panel_base'),
-    DomainTemplatesCollection = require('models/domain_templates_collection');
+    DomainTemplatesCollection = require('models/domain_templates_collection'),
+    FixedActivityForm = require('components/fixed_activity_form');
     
 return PanelBase.extend({
 
@@ -25,12 +26,7 @@ return PanelBase.extend({
 				"<label class='btn'><input type='radio' name='activity_type' value='floating' style='display:none'> Floating</label>" +
 			"</div>" +
 
-			"<div id='activity_definition_fixed'>" +
-				"<label>From</label>" +
-				"<input type='text' name='fixed_from' class='datetime' />" +
-				"<label>To</label>" +
-				"<input type='text' name='fixed_to' class='datetime' />" +
-			"</div>" +
+			"<div id='activity_definition_fixed'></div>" +
 
 			"<div id='activity_definition_floating'>" +
 				"<label>Domain template</label>" +
@@ -77,6 +73,7 @@ return PanelBase.extend({
 		this.$el.find('#floating_to_duration_unit').append($(this.duration_unit_template).attr('name', 'floating_to_duration_unit'));
 
 		// hide definition boxes
+		this.fixed_definition_form = new FixedActivityForm({el: this.$fixed_definition_box});
 		this.$fixed_definition_box.hide();
 		this.$floating_definition_box.hide();
 
@@ -130,10 +127,18 @@ return PanelBase.extend({
 		if(this.selected_activity_type() == 'fixed') {
 			this.$fixed_definition_box.show();
 			this.$floating_definition_box.hide();
+			this.set_activity_view_handle(this.fixed_definition_form.activity);
 		} else if (this.selected_activity_type() == 'floating') {
 			this.$fixed_definition_box.hide();
 			this.$floating_definition_box.show();
 		}
+	},
+
+	set_activity_view_handle: function(activity) {
+		if(this.activity_view_handle) {
+			this.activity_view_handle.remove();
+		}
+		this.activity_view_handle = this.options.activities_view.display_activity(activity);
 	},
 
 	save: function() {

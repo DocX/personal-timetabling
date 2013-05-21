@@ -43,7 +43,7 @@ return Backbone.View.extend({
 
     $("a[data-role=add_activity]").click(_.bind(function(){
       //open sidebar
-      this.open_panel(NewActivityPanel, {});
+      this.open_panel(NewActivityPanel, {activities_view: this.calendar_view});
       this.listenTo(this.sidebar, 'added', function() {this.calendar_view.reload_activities();});
     }, this));
 

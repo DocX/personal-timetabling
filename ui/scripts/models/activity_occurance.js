@@ -61,9 +61,22 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
         return Backbone.RelationalModel.prototype.get.apply(this, arguments);
     }
   },
+
+  set: function(attribute, value) {
+    switch(attribute){
+      case 'end':
+        return this.end(value);
+      default:
+        return Backbone.RelationalModel.prototype.set.apply(this, arguments);
+    }
+  },
+
   
-  end: function () {
-   return this.get('start').clone().add('s', this.get('duration')); 
+  end: function (value) {
+    if (value != undefined) {
+      return this.set('duration', moment.utc(value).diff(this.get('start'), 'seconds'));
+    }
+    return this.get('start').clone().add('s', this.get('duration')); 
   },
   
   // occurance is partialy or full in the given time range
@@ -88,8 +101,8 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   },
 
   validDuration: function(duration){
-
-    return this.get('min_duration') <= duration && this.get('max_duration') >= duration;
+    var max_duration = this.get('max_duration');
+    return this.get('min_duration') <= duration && (max_duration == -1 || max_duration >= duration);
   },
   
   urlRoot: '/occurances', 

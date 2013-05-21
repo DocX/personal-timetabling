@@ -35,6 +35,8 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     this.element.find('a[data-button=activity-occurance-btn-remove]')
       .click(_.bind(_.partial(this._trigger,'remove', null, {occurance_id: this.occurance.get('id'), occurance: this.occurance, element:this.element}), this));*/
     
+    this.options.occurance.on('change', this._update_from_model, this);
+
     this._super();      
   },
   
@@ -47,6 +49,10 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
       "</div>" +
     "</div>",
  
+  _update_from_model: function() {
+    this.set_date(this.options.occurance.get('start'), this.options.occurance.get('duration'));
+  },
+
   _setup_box: function(box) {
     var start_date = this.options.occurance.get("start").format(this.activity_date_format);
     var end_date =  this.options.occurance.get("end").format(this.activity_date_format);

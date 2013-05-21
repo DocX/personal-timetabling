@@ -11,7 +11,8 @@ var $ = require('jquery'),
     
 
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
-return Backbone.View.extend({
+var ColumnsDaysActivitiesView;
+return ColumnsDaysActivitiesView = Backbone.View.extend({
   
   initialize: function() {
     
@@ -33,6 +34,9 @@ return Backbone.View.extend({
 
     $(window).resize(_.bind(this.calendar.resize, this.calendar));
     $(window).keyup(_.bind(this.keyup, this));
+
+    // array for keeping displayed activities not from collection
+    this.unmapped_activities = [];
   },
 
   render: function() {
@@ -66,10 +70,13 @@ return Backbone.View.extend({
 
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
-      if (occurance.get('activity') == null)
-        continue;
-      this.add_activity_box(occurance);
+
+      this.add_occurance_box(occurance);
     }
+
+    for (var i = this.unmapped_activities.length - 1; i >= 0; i--) {
+      this.unmapped_activities[i].get('occurances').each(this.add_raw_occurance_box, this);
+    };
   },
 
   keyup: function(e) {
@@ -85,30 +92,38 @@ return Backbone.View.extend({
     this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
   },
   
-  add_activity_box: function(occurance, is_new_resizing) {
+  add_raw_occurance_box: function(occurance, is_new_resizing) {
     var box = $("<div />");
     
-    this.calendar.add_interval_box(box);
-   
-    var activate_fn = function(that) { return function() { that.activate_box(this) } }(this);
+    this.calendar.add_interval_box(box); 
 
     box.activity_occurance_box({
       view: this.calendar,
       steps: this.calendar.column_step_minutes,
       occurance: occurance,
       remove: _.bind(this.delete_activity_occurance, this),
-      'box_setup': function(e, box) { box.mousedown(activate_fn); box.data('occurance', occurance); },
+      box_setup: function(e, box) {  box.data('occurance', occurance); },
     });
     box.data('occurance', occurance);
 
-    box.mousedown(activate_fn);
-
-    if (occurance.id == this.active_id) {
-      this.activate_box(box);
-    }
+    return box;
   },
 
-  activate_box: function(box) {
+  add_occurance_box: function(occurance) {
+    var box = add_raw_occurance_box(occurance);
+
+    var activate_fn = function(that) { return function() { that.activate_occurance_box(this) } }(this);
+    box.mousedown(activate_fn);
+    var box_setup = box.activity_occurance_box('options').box_setup;
+    box.activity_occurance_box('options', {box_setup: function(e,box) {box.mousedown(activate_fn); box_setup(e, box); }});
+
+    if (occurance.id == this.active_id) {
+      this.activate_occurance_box(box);
+    }
+
+  },
+
+  activate_occurance_box: function(box) {
     if ($(box).hasClass('active'))
       return;
 
@@ -145,27 +160,33 @@ return Backbone.View.extend({
     data.occurance.destroy();
     data.element.remove();
   },
-  
-  mouse_create_box: function(e) {
-    // determine mouse click position
-    var column_index = Math.floor(e[this.axis == 'x' ? 'offsetX' : 'offsetY'] / this.calendar.drawing_column_width);
-    var column_line = this.calendar.get_box_offset_in_column({left: e.offsetX, top: e.offsetY});
-    
-    var start = this.calendar.geometry.get_date_of_line(
-      this.calendar.drawing_columns_list[column_index].column_id, 
-      column_line, this.calendar.column_step_minutes);
-    
-    var new_activity = 
-      PersonalTimetabling.Models.Activity.fixed({
-        start: start ,
-        end: start.clone().add('h', 2),
-        name: 'Nova aktivita'
-      });
-    
-    //this.collection.create(new_activity);
-    
-    this.add_activity_box(new_activity.get('occurances').models[0], true);
-  },
+
+  // displays activity and keep track of its changes
+  // return handle to remove it from display
+  display_activity: function(activity) {
+    this.unmapped_activities.push(activity);
+    this.refresh();
+
+    return new ColumnsDaysActivitiesView.UnmappedActivityHandle(this.unmapped_activities.length -1, this);
+  }
+}, {
+
+  UnmappedActivityHandle: Base.extend({
+    constructor: function(index, view) {
+      this.index = index;
+      this.view = view;
+    },
+
+    remove: function() {
+      if (this.deleted) {
+        return;
+      }
+      this.view.unmapped_activities.slice(this.index,1);
+      this.view.refresh();
+      this.deleted = true;
+    }
+  }),
+
 });
 
 });
