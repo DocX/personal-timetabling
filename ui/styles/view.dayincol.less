@@ -5,13 +5,16 @@
   @line-cell-shadow: inset 0px 1px 0px 0px rgba(104, 57, 0, 0.26);  
   
   .mover {
-    background: rgb(248, 223, 181) repeat;
+    background: rgb(169, 200, 206) repeat;
     position:relative;
     
     .disable-text-selection;
     
-    .grid-mover {
+    &.grid-mover {
       background-position: left -44px; 
+    }
+    &.headers-mover {
+      background:rgb(248, 223, 181);
     }
   }
   
@@ -45,6 +48,7 @@
       position:absolute;
       word-wrap:break-word;
       font-size:80%;
+      background: rgb(248, 223, 181);
 
       div.line-label {
         //padding-left: 3px;
@@ -70,7 +74,7 @@
       }
       
       &.even-col {
-        background: rgba(194, 117, 20, 0.11);
+        background: rgb(250, 211, 161);
         //box-shadow: inset 2px 0 1px -1px rgba(0, 0, 0, 0.15), inset -2px 0 1px -1px rgba(255, 255, 255, 0.66);
         
         div.line-label {
@@ -106,6 +110,7 @@
   
     .headers-cols {
       height: 1.5em;
+
       
       .headers-col {
         //border-bottom:@grid-border;
@@ -116,11 +121,13 @@
         word-wrap:break-word;
         font-size:80%;
         text-align:center;
+        background:rgb(248, 223, 181);
       }
     }
   
     .headers-supercols {
       height: 1.75em;
+      background:rgb(248, 223, 181);
 
       .headers-col {
         position:absolute;
