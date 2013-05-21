@@ -26,7 +26,12 @@ class OccurancesController < ApplicationController
   
   def destroy
     @occurance = Occurance.find(params[:id])
+    @activity = @occurance.activity
     @occurance.destroy
+
+    if @activity.occurances.size == 0
+      @activity.destroy
+    end
     
     respond_to do |format|
       format.json { render :json => true}
