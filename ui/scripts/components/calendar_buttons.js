@@ -13,30 +13,28 @@ return Backbone.View.extend({
  buttons_template: 
     "<div id='dayincolview-buttons' class='rightcomponents'>" +
       "<div class='btn-group'>" +
+        "<a href='#' data-set-column-type='days' class='btn btn-inverse active'>Days</a>" +
+        "<a href='#' data-set-column-type='weeks' class='btn btn-inverse'>Weeks</a>" +
+        "<a href='#' data-set-column-type='months' class='btn btn-inverse'>Months</a>" +
         "<a class='btn dropdown-toggle btn-inverse' data-toggle='dropdown'>" +
-          "Ka-Zoom-A" +
           "<span class='caret'></span>" +
         "</a>" +
         
         "<ul class='dropdown-menu'>" +
           "<li><div data-role='zoom-slider' ></div></li>" +
-          "<li class='divider'></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='600'>Days</a></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='300'>Weeks</a></li>" +
-          "<li><a href='#' data-role='zoom-to' data-zoom='0'>Months</a></li>" +
         "</ul>" +
-        "</div>" +
+      "</div>" +
 
-        "<div class='btn-group'>" +
-          "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i></button>" +
-          "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i></button>" +
-        "</div>" +        
-        
-        "<div class='btn-group'>" +
-          "<button class='btn btn-inverse' data-role='scroll-left'><i class='icon-white icon-chevron-left'></i></button>" +
-          "<button class='btn btn-inverse' data-role='scroll-right'><i class='icon-white icon-chevron-right'></i></button>" +
-        "</div>" +
-      "</div>",
+      "<div class='btn-group'>" +
+        "<button class='btn btn-inverse active' data-role='mode-horizontal'><i class='icon-white icon-pt-horizontal'></i></button>" +
+        "<button class='btn btn-inverse' data-role='mode-vertical' ><i class='icon-white icon-pt-vertical'></i></button>" +
+      "</div>" +        
+      
+      "<div class='btn-group'>" +
+        "<button class='btn btn-inverse' data-role='scroll-left'><i class='icon-white icon-chevron-left'></i></button>" +
+        "<button class='btn btn-inverse' data-role='scroll-right'><i class='icon-white icon-chevron-right'></i></button>" +
+      "</div>" +
+    "</div>",
       
    initialize: function(options) {
       this.$buttons = $(this.buttons_template);
@@ -55,8 +53,16 @@ return Backbone.View.extend({
          .click(_.bind(this.calendar_view.calendar.move_left, this.calendar_view.calendar));
       this.$buttons.find("[data-role=scroll-right]")
          .click(_.bind(this.calendar_view.calendar.move_right, this.calendar_view.calendar));
-      this.$buttons.find("[data-role=zoom-to]")
-         .click(_.partial(function(view) {view.set_zoom(null, {value:$(this).attr("data-zoom")})}, this.calendar_view.calendar));
+      this.$buttons.find("[data-set-column-type]")
+         .click(_.partial(function(that) {
+            var type = $(this).data('set-column-type');
+            that.calendar_view.set_column_type(type);
+            that.$buttons.find("[data-set-column-type]").removeClass('active');
+            $(this).addClass('active');
+            return false;
+         }, this));
+
+      this.listenTo(this.calendar_view.calendar, 'zoom_changed', _.bind(function(zoom){ this.$zoom_slider.slider('value', zoom);}, this))
       
       var mode_vertical_btn = this.$buttons.find("[data-role=mode-vertical]");
       var mode_horizontal_btn = this.$buttons.find("[data-role=mode-horizontal]");

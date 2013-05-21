@@ -40,6 +40,10 @@ return Backbone.View.extend({
     this.reload_activities();
   },
 
+  set_column_type: function(type) {
+    this.calendar.set_column_type(type);
+  },
+
   reload_activities: function() {
     // render first current state of collection
     this.refresh();

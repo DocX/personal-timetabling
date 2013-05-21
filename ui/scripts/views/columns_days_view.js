@@ -8,8 +8,9 @@ var $ = require('jquery'),
     moment = require('moment'),
     ColumnsView = require('views/columns_view'),
     DayColumnGeometry = require('views/columns_days_view.day_geometry'),
-    WeekColumnGeometry = require('views/columns_days_view.week_geometry');
-    
+    WeekColumnGeometry = require('views/columns_days_view.week_geometry'),
+    MonthColumnGeometry = require('views/columns_days_view.month_geometry');  
+
 // Vertical day view. 24 hours are on the vertical y axis and horizontaly is slidable days/weeks/months etc.
 var ColumnsDaysView;
 return ColumnsDaysView = ColumnsView.extend({
@@ -22,7 +23,7 @@ return ColumnsDaysView = ColumnsView.extend({
       
     this._set_geometry( new DayColumnGeometry(this,null) );
 
-    this._set_zoom(600, false, true);
+    this._set_zoom(0, false, true);
     this.drawing_columns_list = [{column_id: this.geometry.get_line_of_date(this.options.initial_date).column_id}];
 
     this.render();
@@ -73,19 +74,39 @@ return ColumnsDaysView = ColumnsView.extend({
     return center;
   },
   
+
+  set_column_type: function(type) {
+    var change = false;
+
+    switch(type) {
+      case 'days':
+        if (!(this.geometry instanceof DayColumnGeometry)) {
+          this.set_geometry(new DayColumnGeometry(this, null));
+          change = true;
+        }
+        this.column_step_minutes = 15;      
+        break;
+      case 'weeks':
+        if (!(this.geometry instanceof WeekColumnGeometry)) {
+          this.set_geometry(new WeekColumnGeometry(this, null));
+          change = true;
+        }        
+        this.column_step_minutes = 60;
+        break;
+      case 'months':
+        if (!(this.geometry instanceof MonthColumnGeometry)) {
+          this.set_geometry(new MonthColumnGeometry(this, null));
+          change = true;
+        }        
+        this.column_step_minutes = 720;
+        break;
+    }
+
+    this._set_zoom(0, false, false);    
+  },
+
   _set_zoom: function(zoom, redraw, dont_update_slider) {
-    if (zoom >= 600) {
-      if (!(this.geometry instanceof DayColumnGeometry)) {
-        this.set_geometry(new DayColumnGeometry(this, null));
-      }
-      this.column_step_minutes = 15;
-    }
-    else if (zoom >= 300) {
-      if (!(this.geometry instanceof WeekColumnGeometry)) {
-        this.set_geometry(new WeekColumnGeometry(this, null));
-      }        
-      this.column_step_minutes = 60;
-    }
+    
     
     this.zoom = zoom;
     
@@ -94,7 +115,7 @@ return ColumnsDaysView = ColumnsView.extend({
     }
     
     if (!dont_update_slider) {
-      this.$zoom_slider.slider("value", zoom);
+      this.trigger('zoom_changed', this.zoom);
     }
   },
   
@@ -108,7 +129,7 @@ return ColumnsDaysView = ColumnsView.extend({
     
     
     // compute height as linear function of zoom between min and max height
-    this.drawing_column_line_height = min_height + ((max_height - min_height) * ((this.zoom % 300) / 300));              
+    this.drawing_column_line_height = min_height + ((max_height - min_height) * (this.zoom / 1000));              
 
     ColumnsView.prototype.resize.apply(this);      
   },

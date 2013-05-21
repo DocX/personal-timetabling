@@ -310,13 +310,19 @@ return Backbone.View.extend({
     update_column_lines: function(column, line_labels) {
       for(var i in line_labels) {
         var $label = $(column.line_label_els[i]);
+        $label.show();
         $label.removeClass("delimiter-right delimiter-left delimiter-top shaded-line");
         column.line_label_els[i].innerHTML = line_labels[i].label;
         if (line_labels[i].style == 'shaded') {
           $label.addClass('shaded-line') ;
         }
       }
-      
+
+      for (var i = line_labels.length; i <= column.line_label_els.length; i++) {
+        var $label = $(column.line_label_els[i]);
+        $label.hide();
+      }
+        
       column.lines_labels = line_labels;
     },
 
