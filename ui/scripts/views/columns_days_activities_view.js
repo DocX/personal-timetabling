@@ -20,7 +20,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     
     this.collection = new OccurancesCollection();
     
-    this.listenTo(this.collection, 'related:activity:fetch', this.refresh);
+    this.listenTo(this.collection, 'related:activity:fetch', _.debounce(this.refresh, 100));
     this.listenTo(this.collection, 'destroy', this.refresh);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
     this.listenTo(this.calendar, 'geometry_changed', function() {this.trigger('geometry_changed');});
@@ -78,8 +78,9 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     }
 
     for (var i = this.unmapped_activities.length - 1; i >= 0; i--) {
-      this.unmapped_activities[i].get('occurances').each(
-        function(occurance) { if (occurance.inRange(range.start, range.end)) { this.add_raw_occurance_box(occurance) } },
+      var class_name = this.unmapped_activities[i].class_name;
+      this.unmapped_activities[i].activity.get('occurances').each(
+        function(occurance) { if (occurance.inRange(range.start, range.end)) { this.add_raw_occurance_box(occurance, class_name) } },
          this);
     };
   },
@@ -101,8 +102,8 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
   
   // creates view box for given occurance
   // and binds it to the model. changes are not triggered to sync with server
-  add_raw_occurance_box: function(occurance, is_new_resizing) {
-    var box = $("<div />");
+  add_raw_occurance_box: function(occurance, class_name) {
+    var box = $("<div />").addClass(class_name);
     
     this.calendar.add_interval_box(box); 
 
@@ -111,7 +112,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
       steps: this.calendar.column_step_minutes,
       occurance: occurance,
       remove: _.bind(this.delete_activity_occurance, this),
-      box_setup: function(e, box) {  box.data('occurance', occurance); },
+      box_setup: function(e, box) { box.addClass(class_name); box.data('occurance', occurance); },
     });
     box.data('occurance', occurance);
 
@@ -179,8 +180,8 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
 
   // displays activity and keep track of its changes
   // return handle to remove it from display
-  display_activity: function(activity) {
-    this.unmapped_activities.push(activity);
+  display_activity: function(activity, class_name) {
+    this.unmapped_activities.push({activity: activity, class_name: class_name});
     activity.on('all', _.debounce(this.refresh, 250), this);
     //activity.on('all', this.refresh, this);
 
@@ -210,16 +211,20 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     constructor: function(index, view) {
       this.index = index;
       this.view = view;
+      this.deleted = false;
     },
 
     remove: function() {
       if (this.deleted) {
         return;
       }
-      this.view.unmapped_activities.slice(this.index,1);
+      this.view.unmapped_activities[this.index].activity.off();
+      this.view.unmapped_activities.splice(this.index,1);
+      this.view.calendar.clear_intervals('.activity-occurance');
       this.view.refresh();
       this.deleted = true;
     }
+
   }),
 
 });

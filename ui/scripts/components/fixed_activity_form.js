@@ -20,6 +20,7 @@ return PanelBase.extend({
 			"<input type='text' name='fixed_from' class='datetime fill-width' />" +
 			"<label>Until</label>" +
 			"<input type='text' name='fixed_to' class='datetime fill-width' />" +
+			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
 
 			"<p>" +
 				"<label class='radio'><input type='radio' name='repeating' value='once' checked='checked' /> Once</label>" +
@@ -36,6 +37,8 @@ return PanelBase.extend({
 
 				"<label class='radio'><input type='radio' name='repeat-until-unit' value='date' /> Date</label>" +
 				"<label class='radio'><input type='radio' name='repeat-until-unit' value='repeats' checked /> Repeats</label>" +
+
+				"<p>TIP: move the last occurence box to change number of repeats</p>" +
 			"</div>"+
 		"</div>",
 

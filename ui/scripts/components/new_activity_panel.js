@@ -94,7 +94,7 @@ return PanelBase.extend({
 		if(this.activity_view_handle) {
 			this.activity_view_handle.remove();
 		}
-		this.activity_view_handle = this.options.activities_view.display_activity(activity);
+		this.activity_view_handle = this.options.activities_view.display_activity(activity, 'new-creating');
 	},
 
 	change_name: function() {
