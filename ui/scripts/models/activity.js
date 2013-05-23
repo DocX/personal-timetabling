@@ -46,7 +46,7 @@ var Activity = Backbone.RelationalModel.extend({
         type: 'fixed',
         from: values.start.toJSON(),
         to: values.end.toJSON(),
-        repeating: false
+        repeating: values.repeating
       }
     });
   },

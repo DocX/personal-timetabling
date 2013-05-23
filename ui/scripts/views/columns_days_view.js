@@ -41,6 +41,8 @@ return ColumnsDaysView = ColumnsView.extend({
     this.drawing_columns_list[0].column_id = this.geometry.get_line_of_date(date).column_id;
     this.render();
     this.display_date(date);
+
+    this.trigger('geometry_changed');
   },
   
   // move view center to given date

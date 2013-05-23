@@ -8,4 +8,8 @@ moment.asUtc = function(date) {
 	return moment.utc(moment(date).format("YYYY-MM-DDTHH:mm:ss"))
 };
 
+moment.asLocal = function(date) {
+	return moment(moment(date).format("YYYY-MM-DDTHH:mm:ss"))	
+}
+
 });

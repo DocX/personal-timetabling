@@ -10,6 +10,10 @@ var moment = require('moment'),
 return TimeColumnGeometryBase.extend({
   line_seconds: 86400,
 
+  get_name: function() {
+    return 'months';
+  },
+
   constructor: function(view, model) {
     this.base(view, model);
     

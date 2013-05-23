@@ -23,6 +23,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     this.listenTo(this.collection, 'related:activity:fetch', this.refresh);
     this.listenTo(this.collection, 'destroy', this.refresh);
     this.listenTo(this.calendar, 'columns_updated', this.reload_activities);
+    this.listenTo(this.calendar, 'geometry_changed', function() {this.trigger('geometry_changed');});
 
 
     this.calendar.$grid_overlay_el.click(_.bind(function(e){
@@ -48,6 +49,8 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     this.calendar.set_column_type(type);
   },
 
+  // fetches occurances in current view range 
+  // and then triggers its redraw
   reload_activities: function() {
     // render first current state of collection
     this.refresh();
@@ -75,7 +78,9 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     }
 
     for (var i = this.unmapped_activities.length - 1; i >= 0; i--) {
-      this.unmapped_activities[i].get('occurances').each(this.add_raw_occurance_box, this);
+      this.unmapped_activities[i].get('occurances').each(
+        function(occurance) { if (occurance.inRange(range.start, range.end)) { this.add_raw_occurance_box(occurance) } },
+         this);
     };
   },
 
@@ -86,12 +91,16 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     }
   },
 
+
+  // removes state of activated occurances
   clear_selection: function() {
     this.active_id = null;
     this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
     this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
   },
   
+  // creates view box for given occurance
+  // and binds it to the model. changes are not triggered to sync with server
   add_raw_occurance_box: function(occurance, is_new_resizing) {
     var box = $("<div />");
     
@@ -109,13 +118,17 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     return box;
   },
 
+  // binds occurance model with created view for it
+  // and synchronize all changes from view to model and server with save on model
   add_occurance_box: function(occurance) {
-    var box = add_raw_occurance_box(occurance);
+    var box = this.add_raw_occurance_box(occurance);
 
     var activate_fn = function(that) { return function() { that.activate_occurance_box(this) } }(this);
     box.mousedown(activate_fn);
-    var box_setup = box.activity_occurance_box('options').box_setup;
-    box.activity_occurance_box('options', {box_setup: function(e,box) {box.mousedown(activate_fn); box_setup(e, box); }});
+    var box_setup = box.activity_occurance_box('option', 'box_setup');
+    box.activity_occurance_box('option', 'box_setup', function(e,box) {box.mousedown(activate_fn); box_setup(e, box); });
+    box.activity_occurance_box('option', 'dropped', function(e, occurance) {occurance.save();} );
+
 
     if (occurance.id == this.active_id) {
       this.activate_occurance_box(box);
@@ -123,6 +136,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
 
   },
 
+  // handle for activationg occurance box in the view
   activate_occurance_box: function(box) {
     if ($(box).hasClass('active'))
       return;
@@ -146,6 +160,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     .success(_.bind(_.partial(this.show_domain, occurance), this));
   },
 
+  // fetches and displays domain of given occurance model
   show_domain: function(occurance) {
      // remove currenlty displaying intervals
     this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});   
@@ -156,6 +171,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
         );
   },
   
+  // handler for delete key on the active occurance
   delete_activity_occurance: function(e, data) {
     data.occurance.destroy();
     data.element.remove();
@@ -165,9 +181,23 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
   // return handle to remove it from display
   display_activity: function(activity) {
     this.unmapped_activities.push(activity);
+    activity.on('all', _.debounce(this.refresh, 250), this);
+    //activity.on('all', this.refresh, this);
+
     this.refresh();
 
     return new ColumnsDaysActivitiesView.UnmappedActivityHandle(this.unmapped_activities.length -1, this);
+  },
+
+  // sets view to be centered on the date
+  show_date: function(date) {
+    this.calendar.display_date(date);
+  },
+
+  // returns name of geometry currently displayed in view
+  // eg days, weeks, months
+  get_view_geometry_name: function(){
+    return this.calendar.geometry.get_name();
   }
 }, {
 

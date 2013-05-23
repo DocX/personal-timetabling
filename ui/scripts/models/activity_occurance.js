@@ -66,9 +66,11 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     switch(attribute){
       case 'end':
         return this.end(value);
-      default:
-        return Backbone.RelationalModel.prototype.set.apply(this, arguments);
+      case 'start':
+        value = moment.utc(value).clone();
+        break;
     }
+    return Backbone.RelationalModel.prototype.set.call(this, attribute, value);
   },
 
   
