@@ -40,47 +40,41 @@ class ActivityDefinition
     definition = ActivityDefinition.new
 
     fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to]) 
-    definition.domain_template = fixed_interval
 
-    # made period simply larger than given fixed duration
-    # so period will not take any effect when masking domain template
+    unless attributes[:repeating]
+      # repeat definition for "once" or "no repeat"
+      attributes[:repeating] = {
+        :period_unit => Duration::DAY,
+        :period_duration => fixed_interval.bounding_days,
+        :until_repeats => 1,
+        :until_type => 'repeats',
+        :until_date => nil
+      }
+    end
+
     definition.period = Duration.new({
-      :unit => Duration::DAY,
-      :duration => fixed_interval.bounding_days
+      :unit => Duration.unit_strings[attributes[:repeating][:period_unit]],
+      :duration => attributes[:repeating][:period_duration].to_i
     })
+
     definition.period_start = fixed_interval.start
-    definition.periods_count = 1
+    definition.periods_count = 
+      attributes[:repeating][:until_type] == 'repeats' ? 
+      attributes[:repeating][:until_repeats].to_i :
+      definition.period.between(fixed_interval.start, DateTime.iso8601(attributes[:repeating][:until_date]))
+
+    definition.domain_template = TimeDomainStack.new
+
+    (1..(definition.periods_count)).each do |i|
+      definition.domain_template.push(TimeDomainStack::Action.new TimeDomainStack::Action::ADD, fixed_interval)
+      fixed_interval = fixed_interval.after_duration definition.period;
+    end
+
     definition.occurence_min_duration = fixed_interval.seconds
     definition.occurence_max_duration = fixed_interval.seconds
 
     definition
   end
-
-  # Creates activity definition from floating signature of definition
-  # Receives hash containing
-  # - from: datetime 
-  # - to: datetime
-  # - repeating: false | repeating definition
-  def self.fixed attributes
-    definition = ActivityDefinition.new
-
-    fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to]) 
-    definition.domain_template = fixed_interval
-
-    # made period simply larger than given fixed duration
-    # so period will not take any effect when masking domain template
-    definition.period = Duration.new({
-      :unit => Duration::DAY,
-      :duration => fixed_interval.bounding_days
-    })
-    definition.period_start = fixed_interval.start
-    definition.periods_count = 1
-    definition.occurence_min_duration = fixed_interval.seconds
-    definition.occurence_max_duration = fixed_interval.seconds
-
-    definition
-  end  
-
 
   # Creates activity definition from fixed signature of definition
   # Receives hash containing

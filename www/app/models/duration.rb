@@ -33,9 +33,13 @@ class Duration
   def self.unit_strings
     {
       'month' => self::MONTH,
+      'months' => self::MONTH,
       'day' => self::DAY,
+      'days' => self::DAY,
       'hour' => self::HOUR,
-      'week' => self::WEEK
+      'hours' => self::HOUR,
+      'week' => self::WEEK,
+      'weeks' => self::WEEK,
     }
   end
   

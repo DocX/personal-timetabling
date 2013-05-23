@@ -94,6 +94,19 @@ module Webui
           return PeriodMonths.months self.duration
         end
       end
+
+      # returns whole durations between given partial dates
+      def between start_date, end_date
+        j_unit = self.unit
+        j_duration = self.duration
+        if j_unit == Duration::WEEK
+          j_unit = Duration::DAY
+          j_duration *= 7
+        end
+        unit_name = Duration::units[j_unit] + 's';
+        duration_j_class = "Webui::Core::Period#{unit_name}".constantize
+        (duration_j_class.send("#{unit_name.downcase}Between", Utils.to_localdatetime(start_date), Utils.to_localdatetime(end_date)).send("get#{unit_name.capitalize}") / j_duration).floor
+      end
     end
     
     module BoundedIntervalMixin
@@ -104,6 +117,15 @@ module Webui
         enddate = Utils.to_localdatetime(self.end)
         
         BoundedIntervalDomain.new start, enddate
+      end
+
+      def after_duration duration
+        j_duration = duration.to_j
+
+        start = Utils.from_localdatetime( Utils.to_localdatetime(self.start).plus j_duration )
+        enddate = Utils.from_localdatetime( Utils.to_localdatetime(self.end).plus j_duration )
+
+        BoundedInterval.create start, enddate
       end
     end
 
