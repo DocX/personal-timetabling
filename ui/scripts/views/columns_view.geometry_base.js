@@ -69,6 +69,13 @@ return Base.extend( {
     return this.get_date_of_line(this.next_column(column_id), 0);
   },
 
+  // returns date rounded to given minutes blocks aligned to the column
+  // ie if column starts at 0:00 and rount_to_minutes == 15, only 0:00, 0:15, 0:30... will be returned
+  get_rounded_date: function(date, round_to_minutes) {
+    var line = this.get_line_of_date(date);
+    return this.get_date_of_line(line.column_id, line.line, round_to_minutes);
+  },
+
   /* abstract protected methods */
 
   // return supercolumns grouping columns between given bounds.

@@ -81,18 +81,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
   },
 
   _check: function(start, duration){
-    var occurance = this.options.occurance;
-    //check against domain
-    if (occurance.domain_intervals && !occurance.domain_intervals.isFeasible(start, duration)) {
-      return false;
-    }
-
-    //check against duration limits
-    if (!occurance.validDuration(duration)) {
-      return false;
-    }
-
-    return true;
+    return this.options.occurance.isFeasible(start, duration);
   },
 
   activity_date_format: 'DD.MM.YY H:mm',

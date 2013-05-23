@@ -106,6 +106,17 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     var max_duration = this.get('max_duration');
     return this.get('min_duration') <= duration && (max_duration == -1 || max_duration >= duration);
   },
+
+  isFeasible: function(start, duration) {
+    if (this.fixed === true) {
+      return (start.isSame(this.get('start')) && duration == this.get('duration'));
+    }
+    if (typeof this.fixed == 'function') {
+      return this.fixed(start, duration);
+    }
+
+    return this.domain_intervals.isFeasible(start, duration) && this.validDuration(duration);
+  },
   
   urlRoot: '/occurances', 
 },{

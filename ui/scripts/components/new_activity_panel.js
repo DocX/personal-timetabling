@@ -37,7 +37,6 @@ return PanelBase.extend({
 		"</div>",
 
 
-
 	events: {
 		'click a[data-role=activity_cancel_btn]': 'remove',
 		'click a[data-set-type=fixed]': 'set_type_fixed',

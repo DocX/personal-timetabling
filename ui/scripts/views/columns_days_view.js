@@ -21,7 +21,7 @@ return ColumnsDaysView = ColumnsView.extend({
   initialize: function() {
     ColumnsView.prototype.initialize.apply(this);
       
-    this._set_geometry( new DayColumnGeometry(this,null) );
+    this.set_column_type('days');
 
     this._set_zoom(0, false, true);
     this.drawing_columns_list = [{column_id: this.geometry.get_line_of_date(this.options.initial_date).column_id}];
@@ -36,11 +36,15 @@ return ColumnsDaysView = ColumnsView.extend({
   },
  
   set_geometry: function(geometry) {
-    var date = this.date_in_center();
-    this._set_geometry(geometry);
-    this.drawing_columns_list[0].column_id = this.geometry.get_line_of_date(date).column_id;
-    this.render();
-    this.display_date(date);
+    if (this.geometry != null) {
+      var date = this.date_in_center();
+      this._set_geometry(geometry);
+      this.drawing_columns_list[0].column_id = this.geometry.get_line_of_date(date).column_id;
+      this.render();
+      this.display_date(date);
+    } else {
+      this._set_geometry(geometry);
+    }
 
     this.trigger('geometry_changed');
   },

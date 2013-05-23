@@ -103,16 +103,36 @@ return PanelBase.extend({
 
 
 		this.activity = new FixedActivityStub();
-		this.activity.first_occurance().on('change', this.update_from_model , this);
-		this.update_from_model(this.activity.first_occurance());
+		this.activity.first_occurance().set('start', this.options.activities_view.get_date_aligned_to_view_grid(
+			this.activity.first_occurance().get('start')
+		));
+		this.activity.first_occurance().on('change', this.update_from_model , this);;
+		this.activity.on('change:repeating', this.update_repeating_from_model, this);
 
 		this.set_repeat_period_unit();
 		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);
+
+
+		this.update_from_model(this.activity.first_occurance())
 	},
 
 	update_from_model: function(m) {
 		this.$from_input.datetimepicker('setDate', moment.asLocal(m.get('start')).toDate());
 		this.$to_input.datetimepicker('setDate', moment.asLocal(m.get('end')).toDate());
+	},
+
+	update_repeating_from_model: function(m) {
+		this.$el.find('[name=repeating]').prop('checked', false).filter('[value='+(m.get('repeating') == false ? 'once' : 'repeat') +']').prop('checked', true);
+		if (m.get('repeating') != false) {
+			this.$el.find('[name=repeat-each]').val(m.get('repeating').period_duration);
+			this.$el.find('[name=repeat-until-repeats]').val(m.get('repeating').until_repeats);
+			if (m.get('repeating').until_date)
+				this.$el.find('[name=repeat-until-date]').datetimepicker('setDate', moment.asLocal(m.get('repeating').until_date));
+
+			this.$el.find('[name=repeat-until-unit]').prop('checked', false).filter('[value='+m.get('repeating').until_type+']').prop('checked', true);
+		}
+
+		this.$el.find('.repeat-form').toggle(m.get('repeating') != false);
 	},
 
 	toggle_repeat:function(){
@@ -150,7 +170,6 @@ return PanelBase.extend({
 
 		this.activity.set('repeating', repeating_def);
 	},
-
 
 });
 

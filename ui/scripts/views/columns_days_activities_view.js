@@ -198,6 +198,11 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
   // eg days, weeks, months
   get_view_geometry_name: function(){
     return this.calendar.geometry.get_name();
+  },
+
+  // returns date aligned to current view granularity
+  get_date_aligned_to_view_grid: function(date) {
+    return this.calendar.geometry.get_rounded_date(date, this.calendar.column_step_minutes);
   }
 }, {
 
