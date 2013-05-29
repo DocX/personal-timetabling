@@ -183,9 +183,9 @@ return PanelBase.extend({
      
       	var items = $.makeArray(items_data);
 
-      	var domain_stack = {};
+      	var domain_stack = [];
       	for (var i = 0; i< items.length; i++) {
-        	domain_stack[i] = items[i];
+        	domain_stack.push(items[i]);
       	}
       	return domain_stack;
 	},
@@ -274,19 +274,22 @@ return PanelBase.extend({
 	addAction: function() {
 		var action = {
 			action: this.selectedAddActionType(),
-			type: this.selectedAddIntervalType(),
+			domain: {
+				type: this.selectedAddIntervalType(),
+				data: {},
+			}
 		};
 
 		// validate
 		if (!action.action)
 			return false;
-		if (!action.type)
+		if (!action.domain.type)
 			return false;
 
 		var title = '';
 
-		if (action.type == 'boundless') {
-			$.extend(action, {
+		if (action.domain.type == 'boundless') {
+			$.extend(action.domain.data, {
 				// discard timezone part
 				from: moment.asUtc(this.$el.find('input[name=boundless_from]').datetimepicker('getDate')).toJSON(),
 				duration: {
@@ -298,17 +301,17 @@ return PanelBase.extend({
 					unit: this.$el.find('[name=boundless_period_unit]').val(),
 				}
 			});
-			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action);
-		} else if(action.type == 'bounded') {
-			$.extend(action, {
+			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action.domain.data);
+		} else if(action.domain.type == 'bounded') {
+			$.extend(action.domain.data, {
 				from: moment.asUtc(this.$el.find('input[name=bounded_from]').datetimepicker('getDate')).toJSON(),
 				to: moment.asUtc(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')).toJSON(),
 			});
-			title = _.template('<%= from %> - <%= to %>', action);
+			title = _.template('<%= from %> - <%= to %>', action.domain.data);
 		} else {
 			// existing template
-			action.domain_template_id = action.type;
-			action.type = 'database';
+			action.domain.data.id = action.domain.type;
+			action.domain.type = 'database';
 			title = this.$el.find('select[name=add_interval_type] option:selected').text();
 		}
 
@@ -367,19 +370,19 @@ return PanelBase.extend({
 		this.editing_item = $(e.target).closest('li');
 
 		var action = this.editing_item.data('action');
-		this.$el.find('select[name=add_interval_type]').val(action.type);
+		this.$el.find('select[name=add_interval_type]').val(action.domain.type);
 		this.$el.find('input[name=add_action_type][value='+action.action+']').attr('checked', 'checked');
 		if (action.type == 'boundless') {
-			this.$el.find('input[name=boundless_from]').datetimepicker('setDate', moment(action.from.replace(/Z$/,'')).toDate());
-			this.$el.find('input[name=boundless_duration]').val(action.duration.duration);
-			this.$el.find('[name=boundless_duration_unit]').val(action.duration.unit);
-			this.$el.find('input[name=boundless_period]').val(action.period.duration);
-			this.$el.find('[name=boundless_period_unit]').val(action.period.unit);
+			this.$el.find('input[name=boundless_from]').datetimepicker('setDate', moment(action.domain.data.from.replace(/Z$/,'')).toDate());
+			this.$el.find('input[name=boundless_duration]').val(action.domain.data.duration.duration);
+			this.$el.find('[name=boundless_duration_unit]').val(action.domain.data.duration.unit);
+			this.$el.find('input[name=boundless_period]').val(action.domain.data.period.duration);
+			this.$el.find('[name=boundless_period_unit]').val(action.domain.data.period.unit);
 		} else if(action.type == 'bounded') {
-			this.$el.find('input[name=bounded_from]').datetimepicker('setDate', moment(action.from.replace(/Z$/,'')).toDate());
-			this.$el.find('input[name=bounded_to]').datetimepicker('setDate', moment(action.to.replace(/Z$/,'')).toDate());
+			this.$el.find('input[name=bounded_from]').datetimepicker('setDate', moment(action.domain.data.from.replace(/Z$/,'')).toDate());
+			this.$el.find('input[name=bounded_to]').datetimepicker('setDate', moment(action.domain.data.to.replace(/Z$/,'')).toDate());
 		} else {
-			this.$el.find('select[name=add_interval_type]').val(action.domain_template_id);
+			this.$el.find('select[name=add_interval_type]').val(action.domain.data.id);
 		}
 
 		this.changeAddType();
