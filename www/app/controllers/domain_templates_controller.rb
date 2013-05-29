@@ -48,7 +48,7 @@ class DomainTemplatesController < ApplicationController
   end
   
   def preview
-    stack = TimeDomainStack.from_attributes get_native(params['domain_stack'])
+    stack = TimeDomainStack.from_attributes( {'actions' => get_native(params['domain_stack']) } )
     
     @intervals_from = params[:from] ? DateTime.iso8601(params[:from]) : (DateTime.now - 10) 
     @intervals_to = params[:to] ? DateTime.iso8601(params[:to]) : (DateTime.now + 10)
@@ -62,15 +62,23 @@ class DomainTemplatesController < ApplicationController
   
   protected 
   
-  def get_native attributes
-    new_attributes = {}
-    attributes = attributes.each do |k,a|
-      if a['type'] == 'database'
-        a = {'action' => a['action'], 'type' => 'raw', 'object' => DomainTemplate.find(a['domain_template_id']).domain_stack}
+  def get_native stack_attr_array
+    native_array = [];
+    stack_attr_array.reduce(native_array) do |n,a|
+      item = {}
+      if a['domain']['type'] == 'database'
+        item['action'] = a['action']
+        item['domain'] = {}
+        item['domain']['type'] = 'raw'
+        item['domain']['object'] = DomainTemplate.find(a['domain']['data']['id']).domain_stack
+      else
+        item = a
       end
-      new_attributes[k] = a
+
+      n << item
     end
-    new_attributes
+
+    native_array
   end
   
 end

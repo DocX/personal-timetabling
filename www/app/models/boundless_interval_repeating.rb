@@ -11,14 +11,17 @@ class BoundlessIntervalRepeating < TimeDomain
   
   def self.from_attributes(attributes)
     interval = self.new
-    if attributes['from'].is_a? String 
-      interval.reference_start = DateTime.iso8601 attributes['from']
+
+    attributes = attributes.symbolize_keys
+
+    if attributes[:from].is_a? String 
+      interval.reference_start = DateTime.iso8601 attributes[:from]
     else
-      interval.reference_start = DateTime.new attributes['from(1i)'].to_i, Integer(attributes['from(2i)'].to_i), Integer(attributes['from(3i)'].to_i), Integer(attributes['from(4i)'].to_i), Integer(attributes['from(5i)'].to_i)
+      interval.reference_start = DateTime.new attributes[:'from(1i)'].to_i, Integer(attributes[:'from(2i)'].to_i), Integer(attributes[:'from(3i)'].to_i), Integer(attributes[:'from(4i)'].to_i), Integer(attributes[:'from(5i)'].to_i)
     end
 
-    interval.duration = Duration.new attributes['duration']
-    interval.period = Duration.new attributes['period']
+    interval.duration = Duration.new attributes[:duration]
+    interval.period = Duration.new attributes[:period]
     
     interval
   end

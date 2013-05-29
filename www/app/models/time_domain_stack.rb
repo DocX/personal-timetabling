@@ -25,12 +25,7 @@ class TimeDomainStack < TimeDomain
     # parse from form attributes
     def self.from_attributes attributes
       action = {'add' => ADD, 'remove' => REMOVE, 'mask' => MASK}[attributes['action']]
-      if attributes['type'] == 'raw'
-        domain = attributes['object']
-      else
-        type = {'bounded' => BoundedInterval, 'boundless' => BoundlessIntervalRepeating}[attributes['type']]
-        domain = type.from_attributes attributes
-      end
+      domain = TimeDomain.from_attributes attributes['domain']
       
       self.new action, domain
     end
@@ -57,14 +52,22 @@ class TimeDomainStack < TimeDomain
     @actions_stack = []
   end
   
+  # adds action below all others, so it will be computed first time and sent to the upper action
   def push(action)
     throw 'Only TimeDomainStack::Action objects can be pushed' unless action.is_a? Action
 
     @actions_stack << action;
   end
+
+  # adds action above all others, so it will be applied last time to the result of below actions
+  def unshift(action) 
+    throw 'Only TimeDomainStack::Action objects can be pushed' unless action.is_a? Action
+
+    @actions_stack.unshift action
+  end
   
   def self.from_attributes attrs
-    actions = attrs.map {|k,v| Action.from_attributes v}
+    actions = attrs['actions'].map {|v| Action.from_attributes v}
     
     domain = self.new 
     domain.actions_stack = actions

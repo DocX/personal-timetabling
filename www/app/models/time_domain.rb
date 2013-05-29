@@ -12,4 +12,15 @@ class TimeDomain
   # includes_interval?
   # ...
 
+  def self.from_attributes attributes
+  	if attributes['type'] == 'raw'
+        domain = attributes['object']
+    else
+        type = {'stack' => TimeDomainStack, 'bounded' => BoundedInterval, 'boundless' => BoundlessIntervalRepeating}[attributes['type']]
+        domain = type.from_attributes attributes['data']
+    end
+
+    domain
+  end
+
 end
