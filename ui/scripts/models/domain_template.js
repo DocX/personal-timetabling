@@ -62,12 +62,14 @@ return DomainTemplate = Backbone.Model.extend({
 			}
 
 			return this.fetch({
-				data: {
+				data: JSON.stringify({
 					from:start.toJSON(), 
 					to:end.toJSON(), 
 					domain_stack: this.domain_template_model.get('domain_stack')
-				}, 
-				type: "POST"
+				}), 
+				type: "POST",
+				processData: false,
+				contentType: 'application/json'
 			});
 		}
 

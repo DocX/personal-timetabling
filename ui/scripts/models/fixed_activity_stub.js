@@ -36,12 +36,12 @@ var FixedActivityStub = Activity.extend({
 	initialize: function() {
 		// create first fixed occurance
 
-	var first_occurance = new ActivityOccurance({min_duration: 60, max_duration:-1});
-	this.get('occurances').add(first_occurance);
+		var first_occurance = new ActivityOccurance({min_duration: 60, max_duration:-1});
+		this.get('occurances').add(first_occurance);
 
-	first_occurance.on('change', this.set_repeating, this);
+		first_occurance.on('change', this.set_repeating, this);
 
-	this.on('change:repeating', this.set_repeating, this);
+		this.on('change:repeating', this.set_repeating, this);
 
 	},
 
@@ -65,7 +65,7 @@ var FixedActivityStub = Activity.extend({
 				.add(this.attributes.repeating.period_unit, this.attributes.repeating.period_duration);
 
 			var count = this.attributes.repeating.until_type == 'date' ? 
-				this.attributes.repeating.until_date.diff(this.first_occurance().get('start'), this.attributes.repeating.period_unit) :
+				(this.attributes.repeating.until_date.diff(this.first_occurance().get('start'), this.attributes.repeating.period_unit) / this.attributes.repeating.period_duration) :
 				(Number(this.attributes.repeating.until_repeats) - 1);
 
 			// go thgrou count and update existing, add new or delete remaining
@@ -125,6 +125,11 @@ var FixedActivityStub = Activity.extend({
 			
 		}
 
+		
+		this.set_definition();
+	},
+
+	set_definition: function() {
 		this.attributes.definition.repeating = this.attributes.repeating;
 		this.attributes.definition.from = this.first_occurance().get('start');
 		this.attributes.definition.to = this.first_occurance().get('end');
