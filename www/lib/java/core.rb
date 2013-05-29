@@ -95,7 +95,7 @@ module Webui
         end
       end
 
-      # returns whole durations between given partial dates
+      # returns number of whole durations between given partial dates
       def between start_date, end_date
         j_unit = self.unit
         j_duration = self.duration
@@ -105,7 +105,7 @@ module Webui
         end
         unit_name = Duration::units[j_unit] + 's';
         duration_j_class = "Webui::Core::Period#{unit_name}".constantize
-        (duration_j_class.send("#{unit_name.downcase}Between", Utils.to_localdatetime(start_date), Utils.to_localdatetime(end_date)).send("get#{unit_name.capitalize}") / j_duration).floor
+        (duration_j_class.send("#{unit_name.downcase}Between", Utils.to_localdatetime(start_date), Utils.to_localdatetime(end_date)).send("get#{unit_name.capitalize}") / Float(j_duration)).floor
       end
     end
     

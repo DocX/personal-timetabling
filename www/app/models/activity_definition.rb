@@ -31,6 +31,9 @@ class ActivityDefinition
     end
   end
 
+
+  
+
   # Creates activity definition from fixed signature of definition
   # Receives hash containing
   # - from: datetime 
@@ -39,64 +42,57 @@ class ActivityDefinition
   def self.fixed attributes
     definition = ActivityDefinition.new
 
-    fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to]) 
-
-    unless attributes[:repeating]
-      # repeat definition for "once" or "no repeat"
-      attributes[:repeating] = {
-        :period_unit => Duration::DAY,
-        :period_duration => fixed_interval.bounding_days,
-        :until_repeats => 1,
-        :until_type => 'repeats',
-        :until_date => nil
-      }
-    end
-
-    definition.period = Duration.new({
-      :unit => Duration.unit_strings[attributes[:repeating][:period_unit]],
-      :duration => attributes[:repeating][:period_duration].to_i
-    })
-
-    definition.period_start = fixed_interval.start
-    definition.periods_count = 
-      attributes[:repeating][:until_type] == 'repeats' ? 
-      attributes[:repeating][:until_repeats].to_i :
-      definition.period.between(fixed_interval.start, DateTime.iso8601(attributes[:repeating][:until_date]))
-
     definition.domain_template = TimeDomainStack.new
-
-    (1..(definition.periods_count)).each do |i|
-      definition.domain_template.push(TimeDomainStack::Action.new TimeDomainStack::Action::ADD, fixed_interval)
-      fixed_interval = fixed_interval.after_duration definition.period;
+    periods_intervals = definition.set_periods_from_attributes attributes
+    
+    # make intervals for each period as the domain template
+    # this will be cropped by periods so each occurence will have only its fixed time interval
+    periods_intervals.each do |i|
+      definition.domain_template.push(TimeDomainStack::Action.new TimeDomainStack::Action::ADD, i)
     end
 
-    definition.occurence_min_duration = fixed_interval.seconds
-    definition.occurence_max_duration = fixed_interval.seconds
+    definition.occurence_min_duration = periods_intervals[0].seconds
+    definition.occurence_max_duration = periods_intervals[0].seconds
 
     definition
   end
 
   # Creates activity definition from fixed signature of definition
   # Receives hash containing
-  # - from: datetime 
-  # - period: Hash for Duration instance of floating period cropping domain template
-  # - domaint_template_id: id of DomainTemplate model
+  # - from: datetime First occurence domain cropping start
+  # - to: datetime First occurence domain cropping end
+  # - domaint_template: DomainTemplate object of domain template
   # - duration_min: integer, seconds of min duration
   # - duration_max: integer, seconds of max duration
-    # - repeating: false | repeating definition
+  # - repeating: false | repeating definition
+  #
+  # Floating activity takes domain template and masks it for each period by the interval 
+  # of from - to, shifted by the period. This masked domain is them domain template for 
+  # the period's occurance
   def self.floating attributes
     definition = ActivityDefinition.new
 
-    # made period simply larger than given fixed duration
-    # so period will not take any effect when masking domain template
-    definition.period = Duration.new attributes[:period]
-    definition.period_start = DateTime.iso8601(attributes[:from])
-    definition.periods_count = 1
-    definition.occurence_min_duration = attributes[:duration_min].to_i
-    definition.occurence_max_duration = attributes[:duration_max].to_i
-    definition.domain_template = DomainTemplate.find(attributes[:domain_template_id]).domain_stack
+    periods_intervals = definition.set_periods_from_attributes attributes
+    
+    # make intervals for each period as the mask for the domain template
+    # this will mask inside each period the range of domain template that correspond to from-to range
+    # and then in creation will be cropped to each period.
+    periods_mask_domain = TimeDomainStack.new
+    periods_intervals.each do |i|
+      periods_mask_domain.push(TimeDomainStack::Action.new TimeDomainStack::Action::ADD, i)
+    end
 
-    throw 'Domain template not found' if definition.domain_template.nil?
+    if attributes[:domain_template].is_a? Hash 
+      attributes[:domain_template] = TimeDomain.from_attributes attributes[:domain_template];
+    end
+
+    # create domain stack with domain template masked by periods domain
+    definition.domain_template = TimeDomainStack.new
+    definition.domain_template.unshift TimeDomainStack::Action.new TimeDomainStack::Action::ADD, attributes[:domain_template]
+    definition.domain_template.unshift TimeDomainStack::Action.new TimeDomainStack::Action::MASK, periods_mask_domain
+
+    definition.occurence_min_duration = attributes[:duration_min]
+    definition.occurence_max_duration = attributes[:duration_max]
 
     definition
   end
@@ -198,5 +194,53 @@ class ActivityDefinition
     end
 
     occurences
+  end
+
+
+   
+  # setup definition period values from attributes
+  # and generate array of intervals for each period of range from - to
+  def set_periods_from_attributes attributes
+    definition = self
+
+    fixed_interval = BoundedInterval.create DateTime.iso8601(attributes[:from]), DateTime.iso8601(attributes[:to])
+
+    unless attributes[:repeating]
+      # repeat definition for "once" or "no repeat"
+      attributes[:repeating] = {
+        :period_unit => 'days',
+        :period_duration => fixed_interval.bounding_days,
+        :until_repeats => 1,
+        :until_type => 'repeats',
+        :until_date => nil
+      }
+    end
+
+    definition.period = Duration.new({
+      :unit => Duration.unit_strings[attributes[:repeating][:period_unit]],
+      :duration => attributes[:repeating][:period_duration].to_i
+    })
+
+    definition.period_start = fixed_interval.start
+    definition.periods_count = 
+      attributes[:repeating][:until_type] == 'repeats' ? 
+      attributes[:repeating][:until_repeats].to_i :
+      # whole duration in the range, plus one, which needs to be tested to until date
+      definition.period.between(fixed_interval.start, DateTime.iso8601(attributes[:repeating][:until_date])) + 1
+
+    periods_intervals = []
+
+    (1..(definition.periods_count)).each do |i|
+      # for each occurence that is after until date, remove one repeat. 
+      # it will be done at most once. If last full period before until_date has end too close to until_date that one 
+      # occurence cant fit there, it will reduce that "hoping" last period
+      definition.periods_count -= 1 and break if attributes[:repeating][:until_type] != 'repeats' and fixed_interval.end > DateTime.iso8601(attributes[:repeating][:until_date])
+
+      periods_intervals << fixed_interval
+      
+      fixed_interval = fixed_interval.after_duration definition.period;
+    end
+
+    periods_intervals
   end
 end
