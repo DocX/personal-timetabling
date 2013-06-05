@@ -2,19 +2,19 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
 /**
  *
  * @author docx
  */
-public class IntersectionDomain implements IIntervalsTimeDomain {
-
-    IIntervalsTimeDomain first;
+public class UnionDomain implements IIntervalsTimeDomain {
     
-    IIntervalsTimeDomain second;
+    private IIntervalsTimeDomain first;
+    
+    private IIntervalsTimeDomain second;
 
-    public IntersectionDomain(IIntervalsTimeDomain first, IIntervalsTimeDomain second) {
+    public UnionDomain(IIntervalsTimeDomain first, IIntervalsTimeDomain second) {
         this.first = first;
         this.second = second;
     }
@@ -24,7 +24,7 @@ public class IntersectionDomain implements IIntervalsTimeDomain {
         IntervalsSet first_set = first.getIntervalsIn(i);
         IntervalsSet second_set = second.getIntervalsIn(i);
         
-        first_set.intersectWith(second_set);
+        first_set.unionWith(second_set);
         return first_set;
     }
     

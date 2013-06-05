@@ -2,8 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
+import net.personaltt.timedomain.Interval;
+import net.personaltt.timedomain.RepeatingIntervalDomain;
+import net.personaltt.timedomain.IntervalsSet;
 import org.joda.time.Days;
 import org.joda.time.Hours;
 import org.joda.time.LocalDateTime;
@@ -59,7 +62,7 @@ public class RepeatingIntervalDomainTest {
         // check all intervals
         Iterable<Interval> intervals = result.getIntervals();
         for (Interval interval : intervals) {
-            int days = Days.daysBetween(interval.start, interval.end).getDays();
+            int days = Days.daysBetween(interval.getStart(), interval.getEnd()).getDays();
             assertTrue(days == 2);
             assertTrue(interval.intersects(i));
         }
@@ -86,9 +89,9 @@ public class RepeatingIntervalDomainTest {
         // check all intervals
         Iterable<Interval> intervals = result.getIntervals();        
         for (Interval interval : intervals) {
-            int days = Days.daysBetween(interval.start, interval.end).getDays();
+            int days = Days.daysBetween(interval.getStart(), interval.getEnd()).getDays();
             assertEquals(days, 2);
-            assertEquals(interval.start.getDayOfMonth(), 12);
+            assertEquals(interval.getStart().getDayOfMonth(), 12);
             assertTrue(interval.intersects(i));
         }
         
@@ -111,10 +114,10 @@ public class RepeatingIntervalDomainTest {
         // check all intervals
         Iterable<Interval> intervals = result.getIntervals();        
         for (Interval interval : intervals) {
-            int hours = Hours.hoursBetween(interval.start, interval.end).getHours();
+            int hours = Hours.hoursBetween(interval.getStart(), interval.getEnd()).getHours();
             assertEquals(hours, 10);
-            assertEquals(interval.start.getDayOfMonth(), 12);
-            assertEquals(interval.start.getHourOfDay(), 9);
+            assertEquals(interval.getStart().getDayOfMonth(), 12);
+            assertEquals(interval.getStart().getHourOfDay(), 9);
             assertTrue(interval.intersects(i));
         }
 
@@ -139,7 +142,7 @@ public class RepeatingIntervalDomainTest {
         // check all intervals
         Iterable<Interval> intervals = result.getIntervals();        
         for (Interval interval : intervals) {
-            assertEquals(interval.start.getDayOfMonth(), 31);
+            assertEquals(interval.getStart().getDayOfMonth(), 31);
             assertTrue(interval.intersects(i));
         }
     }

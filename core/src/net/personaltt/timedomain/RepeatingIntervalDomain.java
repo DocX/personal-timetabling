@@ -2,11 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.naming.OperationNotSupportedException;
 import org.joda.time.Days;
 import org.joda.time.Hours;
 import org.joda.time.Period;
@@ -43,7 +42,7 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
     public IntervalsSet getIntervalsIn(Interval i) {
         IntervalsSet set = new IntervalsSet();
         
-        int periods = getNearestPeriodStartToAndBefore(i.start);
+        int periods = getNearestPeriodStartToAndBefore(i.getStart());
         
         boolean checkDayInMonth = repeatingPeriod.getPeriodType() == PeriodType.months();
         
@@ -55,7 +54,7 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
             LocalDateTime intervalEnd = intervalStart.plus(intervalDuration);
             
                 // ending after range
-            if (intervalEnd.isAfter(i.end)) {
+            if (intervalEnd.isAfter(i.getEnd())) {
                 break;
             }
  

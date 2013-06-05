@@ -1,4 +1,4 @@
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
 /**
  * Subtraction domain. It removes intervals of one IIntervalsTimeDomain from another IIntervalsTimeDomain

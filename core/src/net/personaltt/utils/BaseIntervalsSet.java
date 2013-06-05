@@ -1,50 +1,39 @@
-/* Intervals set. Represents set of intervals and implements set operations on it
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.TreeMap;
-import org.joda.time.LocalDateTime;
 
 /**
- *
+ * Base intervals set generic class. Implements intervals set with set operations
+ * with O(log n) search/tests and O(n log n) manipulation and retrieving ordered list of sets in O(n) 
  * @author docx
  */
-public class IntervalsSet {
-
+public class BaseIntervalsSet<T extends Comparable> {
     /**
      * map storing edge dates of intervals. Edge is true if it starts interval to the future from it
      * and false if it ends interval to the future from it.
      */
-    TreeMap<LocalDateTime, Boolean> setMap;
+    protected TreeMap<T, Boolean> setMap;
     
-    public IntervalsSet() {
+    public BaseIntervalsSet() {
         setMap = new TreeMap<>();
     }
     
-    public IntervalsSet(Interval interval) {
-        setMap = new TreeMap<>();
-        setMap.put(interval.start, Boolean.TRUE);
-        setMap.put(interval.end, Boolean.FALSE);
-    }
     
-    /**
-     * Union with single interval
-     * @param interval 
-     */
-    public void unionWith(Interval interval) {
-        this.unionWith(interval.start, interval.end);
-    }
     
     /**
      * Union with single interval in O(n log n)
      * @param start
      * @param end 
      */
-    public void unionWith(LocalDateTime start, LocalDateTime end) {
+    public void unionWith(T start, T end) {
         
         // remove all edges inside adding interval
         // O(n log n) - find start
@@ -52,7 +41,7 @@ public class IntervalsSet {
         
         // if edge before adding start do not exists or is ending edge, add new start
         // O(log n)
-        Entry<LocalDateTime, Boolean> floor = setMap.floorEntry(start);
+        Map.Entry<T, Boolean> floor = setMap.floorEntry(start);
         if (floor == null || floor.getValue() == false)
         {
             // add start
@@ -61,7 +50,7 @@ public class IntervalsSet {
         
         // if edge after adding end do not exists or is starting edge, add new end
         // O(log n)
-        Entry<LocalDateTime, Boolean> ceiling = setMap.ceilingEntry(start);
+        Map.Entry<T, Boolean> ceiling = setMap.ceilingEntry(start);
         if (ceiling == null || ceiling.getValue() == true)
         {
             // add start
@@ -70,6 +59,12 @@ public class IntervalsSet {
     }  
     
   
+    private interface MergeFunction {    
+        /*
+         * Determine state of resulting interval set on the edge in given states of two intervals sets
+         */
+        boolean mergeEdge(boolean state_a, boolean state_b);
+    }    
     
    /**
      * Intersection merge operation
@@ -81,7 +76,7 @@ public class IntervalsSet {
         }    
     }    
     
-    public void unionWith(IntervalsSet mask) {        
+    public void unionWith(BaseIntervalsSet<T> mask) {        
        this.merge(mask, new UnionMerge());
     }
    
@@ -96,7 +91,7 @@ public class IntervalsSet {
         }    
     }    
     
-    public void intersectWith(IntervalsSet mask) {
+    public void intersectWith(BaseIntervalsSet<T> mask) {
         // cases:
         // this: |-----|  |---|   |-----|   |----|   
         // mask:   |--------|   |-----------|
@@ -115,14 +110,8 @@ public class IntervalsSet {
             return state_a && !state_b;
         }    
     }
-
-    public void minus(Interval subtrahend){
-        IntervalsSet s = new IntervalsSet();
-        s.unionWith(subtrahend);
-        this.minus(s);
-    }
     
-    public void minus(IntervalsSet subtrahend_set) {
+    public void minus(BaseIntervalsSet<T> subtrahend_set) {
         // cases:
         // this: |-----|  |---|   |-----|   |----|     |-----| |-----|
         // minu:   |--------|   |-----------|         
@@ -131,57 +120,80 @@ public class IntervalsSet {
         this.merge(subtrahend_set, new MinusMerge());
     }
     
-    
-    public List<Interval> getIntervals() {
-        ArrayList<Interval> intervals = new ArrayList<>();
-        
-        // go throug map and create intervals as numbers goes
-        Interval i = null;
-        for (Iterator<Entry<LocalDateTime, Boolean>> it = setMap.entrySet().iterator(); it.hasNext();) {
-            Entry<LocalDateTime, Boolean> object = it.next();
-            // start
-            if (object.getValue() && it.hasNext())  {
-                Entry<LocalDateTime, Boolean> end = it.next();
-                
-                intervals.add(new Interval(object.getKey(), end.getKey()));
-            }
-        }
-        
-        return intervals;
+    /**
+     * Interface for delegates creating intervals for extended object
+     * @param <T> 
+     */
+    protected interface IntervalsBuilder<T> {
+        public void add(T start, T end);
     }
     
+    /**
+     * Basic builder implementation for provide default function
+     */
+    private class BaseIntervalBuilder implements IntervalsBuilder<T> {
+        List<BaseInterval<T>> intervals;
+
+        public BaseIntervalBuilder() {
+            intervals = new ArrayList<>();
+        }
+       
+        @Override
+        public void add(T start, T end) {
+            intervals.add(new BaseInterval<>(start, end));
+        }
+    }
+    /**
+     * Returns distinct intevals in the interval set ordered from the earliest start
+     * @return 
+     */
+    public List<BaseInterval<T>> getBaseIntervals() {
+        BaseIntervalBuilder builder = new BaseIntervalBuilder();
+        buildIntervals(builder);
+        return builder.intervals;
+    }
     
-    private interface MergeFunction {    
-        /*
-         * Determine state of resulting interval set on the edge in given states of two intervals sets
-         */
-        boolean mergeEdge(boolean state_a, boolean state_b);
+    /**
+     * Iterates builder.add for each interval in set
+     * @param builder 
+     */
+    protected void buildIntervals(IntervalsBuilder<T> builder) {
+        // go throug map and create intervals as numbers goes
+        for (Iterator<Map.Entry<T, Boolean>> it = setMap.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<T, Boolean> object = it.next();
+            // start
+            if (object.getValue() && it.hasNext())  {
+                Map.Entry<T, Boolean> end = it.next();
+                
+                builder.add(object.getKey(), end.getKey());
+            }
+        }
     }
     
     /*
      * Merge walk througt edges from both intervals sets (this and given) and calls merge function 
      * implementation for each of them
      */
-    private void merge(IntervalsSet second, MergeFunction operation) {
-        Iterator<Entry<LocalDateTime, Boolean>> this_iterator = this.setMap.entrySet().iterator(); 
-        Iterator<Entry<LocalDateTime, Boolean>> second_iterator = second.setMap.entrySet().iterator(); 
+    private void merge(BaseIntervalsSet<T> second, MergeFunction operation) {
+        Iterator<Map.Entry<T, Boolean>> this_iterator = this.setMap.entrySet().iterator(); 
+        Iterator<Map.Entry<T, Boolean>> second_iterator = second.setMap.entrySet().iterator(); 
         
-        TreeMap<LocalDateTime, Boolean> result = new TreeMap<>();
+        TreeMap<T, Boolean> result = new TreeMap<>();
         boolean lastResultState = false;
        
         // get first steps
-        Entry<LocalDateTime, Boolean> this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
-        Entry<LocalDateTime, Boolean> second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
+        Map.Entry<T, Boolean> this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
+        Map.Entry<T, Boolean> second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
  
         while(this_edge != null || second_edge != null) {
             // intervals are here considered as closed-open - so if edge start, is inside
             // and if edge is end, it is outside.
             boolean this_state;
             boolean second_state;
-            LocalDateTime step_time;
+            T step_time;
             
             // walk first this until is before second or second has no more edges
-            if (this_edge != null && (second_edge == null || this_edge.getKey().isBefore(second_edge.getKey()))) {
+            if (this_edge != null && (second_edge == null || this_edge.getKey().compareTo(second_edge.getKey()) < 0)) {
                 // in this, we are on the edge - if out-in edge, we are in, if in-out, we are out
                 this_state = this_edge.getValue();
                 step_time = this_edge.getKey();
@@ -191,7 +203,7 @@ public class IntervalsSet {
                 
                 this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
             // else walk on second
-            } else if (second_edge != null && (this_edge == null || second_edge.getKey().isBefore(this_edge.getKey()))) {
+            } else if (second_edge != null && (this_edge == null || second_edge.getKey().compareTo(this_edge.getKey()) < 0 )) {
                 // in second, we are on the edge - if out-in edge, we are in, if in-out, we are out
                 second_state = second_edge.getValue();
                 step_time = second_edge.getKey();

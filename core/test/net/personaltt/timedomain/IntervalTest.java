@@ -2,8 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
+import net.personaltt.timedomain.Interval;
+import net.personaltt.timedomain.IntervalsSet;
 import java.util.List;
 import org.joda.time.LocalDateTime;
 import org.junit.After;

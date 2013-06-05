@@ -2,8 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
+import net.personaltt.timedomain.Interval;
+import net.personaltt.timedomain.IntervalsSet;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.LocalDateTime;
@@ -93,7 +95,7 @@ public class IntervalsSetTest {
         Interval i = new Interval(new LocalDateTime(2000,1,1,0,0,0), new LocalDateTime(2000,1,2,0,0,0));
 
         IntervalsSet set = new IntervalsSet();
-        set.unionWith(i.start, i.end);
+        set.unionWith(i.getStart(), i.getEnd());
         
         List<Interval> intervals = set.getIntervals();
         assertTrue(intervals.size() == 1);
@@ -111,7 +113,7 @@ public class IntervalsSetTest {
 
         IntervalsSet set = new IntervalsSet();
         for (Interval interval : is) {
-            set.unionWith(interval.start, interval.end);
+            set.unionWith(interval.getStart(), interval.getEnd());
         }
         
         List<Interval> intervals = set.getIntervals();
@@ -130,7 +132,7 @@ public class IntervalsSetTest {
 
         IntervalsSet set = new IntervalsSet();
         for (Interval interval : is) {
-            set.unionWith(interval.start, interval.end);
+            set.unionWith(interval.getStart(), interval.getEnd());
         }
 
         ArrayList<Interval> expected = new ArrayList<>();

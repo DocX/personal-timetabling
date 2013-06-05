@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/Interval.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/IIntervalsTimeDomain.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/IntersectionDomain.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/RepeatingIntervalDomain.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/IntervalsSet.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/test/net/personaltt/core/ActionStackDomainTest.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/test/net/personaltt/core/RepeatingIntervalDomainTest.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/solver/ProblemDefinition.java</file>
+        <file>file:/home/docx/Devel/personal-tt/webui/core/src/net/personaltt/core/SubtractionDomain.java</file>
+    </open-files>
 </project-private>

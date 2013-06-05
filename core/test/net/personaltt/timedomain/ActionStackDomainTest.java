@@ -2,8 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
+import net.personaltt.timedomain.Interval;
+import net.personaltt.timedomain.RepeatingIntervalDomain;
+import net.personaltt.timedomain.ActionStackDomain;
+import net.personaltt.timedomain.IntervalsSet;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -131,18 +135,18 @@ public class ActionStackDomainTest {
         // check all intervals
         for (Interval interval : intervals) {
             // must be 10 hours long
-            int hours = Hours.hoursBetween(interval.start, interval.end).getHours();
+            int hours = Hours.hoursBetween(interval.getStart(), interval.getEnd()).getHours();
             assertEquals(10, hours);
             
             // starts at 9
-            assertEquals(9, interval.start.getHourOfDay());
+            assertEquals(9, interval.getStart().getHourOfDay());
             
             // same day
-            assertEquals(interval.start.getDayOfYear(), interval.end.getDayOfYear());
-            assertEquals(interval.start.getYear(), interval.end.getYear());
+            assertEquals(interval.getStart().getDayOfYear(), interval.getEnd().getDayOfYear());
+            assertEquals(interval.getStart().getYear(), interval.getEnd().getYear());
             
             // is friday or sonday
-            assertTrue(interval.start.getDayOfWeek() == 5 || interval.start.getDayOfWeek()==6);
+            assertTrue(interval.getStart().getDayOfWeek() == 5 || interval.getStart().getDayOfWeek()==6);
             
             // is in wanted range
             assertTrue(interval.intersects(i));

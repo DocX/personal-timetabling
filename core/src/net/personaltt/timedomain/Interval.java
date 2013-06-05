@@ -2,30 +2,20 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.core;
+package net.personaltt.timedomain;
 
 import java.util.Objects;
+import net.personaltt.utils.BaseInterval;
 import org.joda.time.LocalDateTime;
 
 /**
  *
  * @author docx
  */
-public class Interval implements IIntervalsTimeDomain {
-    LocalDateTime start;
-    LocalDateTime end;
+public class Interval extends BaseInterval<LocalDateTime> implements IIntervalsTimeDomain {
 
     public Interval(LocalDateTime start, LocalDateTime end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    public LocalDateTime getEnd() {
-        return end;
-    }
-
-    public LocalDateTime getStart() {
-        return start;
+        super(start, end);
     }
 
     @Override
