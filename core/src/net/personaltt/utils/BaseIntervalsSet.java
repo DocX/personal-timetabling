@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import net.personaltt.problem.Occurrence;
 
 /**
  * Base intervals set generic class. Implements intervals set with set operations
@@ -57,6 +59,15 @@ public class BaseIntervalsSet<T extends Comparable> {
             setMap.put(end, Boolean.FALSE);
         }
     }  
+
+    /**
+     * Returns new intervals set of this minus intervals represented by given iterator
+     * @param currentAllocationIntervals
+     * @return 
+     */
+    public BaseIntervalsSet<T> getMinus(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
     
   
     private interface MergeFunction {    
