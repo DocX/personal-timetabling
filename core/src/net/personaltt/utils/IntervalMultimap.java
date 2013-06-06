@@ -54,7 +54,7 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param value
      * @param interval 
      */
-    public void put(V value, BaseInterval<K> interval) {
+    public boolean put(V value, BaseInterval<K> interval) {
         // if adding value already exists in multiset, throw exception
         if (startPoints.containsKey(value)) {
             throw new IllegalArgumentException("Adding value already exists or is evaluated as eqaual to already existing value."); 
@@ -69,9 +69,15 @@ public class IntervalMultimap<K extends Comparable, V> {
         createEdgeStub(interval.getEnd());
         
         // add value to all edges including start to excluding end
+        boolean conflicts = false;
         for(List<V> edgeValues : edges.subMap(interval.getStart(), interval.getEnd()).values()) {
+            if (!conflicts && !edgeValues.isEmpty()) {
+                conflicts = true;
+            }
             edgeValues.add(value);
-        }        
+        }
+        
+        return conflicts;
     }
     
     private void createEdgeStub(K key) {

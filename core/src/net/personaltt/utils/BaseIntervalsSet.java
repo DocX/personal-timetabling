@@ -58,9 +58,23 @@ public class BaseIntervalsSet<T extends Comparable> {
             // add start
             setMap.put(end, Boolean.FALSE);
         }
-    }  
+    }
 
-
+    /**
+     * Retrieves interval surounging given point or null if given point is outside any
+     * interval
+     * @param start
+     * @return 
+     */
+    public BaseInterval<T> getIntervalContaining(T start) {
+        
+        if (this.setMap.floorEntry(start).getValue()) {
+            // inside
+            return new BaseInterval<>(this.setMap.floorEntry(start).getKey(), this.setMap.ceilingKey(start));
+        } else {
+            return null;
+        }
+    }
     
   
     private interface MergeFunction {    

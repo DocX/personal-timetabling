@@ -1,7 +1,11 @@
 package net.personaltt.problem;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import net.personaltt.utils.BaseInterval;
 
 /**
  * Schedule represents allocation of set of occurences
@@ -17,6 +21,18 @@ public class Schedule {
     public Schedule(List<Occurrence> occurrences)  {
         init(occurrences.size(), occurrences);
 
+    }
+    
+    public Set<Entry<Occurrence, OccurrenceAllocation>> getOccurrencesAllocations() {
+        return Collections.unmodifiableSet(allocationMapping.entrySet());
+    }
+    
+    public OccurrenceAllocation getAllocationOf(Occurrence o){
+        return allocationMapping.get(o);
+    }
+    
+    public BaseInterval<Integer> getAllocationIntervalOf(Occurrence o){
+        return allocationMapping.get(o).toInterval();
     }
     
     /**

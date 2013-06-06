@@ -18,12 +18,12 @@ public class Occurrence {
     /*
      * Lower bound of duration interval
      */
-    int duration_min;
+    int minDuration;
     
     /**
      * Upper bound of duration interval
      */
-    int duration_max;
+    int maxDuration;
     
     /**
      * ID of occurrence used to associate with other parts of algorithm and client
@@ -43,6 +43,19 @@ public class Occurrence {
         
         return super.equals(obj);
     }
+    
+    public BaseIntervalsSet<Integer> getDomain() {
+        return domain;
+    }
+
+    public int getMaxDuration() {
+        return maxDuration;
+    }
+
+    public int getMinDuration() {
+        return minDuration;
+    }
+    
     
     
     

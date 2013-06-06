@@ -4,11 +4,13 @@
  */
 package net.personaltt.problem;
 
+import net.personaltt.utils.BaseInterval;
+
 /**
  * Occurrence allocation represents allocation of occurrence in time axis.
  * @author docx
  */
-class OccurrenceAllocation {
+public class OccurrenceAllocation {
     
     int start;
     
@@ -32,5 +34,26 @@ class OccurrenceAllocation {
         this.start = other.start;
         this.duration = other.duration;
     }
+    
+    /**
+     * Returns interval of this allocation
+     * @return 
+     */
+    public BaseInterval<Integer> toInterval() {
+        return new BaseInterval<>(start, start + duration);
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+
+    public void setDuration(int duration) {
+        if (duration < 0) {
+            throw new IllegalArgumentException("Duration must be positive");
+        }
+        this.duration = duration;
+    }
+    
+    
     
 }
