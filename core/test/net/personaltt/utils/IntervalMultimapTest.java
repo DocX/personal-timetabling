@@ -4,6 +4,7 @@
  */
 package net.personaltt.utils;
 
+import java.util.Iterator;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,11 +22,27 @@ public class IntervalMultimapTest {
     public IntervalMultimapTest() {
     }
 
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+    }
+
+    @Before
+    public void setUp() throws Exception {
+    }
+
+    @After
+    public void tearDown() throws Exception {
+    }
+
     /**
      * Test of put method, of class IntervalMultimap.
      */
     @Test
-    public void testPut1() {
+    public void testPut() {
         System.out.println("put");
         IntervalMultimap<Integer,Object> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
@@ -142,5 +159,38 @@ public class IntervalMultimapTest {
         assertFalse(overlappingValues.contains(4));
         assertFalse(overlappingValues.contains(7));
         
+    }
+
+    /**
+     * Test of intervalsSetIterator method, of class IntervalMultimap.
+     */
+    @Test
+    public void testIntervalsSetIterator() {
+
+    }
+
+    /**
+     * Test of toIntervalsSet method, of class IntervalMultimap.
+     */
+    @Test
+    public void testToIntervalsSet() {
+        IntervalMultimap multimap = new IntervalMultimap();
+        multimap.put(1, new BaseInterval(10,20));
+        multimap.put(2, new BaseInterval(30,40));
+        multimap.put(3, new BaseInterval(40,50));
+        multimap.put(4, new BaseInterval(100,140));
+        multimap.put(5, new BaseInterval(120,130));
+        
+        multimap.put(6, new BaseInterval(123,180));
+        
+        BaseInterval[] intervals = new BaseInterval[] {
+            new BaseInterval(10,20),
+            new BaseInterval(30,50),
+            new BaseInterval(100,180)
+        };
+        
+        Object[] actual = multimap.toIntervalsSet().getBaseIntervals().toArray();
+        
+        assertArrayEquals(intervals, actual);
     }
 }

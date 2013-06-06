@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import net.personaltt.timedomain.IntervalsSet;
 
 /**
  * Interval multimap stores intervals with mapped value and provides searching
@@ -153,6 +154,24 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
         
         return new ArrayList<>(overlappingIntervalsValues);
+    }
+    
+    /**
+     * Returns iterator over changing edges
+     * @return 
+     */
+    public Iterator<Entry<K,Boolean>> intervalsSetIterator() {
+        return new IntervalMultimapSetIterator(this);
+    }
+    
+    /**
+     * Return new intervalsset corresponding to intervals allocated by all of 
+     * intervals in this
+     * @return 
+     */
+    public BaseIntervalsSet<K> toIntervalsSet() {
+        BaseIntervalsSet<K> intervalsSet = new BaseIntervalsSet<>();
+        return intervalsSet.getUnionWith(this.intervalsSetIterator());
     }
     
 }
