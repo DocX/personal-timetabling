@@ -60,14 +60,7 @@ public class BaseIntervalsSet<T extends Comparable> {
         }
     }  
 
-    /**
-     * Returns new intervals set of this minus intervals represented by given iterator
-     * @param currentAllocationIntervals
-     * @return 
-     */
-    public BaseIntervalsSet<T> getMinus(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+
     
   
     private interface MergeFunction {    
@@ -78,7 +71,7 @@ public class BaseIntervalsSet<T extends Comparable> {
     }    
     
    /**
-     * Intersection merge operation
+     * Union merge operation
      */
     private class UnionMerge implements MergeFunction {
         @Override
@@ -87,10 +80,24 @@ public class BaseIntervalsSet<T extends Comparable> {
         }    
     }    
     
+    /**
+     * Unions this with given intervals set
+     * @param mask 
+     */
     public void unionWith(BaseIntervalsSet<T> mask) {        
        this.merge(mask, new UnionMerge());
     }
    
+    /**
+     * Returns new intervals set of copy of this united with intervals represented by given iterator
+     * @param currentAllocationIntervals
+     * @return 
+     */
+    public BaseIntervalsSet<T> getUnionWith(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
+        BaseIntervalsSet<T> result = new BaseIntervalsSet<>();
+        result.setMap = this.getMerged(intervalsEdgesIterator, new UnionMerge());
+        return result;
+    }
     
     /**
      * Intersection merge operation
@@ -102,6 +109,10 @@ public class BaseIntervalsSet<T extends Comparable> {
         }    
     }    
     
+    /**
+     * Intersects this with given intervals set.
+     * @param mask 
+     */
     public void intersectWith(BaseIntervalsSet<T> mask) {
         // cases:
         // this: |-----|  |---|   |-----|   |----|   
@@ -109,6 +120,17 @@ public class BaseIntervalsSet<T extends Comparable> {
         // rslt:   |---|  |-|     |-----|
         
        this.merge(mask, new IntersectMerge());
+    }
+    
+    /**
+     * Returns new intervals set of copy of this intersected with intervals represented by given iterator
+     * @param currentAllocationIntervals
+     * @return 
+     */
+    public BaseIntervalsSet<T> getIntersectionWith(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
+        BaseIntervalsSet<T> result = new BaseIntervalsSet<>();
+        result.setMap = this.getMerged(intervalsEdgesIterator, new IntersectMerge());
+        return result;
     }
    
     
@@ -122,6 +144,10 @@ public class BaseIntervalsSet<T extends Comparable> {
         }    
     }
     
+    /**
+     * Subtracts given intervals set from this
+     * @param subtrahend_set 
+     */
     public void minus(BaseIntervalsSet<T> subtrahend_set) {
         // cases:
         // this: |-----|  |---|   |-----|   |----|     |-----| |-----|
@@ -130,6 +156,18 @@ public class BaseIntervalsSet<T extends Comparable> {
         
         this.merge(subtrahend_set, new MinusMerge());
     }
+    
+     /**
+     * Returns new intervals set of this minus intervals represented by given iterator
+     * @param currentAllocationIntervals
+     * @return 
+     */
+    public BaseIntervalsSet<T> getSubtraction(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
+        BaseIntervalsSet<T> result = new BaseIntervalsSet<>();
+        result.setMap = this.getMerged(intervalsEdgesIterator, new MinusMerge());
+        return result;
+    }
+    
     
     /**
      * Interface for delegates creating intervals for extended object
@@ -181,13 +219,21 @@ public class BaseIntervalsSet<T extends Comparable> {
         }
     }
     
+    /**
+     * Merge this with second given intervalset using given operation
+     * @param second
+     * @param operation 
+     */
+    private void merge(BaseIntervalsSet<T> second, MergeFunction operation) {
+        this.setMap = this.getMerged(second.setMap.entrySet().iterator(), operation);
+    }
+    
     /*
      * Merge walk througt edges from both intervals sets (this and given) and calls merge function 
      * implementation for each of them
      */
-    private void merge(BaseIntervalsSet<T> second, MergeFunction operation) {
+    private TreeMap<T, Boolean> getMerged(Iterator<Map.Entry<T, Boolean>> second_iterator, MergeFunction operation) {
         Iterator<Map.Entry<T, Boolean>> this_iterator = this.setMap.entrySet().iterator(); 
-        Iterator<Map.Entry<T, Boolean>> second_iterator = second.setMap.entrySet().iterator(); 
         
         TreeMap<T, Boolean> result = new TreeMap<>();
         boolean lastResultState = false;
@@ -243,6 +289,6 @@ public class BaseIntervalsSet<T extends Comparable> {
             }
         }
         
-        this.setMap = result;
+        return result;
     }    
 }
