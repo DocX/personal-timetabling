@@ -30,6 +30,13 @@ public class Occurrence {
      */
     int id;
 
+    public Occurrence(BaseIntervalsSet<Integer> domain, int minDuration, int maxDuration, int id) {
+        this.domain = domain;
+        this.minDuration = minDuration;
+        this.maxDuration = maxDuration;
+        this.id = id;
+    }
+    
     @Override
     public int hashCode() {
         return this.id;
@@ -55,6 +62,13 @@ public class Occurrence {
     public int getMinDuration() {
         return minDuration;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(id);
+    }
+    
+    
     
     
     

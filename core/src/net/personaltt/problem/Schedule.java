@@ -3,9 +3,12 @@ package net.personaltt.problem;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.IntervalMultimap;
 
 /**
  * Schedule represents allocation of set of occurences
@@ -20,7 +23,10 @@ public class Schedule {
     
     public Schedule(List<Occurrence> occurrences)  {
         init(occurrences.size(), occurrences);
+    }
 
+    public Schedule() {
+        this.allocationMapping = new HashMap<>();
     }
     
     public Set<Entry<Occurrence, OccurrenceAllocation>> getOccurrencesAllocations() {
@@ -64,6 +70,59 @@ public class Schedule {
         }
         
         return clone;
+    }
+
+    /**
+     * Compares given object if is equal schedule. Equal schedule is if
+     * has equal occurrences and its allocations
+     * @param obj
+     * @return 
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Schedule) {
+            Schedule objSchedule = ((Schedule)obj);
+            if (objSchedule.allocationMapping.size() != this.allocationMapping.size()) {
+                return false;
+            }
+            
+            for (Entry<Occurrence, OccurrenceAllocation> objEntry : objSchedule.allocationMapping.entrySet()) {
+                if (this.allocationMapping.containsKey(objEntry.getKey()) == false) {
+                    return false;
+                }
+                
+                if (this.getAllocationOf(objEntry.getKey()).equals(objEntry.getValue()) == false) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 17 * hash + Objects.hashCode(this.allocationMapping);
+        return hash;
+    }
+    
+    /**
+     * Determine if this schedule has conflicting occurrences allocation
+     * @return 
+     */
+    public boolean hasConflict() {
+        IntervalMultimap<Integer, Occurrence> currentAllocationIntervals = 
+                new IntervalMultimap<>();
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : getOccurrencesAllocations()) {
+            if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval())) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     

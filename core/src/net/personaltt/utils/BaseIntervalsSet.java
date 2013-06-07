@@ -70,7 +70,7 @@ public class BaseIntervalsSet<T extends Comparable> {
         
         if (this.setMap.floorEntry(start).getValue()) {
             // inside
-            return new BaseInterval<>(this.setMap.floorEntry(start).getKey(), this.setMap.ceilingKey(start));
+            return new BaseInterval<>(this.setMap.floorEntry(start).getKey(), this.setMap.higherKey(start));
         } else {
             return null;
         }

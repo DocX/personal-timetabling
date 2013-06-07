@@ -1,6 +1,8 @@
 package net.personaltt.problem;
 
+import java.util.ArrayList;
 import java.util.List;
+import net.personaltt.utils.BaseInterval;
 
 /**
  * Problem definition encapsulates all parameters for solver. It consists of
@@ -12,9 +14,24 @@ import java.util.List;
  */
 public class ProblemDefinition {
     
-    public List<Occurrence> problemOccurences;
+    public List<Occurrence> problemOccurrences;
     
     public Schedule initialSchedule;
+
+    public ProblemDefinition() {
+        problemOccurrences = new ArrayList<>();
+        initialSchedule = new Schedule();
+    }
     
-    //Priorities
+    
+    /**
+     * Adds occurrence to problem definition with initial allocation
+     * @param occurrence
+     * @param initialAllocation 
+     */
+    public void addOccurrence(Occurrence occurrence, BaseInterval<Integer> initialAllocation) {
+        problemOccurrences.add(occurrence);
+        initialSchedule.allocationMapping.put(occurrence, new OccurrenceAllocation(initialAllocation));
+    }
+    
 }

@@ -1,7 +1,10 @@
 package net.personaltt.simplesolver;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.problem.ProblemDefinition;
@@ -20,26 +23,45 @@ public class SimpleSolver {
     
     long timeoutLimit = 15000;
     
+    Random random;
+    
+    public SimpleSolver() {
+        random = new Random();
+    }
+    
+    public SimpleSolver(Random random) {
+        this.random = random;
+    }
+    
     public Schedule solve(ProblemDefinition problem) {
         workingSchedule = (Schedule)problem.initialSchedule.clone();
         
         //TODO domain of all occurrences has to have no interval smaller than
-        // minimal duration of occurrence
+        // minimal duration of occurrence. These domain intervals can be dropped
         
-        // Prepare conflicting occurrences
+        // Prepare schedule multimap of intervals
         IntervalMultimap<Integer, Occurrence> currentAllocationIntervals = 
                 new IntervalMultimap<>();
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : workingSchedule.getOccurrencesAllocations()) {
+            currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval());
+        }
         
+        // get conflicting occurrences list
         List<Occurrence> conflictingOccurrences = currentAllocationIntervals.valuesOfOverlappingIntervals();
         
         // Prepare utilities
         long startTime = System.currentTimeMillis();
-        Random random = new Random();
         
+        long iteration = 0;
         
         // while there is conflict, solve it
         while(conflictingOccurrences.size() > 0 && System.currentTimeMillis() - startTime < timeoutLimit) {
-            Occurrence toSolve = conflictingOccurrences.remove(random.nextInt(conflictingOccurrences.size()));
+            System.out.printf("Iteration %s, %s conflicts\n", iteration, conflictingOccurrences.size());
+            
+            Occurrence toSolve = conflictingOccurrences.get(random.nextInt(conflictingOccurrences.size()));
+            OccurrenceAllocation solvingAllocation = workingSchedule.getAllocationOf(toSolve);
+           
+            System.out.printf("Selected occurrence %s at %s\n", toSolve, solvingAllocation);
             
             // solve conflict. simple.
             // get domain of occurrence, subtract current schedule without this
@@ -79,11 +101,12 @@ public class SimpleSolver {
             
             // find largest free interval
             BaseInterval<Integer> largestInterval = findLargestInterval(domainWithoutAllocatedSpace);
-            OccurrenceAllocation solvingAllocation = workingSchedule.getAllocationOf(toSolve);
+            System.out.printf("Found largest free interval: %s\n", largestInterval);
+            
             
             if (largestInterval != null) {
                 // find fitting duration
-                int newDuration = Math.min(
+                int newDuration = Math.max(
                         toSolve.getMinDuration(), 
                         Math.min(toSolve.getMaxDuration(), largestInterval.getEnd() - largestInterval.getStart())
                         );
@@ -94,14 +117,21 @@ public class SimpleSolver {
                 solvingAllocation.setDuration(newDuration);
             }
             
+            
             // store in allocation intervals. if it conflicts with existing intervals, returns true
             boolean conflicts = currentAllocationIntervals.put(toSolve,solvingAllocation.toInterval());  
-            if (conflicts) {
-                conflictingOccurrences.add(toSolve);
-            }
+            
+            System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
+            
+            //if (conflicts) {
+            //    conflictingOccurrences.add(toSolve);
+            //}
+            
+            conflictingOccurrences = currentAllocationIntervals.valuesOfOverlappingIntervals();
+            iteration++;
         }
         
-        return null;
+        return workingSchedule;
         
     }
     
@@ -139,11 +169,14 @@ public class SimpleSolver {
     private int alignToInterval(BaseIntervalsSet<Integer> domain, Integer start, int newDuration) {
         BaseInterval<Integer> domainInterval = domain.getIntervalContaining(start);
         
+        System.out.printf("Domain interval containing %s: %s\n", start, domainInterval);
+
+        
         int newStart = start;
         
-        if (newStart < domainInterval.getStart()) {
-            newStart = domainInterval.getStart();
-        } else if (newStart + newDuration > domainInterval.getEnd()) {
+        // start before domain interval start should never occurre
+        // becuase start is from interval constructed from domain minus allocated space
+        if (newStart + newDuration > domainInterval.getEnd()) {
             newStart = domainInterval.getEnd() - newDuration;
         }
         

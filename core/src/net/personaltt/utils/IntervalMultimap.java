@@ -80,6 +80,20 @@ public class IntervalMultimap<K extends Comparable, V> {
         return conflicts;
     }
     
+    /**
+     * Adds all entries in collection
+     * @param collection
+     * @return 
+     */
+    public boolean putAll(Iterable<Entry<V, BaseInterval<K>>> collection) {
+        boolean conflicts = false;
+        for (Entry<V, BaseInterval<K>> entry : collection) {
+            conflicts |= this.put(entry.getKey(), entry.getValue());
+        }
+        
+        return conflicts;
+    }
+    
     private void createEdgeStub(K key) {
         K floorKey = edges.floorKey(key);
         if(floorKey == null || !floorKey.equals(key)) {
@@ -109,8 +123,13 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
         
         // go throug edges and remove value from all 
-        // edges where it is without space
-        // and remove all spare edges
+        // edges from start to first edge without this value
+        // and remove edges that has now same values as previous
+        
+        List<V> previousEdge = new ArrayList<>();
+        if (edges.lowerKey(start) != null) {
+            edges.lowerEntry(start).getValue();
+        }
         
         for (Iterator<Entry<K,List<V>>> it = edges.tailMap(start).entrySet().iterator(); it.hasNext();) {
             Entry<K,List<V>> edge = it.next();
@@ -118,10 +137,17 @@ public class IntervalMultimap<K extends Comparable, V> {
             if (edge.getValue().contains(value)) {
                 // remove value from edge list
                 edge.getValue().remove(value);
+                
+                // test if has same values as previous
+                if (edge.getValue().size() == previousEdge.size() && edge.getValue().containsAll(previousEdge)) {
+                    it.remove();
+                } else {
+                    previousEdge = edge.getValue();
+                }
             } else {
                 // fist edge that do not contain given value, so it is the end of value's interval
                 // if it doesn contain any other value, remove edge
-                if (edge.getValue().isEmpty()) {
+                 if (edge.getValue().size() == previousEdge.size() && edge.getValue().containsAll(previousEdge)) {
                     it.remove();
                     break;
                 }

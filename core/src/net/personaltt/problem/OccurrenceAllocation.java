@@ -26,6 +26,11 @@ public class OccurrenceAllocation {
         this.duration = duration;
     }
     
+    public OccurrenceAllocation(BaseInterval<Integer> allocation) {
+        this.start = allocation.getStart();
+        this.duration = allocation.getEnd() - this.start;
+    }
+    
     /**
      * Sets this values to values of other
      * @param other 
@@ -53,6 +58,32 @@ public class OccurrenceAllocation {
         }
         this.duration = duration;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof OccurrenceAllocation) {
+            return ((OccurrenceAllocation)obj).duration == this.duration 
+                    && ((OccurrenceAllocation)obj).start == this.start; 
+        }
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 31 * hash + this.start;
+        hash = 31 * hash + this.duration;
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s+%s", start, duration);
+    }
+    
+    
+    
+    
     
     
     

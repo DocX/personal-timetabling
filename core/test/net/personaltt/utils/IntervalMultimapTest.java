@@ -121,6 +121,43 @@ public class IntervalMultimapTest {
     }
 
     /**
+     * Test of remove method, of class IntervalMultimap.
+     */
+    @Test
+    public void testRemoveFirst() {
+        System.out.println("remove");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 50));
+        instance.put(2, new BaseInterval(20, 55));
+        instance.put(3, new BaseInterval(25, 30));
+
+        // |----|---|-----|-----|--|
+        // 10   20  25    30    50 55
+        // 1    1,2 1,2,3 1,2   2  /
+
+        instance.remove(1);
+        // -----|---|-----|------|
+        // 10   20  25    30     55
+        // -    2   2,3   2      /
+        
+        
+        assertEquals(4, instance.edges.size());
+        assertNotNull(instance.edges.get(20));
+        assertNotNull(instance.edges.get(25));
+        assertNotNull(instance.edges.get(30));
+        assertNotNull(instance.edges.get(55));
+        assertNull(instance.edges.get(10));
+        assertNull(instance.edges.get(50));
+        
+        assertArrayEquals(new Integer[] {2}, instance.edges.get(20).toArray());
+        assertArrayEquals(new Integer[] {2,3}, instance.edges.get(25).toArray());
+        assertArrayEquals(new Integer[] {2}, instance.edges.get(30).toArray());
+        assertArrayEquals(new Integer[] {}, instance.edges.get(55).toArray());
+        
+    }
+    
+    
+    /**
      * Test of valuesIn method, of class IntervalMultimap.
      */
     @Test
