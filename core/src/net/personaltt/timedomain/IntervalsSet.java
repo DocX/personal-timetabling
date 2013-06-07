@@ -4,7 +4,9 @@ package net.personaltt.timedomain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.personaltt.utils.BaseIntervalsSet;
+import net.personaltt.utils.Converter;
 import org.joda.time.LocalDateTime;
 
 /**
@@ -65,5 +67,20 @@ public class IntervalsSet extends BaseIntervalsSet<LocalDateTime> {
         IntervalListBuilder builder = new IntervalListBuilder();
         buildIntervals(builder);
         return builder.intervals;
+    }
+    
+    /**
+     * Converts LocalDateTime intervals set to numeric intervals
+     * using seconds since Unix epoch of times.
+     * @return 
+     */
+    public BaseIntervalsSet<Integer> toNumericIntervalsSet() {
+       return this.convertTo(new Converter<LocalDateTime, Integer> () {
+
+            @Override
+            public Integer convert(LocalDateTime source) {
+                return (int)(source.toDateTime().getMillis()/1000l);
+            }
+        });
     }
 }

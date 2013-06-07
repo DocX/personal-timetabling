@@ -305,4 +305,21 @@ public class BaseIntervalsSet<T extends Comparable> {
         
         return result;
     }    
+    
+    /**
+     * Converts this intervals set to the same set represented with keys converted
+     * from keys of this using given converter. 
+     * @param <D> Type parametr of target keys
+     * @param converter Converter object used for transform keys to new set
+     * @return 
+     */
+    public <D extends Comparable> BaseIntervalsSet<D> convertTo(Converter<T,D> converter){
+        BaseIntervalsSet<D> target = new BaseIntervalsSet<>();
+        
+        for (Entry<T, Boolean> entry : this.setMap.entrySet()) {
+            target.setMap.put(converter.convert(entry.getKey()), entry.getValue());
+        }
+        
+        return target;
+    }
 }
