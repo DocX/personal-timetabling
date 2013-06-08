@@ -90,6 +90,11 @@ public class OccurrenceAllocation {
     public String toString() {
         return String.format("%s+%s", start, duration);
     }
+
+    public void set(OccurrenceAllocation get) {
+        this.start = get.start;
+        this.duration = get.duration;
+    }
     
     
     

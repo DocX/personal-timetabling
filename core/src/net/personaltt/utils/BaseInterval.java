@@ -54,7 +54,4 @@ public class BaseInterval<T extends Comparable> {
         return String.format("Interval %s - %s", this.start, this.end);
     }
     
-    
-    
-    
 }

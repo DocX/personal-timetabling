@@ -294,4 +294,65 @@ public class IntervalMultimapTest {
         
         assertArrayEquals(intervals, actual);
     }
+    
+    /**
+     * Test of toIntervalsSet method, of class IntervalMultimap.
+     */
+    @Test
+    public void testGetIntervalsIn() {
+        IntervalMultimap multimap = new IntervalMultimap();
+        multimap.put(1, new BaseInterval(10,20));
+        multimap.put(2, new BaseInterval(15,40));
+        multimap.put(3, new BaseInterval(40,50));
+        multimap.put(4, new BaseInterval(100,140));
+        multimap.put(5, new BaseInterval(120,130));
+        
+        // 0   10  15  20  40  50  100 120 130 140 150
+        // |---|---|---|---|---|---|---|---|---|---|
+        // /   1  1,2  2   3   /   4   4,5 4   /   -
+        
+        BaseIntervalsSet domain = new BaseIntervalsSet();
+        domain.unionWith(0, 150);
+        
+        List<IntervalMultimap.MultiInterval> actual = multimap.getIntervalsIn(domain);
+        
+        assertEquals(10, actual.size());
+        int i = 0;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(0,10));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(10,15));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(15,20));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1,2});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(20,40));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {2});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(40,50));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {3});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(50,100));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(100,120));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(120,130));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4,5});
+        i++;
+        
+        assertEquals(actual.get(i).interval, new BaseInterval(130,140));
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
+        i++;
+    }
 }

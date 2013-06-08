@@ -5,6 +5,7 @@
 package net.personaltt.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -216,9 +217,60 @@ public class IntervalMultimap<K extends Comparable, V> {
         return new FilteringIntervalMultimapSetIterator(this, intervalsOccurrencesThresold);
     }
     
+    /**
+     * Returns list of sorted intervals splitting given intervals set into 
+     * pieces where is different values. Union of intervals in the list is
+     * equal to given intervals. Each interval in list have list of values in 
+     * this multimap in the same interval.
+     * @param intervals
+     * @return 
+     */
     public List<MultiInterval> getIntervalsIn(BaseIntervalsSet<K> intervals) {
-        //intervals.
-        return null;
+        TreeMap<K, ListEdge<V>> intervalsMap = new IntervalsSetMerger<>(
+            this.edges.entrySet().iterator(),
+            intervals.setMap.entrySet().iterator()
+            )
+            .merge(new IntervalsSetMerger.MergeFunction<ListEdge<V>, List<V>, Boolean>() {
+
+                @Override
+                public ListEdge<V> mergeEdge(ListEdge<V> previous_state, List<V> state_a, Boolean state_b) {
+                    ListEdge<V> new_edge = new ListEdge<>();
+                    new_edge.edge = state_b;
+                    new_edge.list = state_b ? (state_a == null ? new ArrayList<V>() : state_a) : null;
+                    
+                    // previous state is not substantial
+                    
+                    return new_edge;
+                }
+                
+            });
+        
+        List<MultiInterval> multiIntervals = new ArrayList<>();
+        Iterator<Entry<K, ListEdge<V>>> it = intervalsMap.entrySet().iterator();
+        if (it.hasNext()) {
+            Entry<K, ListEdge<V>> prev = it.next();
+            
+            for (; it.hasNext();) {
+                Entry<K, ListEdge<V>> entry = it.next();
+
+                // if was not interval end previously, add new interval
+                if (prev.getValue().edge) {
+                    multiIntervals.add(new MultiInterval(
+                            new BaseInterval<>(prev.getKey(), entry.getKey()),
+                            prev.getValue().list
+                            ));
+                }
+                
+                prev = entry;
+            }
+        }
+        
+        return multiIntervals;
+    }
+    
+    private class ListEdge<V> {
+        List<V> list;
+        boolean edge;
     }
     
     /**
@@ -227,6 +279,11 @@ public class IntervalMultimap<K extends Comparable, V> {
     public class MultiInterval {
         public BaseInterval<K> interval;
         public List<V> values;
+
+        public MultiInterval(BaseInterval<K> interval, List<V> values) {
+            this.interval = interval;
+            this.values = values;
+        }
     }
     
 }

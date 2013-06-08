@@ -33,6 +33,7 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolve() {
+        System.out.println();
         System.out.println("Test start: no conflict");
         // This is rather functional test than unit test
         
@@ -63,6 +64,7 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolveConflictingProblem() {
+        System.out.println();
         System.out.println("Test start: simple conflict");
         
         // This is rather functional test than unit test
@@ -97,6 +99,7 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolveConflictingProblemConstrained() {
+        System.out.println();
         System.out.println("Test start: constrained conflict");
         
         // This is rather functional test than unit test
@@ -132,7 +135,8 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolveConflictingProblemConstrained2() {
-        System.out.println("Test start: constrained conflict");
+        System.out.println();
+        System.out.println("Test start: constrained conflict 2");
         
         // This is rather functional test than unit test
         

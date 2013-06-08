@@ -1,5 +1,6 @@
 package net.personaltt.simplesolver;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -108,7 +109,12 @@ public class SimpleSolver {
             
             // then finds start on intervals edges and duration with smallest 
             // conflict value
+            List<OccurrenceAllocation> bestAllocations = findLargestAllocationWithSmallestValue(allocationIntervals, toSolve);
+            System.out.printf("Found best possible allocations: %s \n", bestAllocations.size());
             
+            
+            // select random allocation from best list
+            solvingAllocation.set(bestAllocations.get(random.nextInt(bestAllocations.size())));
             
             // store in allocation intervals. if it conflicts with existing intervals, returns true
             boolean conflicts = currentAllocationIntervals.put(toSolve,solvingAllocation.toInterval());  
@@ -128,25 +134,102 @@ public class SimpleSolver {
     }
     
     /**
-     * Returns largest interval in given list of intervals
+     * Search given multiintervals forlargest feasible allocations with smallest conflict value
      * @param domain
      * @return 
      */
-    private BaseInterval<Integer> findLargestInterval(List<BaseInterval<Integer>> domain) {
-        int largestDuration = 0; 
-        BaseInterval<Integer> largest = null;
+    private List<OccurrenceAllocation> findLargestAllocationWithSmallestValue(List<IntervalMultimap<Integer,Occurrence>.MultiInterval> intervals, Occurrence occurrence) {
+        ArrayList<OccurrenceAllocation> best = new ArrayList<>();
+        int bestConflict = Integer.MAX_VALUE;
+        int bestDuration = 0;
         
-        
-        for (BaseInterval<Integer> baseInterval : domain) {
-            int currentDuration = baseInterval.getEnd() - baseInterval.getStart();
-            if (currentDuration > largestDuration )
-            {
-                largestDuration = currentDuration;
-                largest = baseInterval;
+        for (int i = 0; i < intervals.size(); i++) {
+            int start = intervals.get(i).interval.getStart();
+            int conflict = 0;
+            
+            int j = i;
+            // skip smaller intervals
+            for (; j < intervals.size(); j++) {
+
+                // if end durration is smaller than min, skip to next
+                if (intervals.get(j).interval.getEnd() - start < occurrence.getMinDuration()) {
+                    // add conflict
+                    conflict += intervals.get(j).values.size() * 
+                        (intervals.get(j).interval.getEnd() - intervals.get(j).interval.getStart());
+                    
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            
+            // in j here is interval ending at first larger duration than minimal duration
+            if (j >= intervals.size()) {
+                continue;
+            }
+                       
+            // process min duration
+            int durationFromStart = occurrence.getMinDuration();
+            conflict += intervals.get(j).values.size() * 
+                        (start + durationFromStart - intervals.get(j).interval.getStart());
+            
+
+            // if conflict is smaller than best conflict, store.
+            // if duration is larger and conflict is same, store
+            if (conflict < bestConflict) {
+                bestConflict = conflict;
+                bestDuration = 0;
+                best.clear();
+            }
+            if (conflict == bestConflict) {
+                if (durationFromStart > bestDuration) {
+                    bestDuration = durationFromStart;
+                    best.clear();
+                }
+                if (durationFromStart == bestDuration) {
+                    best.add(new OccurrenceAllocation(start, bestDuration));
+                }
+            }
+            conflict -= intervals.get(j).values.size() * 
+                        (start + durationFromStart - intervals.get(j).interval.getStart());
+            
+            for (; j < intervals.size(); j++) {
+                durationFromStart = intervals.get(j).interval.getEnd() - start;
+                
+                // add conflict for duration from previous duration to current duration
+                conflict += intervals.get(j).values.size() * 
+                        (intervals.get(j).interval.getEnd() - intervals.get(j).interval.getStart());
+                
+                if (conflict > bestConflict) {
+                    break;
+                }
+                
+                // if conflict is smaller than best conflict, store.
+                // if duration is larger and conflict is same, store
+                if (conflict < bestConflict) {
+                    bestConflict = conflict;
+                    bestDuration = 0;
+                    best.clear();
+                }
+                if (conflict == bestConflict) {
+                    if (durationFromStart > bestDuration) {
+                        bestDuration = durationFromStart;
+                        best.clear();
+                    }
+                    if (durationFromStart == bestDuration) {
+                        best.add(new OccurrenceAllocation(start, bestDuration));
+                    }
+                } 
+                
+                // if durationFromStart is equal to max, next step is useless
+                if (durationFromStart == occurrence.getMaxDuration()) {
+                    break;
+                }
+
             }
         }
         
-        return largest;
+        return best;
     }
 
     /**
