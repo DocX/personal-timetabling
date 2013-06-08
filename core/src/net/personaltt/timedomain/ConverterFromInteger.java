@@ -16,6 +16,6 @@ public class ConverterFromInteger implements Converter<Integer, LocalDateTime> {
 
     @Override
     public LocalDateTime convert(Integer source) {
-        return new LocalDateTime(source * 1000);
+        return new LocalDateTime((long)source * 1000l);
     }
 }

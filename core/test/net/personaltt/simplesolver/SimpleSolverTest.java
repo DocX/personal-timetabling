@@ -164,4 +164,45 @@ public class SimpleSolverTest {
         // should not have conflict
         assertFalse(solved.hasConflict());
     }
+    
+    /**
+     * Test of solve method, of class SimpleSolver. 
+     * With conflicting problem and contrained domain
+     * with solution. Initial state has no free domain for any of 
+     * occurrence
+     */
+    @Test
+    public void testSolveConflictingProblemConstrained3() {
+        System.out.println();
+        System.out.println("Test start: constrained conflict 3");
+        
+        // This is rather functional test than unit test
+        
+        // simple problem
+        // all occurrences will have same domain
+        // length of domain is sum of minimal lengths of all occurrences
+        BaseIntervalsSet<Integer> domain1 = new BaseIntervalsSet<>();
+        domain1.unionWith(10,30);
+        
+        BaseIntervalsSet<Integer> domain2 = new BaseIntervalsSet<>();
+        domain2.unionWith(20,40);
+        
+        // problem occurrences with all conflicting
+        ProblemDefinition problem = new ProblemDefinition();
+        problem.addOccurrence(new Occurrence(domain1, 10, 10, 1), new BaseInterval<>(10, 20));
+        problem.addOccurrence(new Occurrence(domain1, 10, 10, 2), new BaseInterval<>(15, 25));
+        problem.addOccurrence(new Occurrence(domain2, 10, 10, 3), new BaseInterval<>(20, 30));
+        
+        // solution is duration of all 5 and each on one of positions 10,15 and 20
+        
+        // solve
+        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Schedule solved = solver.solve(problem);
+        
+        // solved schedule should be equal to problem initial but not the same object
+        assertNotSame(problem.initialSchedule, solved);        
+        
+        // should not have conflict
+        assertFalse(solved.hasConflict());
+    }
 }

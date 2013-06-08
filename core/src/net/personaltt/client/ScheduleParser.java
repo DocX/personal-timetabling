@@ -39,7 +39,7 @@ public class ScheduleParser {
         }
     }
     
-    public Allocation getStartOfOccurrence(int id) {
+    public Allocation getAllocationOf(int id) {
         OccurrenceAllocation allocation = schedule.getAllocationOf(id);
         if (allocation == null) {
             return null;

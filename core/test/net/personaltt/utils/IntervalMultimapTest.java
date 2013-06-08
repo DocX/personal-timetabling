@@ -314,45 +314,63 @@ public class IntervalMultimapTest {
         BaseIntervalsSet domain = new BaseIntervalsSet();
         domain.unionWith(0, 150);
         
-        List<IntervalMultimap.MultiInterval> actual = multimap.getIntervalsIn(domain);
+        List<IntervalMultimap.MultiIntervalStop> actual = multimap.getIntervalsIn(domain);
         
-        assertEquals(10, actual.size());
+        assertEquals(11, actual.size());
         int i = 0;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(0,10));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(0, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(10,15));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(10, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(15,20));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(15, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1,2});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(20,40));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(20, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {2});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(40,50));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(40, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {3});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(50,100));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(50, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(100,120));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(100, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(120,130));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(120, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4,5});
         i++;
         
-        assertEquals(actual.get(i).interval, new BaseInterval(130,140));
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(130, actual.get(i).stop);
         assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
+        i++;
+        
+        assertEquals(true, actual.get(i).isIn);
+        assertEquals(140, actual.get(i).stop);
+        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
+        i++;
+        
+        assertEquals(false, actual.get(i).isIn);
+        assertEquals(150, actual.get(i).stop);
         i++;
     }
 }
