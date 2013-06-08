@@ -75,12 +75,6 @@ public class IntervalsSet extends BaseIntervalsSet<LocalDateTime> {
      * @return 
      */
     public BaseIntervalsSet<Integer> toNumericIntervalsSet() {
-       return this.convertTo(new Converter<LocalDateTime, Integer> () {
-
-            @Override
-            public Integer convert(LocalDateTime source) {
-                return (int)(source.toDateTime().getMillis()/1000l);
-            }
-        });
+       return this.convertTo(new ConverterToInteger());
     }
 }
