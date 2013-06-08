@@ -82,5 +82,15 @@ public class Interval extends BaseInterval<LocalDateTime> implements IIntervalsT
             (this.end.isAfter(interval.end) || this.end.isEqual(interval.end));        
 
     }
+
+    @Override
+    public boolean isBounded() {
+        return true;
+    }
+
+    @Override
+    public Interval getBoundingInterval() {
+        return this;
+    }
     
 }

@@ -115,5 +115,17 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
         return periods;
         
     }
+
+    @Override
+    public boolean isBounded() {
+        return false;
+    }
+
+    @Override
+    public Interval getBoundingInterval() {
+        return null;
+    }
+    
+    
     
 }

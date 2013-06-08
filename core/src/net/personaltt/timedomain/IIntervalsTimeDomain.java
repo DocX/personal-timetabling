@@ -19,4 +19,17 @@ public interface IIntervalsTimeDomain {
      * @return 
      */
     IntervalsSet getIntervalsIn(Interval i);
+    
+    /**
+     * Determines and return if intervals domain is bounded (has finite number of intervals)
+     * or not
+     * @return 
+     */
+    boolean isBounded();
+    
+    /**
+     * Returns bounding interval for intervals domain if is bounded, or null if not
+     * @return 
+     */
+    Interval getBoundingInterval();
 }
