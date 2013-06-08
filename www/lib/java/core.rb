@@ -2,9 +2,9 @@ module Webui
   module Core
     # load java classes to this module
     
-    DomainStack = Rjb::import 'net.personaltt.core.ActionStackDomain'
-    BoundedIntervalDomain = Rjb::import 'net.personaltt.core.Interval'
-    RepeatingIntervalDomain = Rjb::import 'net.personaltt.core.RepeatingIntervalDomain'
+    DomainStack = Rjb::import 'net.personaltt.timedomain.ActionStackDomain'
+    BoundedIntervalDomain = Rjb::import 'net.personaltt.timedomain.Interval'
+    RepeatingIntervalDomain = Rjb::import 'net.personaltt.timedomain.RepeatingIntervalDomain'
     
     LocalDateTime = Rjb::import 'org.joda.time.LocalDateTime'
     PeriodDays = Rjb::import 'org.joda.time.Days'
@@ -53,6 +53,16 @@ module Webui
         java_intervals = intervalsset.getIntervals
         
         Utils.j_list_to_ary(java_intervals) {|i| BoundedInterval.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
+      end
+
+      # Connection to isBounded method in IIntervalsTimeDomain iterface in java implementaton
+      def is_bounded?
+        to_j.isBounded
+      end
+
+      def bounding_interval
+        interval = to_j.getBoundingInterval
+        [ Utils.from_localdatetime(interval.getStart), Utils.from_localdatetime(interval.getEnd) ]
       end
     end
     

@@ -157,7 +157,9 @@ public class SimpleSolver {
             IntervalMultimap<Integer, Occurrence>.MultiIntervalStop endStop = startStop;
             
             while(++j < intervals.size() && endStop != null && endStop.isIn) {   
-                
+                if (duration == occurrence.getMaxDuration()) {
+                    break;
+                }
                 IntervalMultimap<Integer, Occurrence>.MultiIntervalStop currentStart = endStop;
                 
                 endStop = intervals.get(j);
@@ -177,9 +179,8 @@ public class SimpleSolver {
                 if(duration < occurrence.getMinDuration()) {
                     continue;
                 }
-                if (duration > occurrence.getMaxDuration()) {
-                    break;
-                }
+                duration = Math.min(duration, occurrence.getMaxDuration());
+                
                
                 // if conflict is smaller than best conflict, store.
                 // if duration is larger and conflict is same, store

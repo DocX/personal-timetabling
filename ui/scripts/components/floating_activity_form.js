@@ -233,7 +233,7 @@ return PanelBase.extend({
 	remove: function() {
 		this.remove_intervals_view();
 
-		PanelBase.prototype.remove.apply(this);
+		PanelBase.prototype.remove.apply(this); 
 	}
 	
 });

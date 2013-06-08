@@ -71,5 +71,19 @@ class OccurancesController < ApplicationController
       format.json { render :json => @intervals}
     end
   end
+
+  # resets all occurrences to its initial position
+  # which is min_duration and first start of domain
+  def reset
+    Occurance.find_each do |o|
+      o.duration = o.min_duration
+      bounding_interval = o.domain_definition.bounding_interval
+      o.start = o.domain_definition.get_intervals(bounding_interval.first, bounding_interval.last).first.start
+      o.save
+    end
+    respond_to do |format|
+      format.json { render :json => 'OK'}
+    end
+  end
   
 end

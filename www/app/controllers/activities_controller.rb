@@ -72,6 +72,26 @@ class ActivitiesController < ApplicationController
     end    
   end
   
- 
+  # run solver on all activities in database
+  def solve
+    @occurrences = Occurance.all
+
+    problem_definition = Webui::SolverClient.build_problem_definition @occurrences
+    solved_schedule = Webui::SolverClient.solve problem_definition
+    Webui::SolverClient.parse_from_schedule solved_schedule, @occurrences
+
+    # save changes
+    @changed = []
+    @occurrences.each do |o|
+      @changed << o if o.changed?
+      o.save
+    end
+
+    respond_to do |format|
+      format.json { render :json => @changed, :except => [:domain_definition] }
+    end
+  end
+
+
   
 end
