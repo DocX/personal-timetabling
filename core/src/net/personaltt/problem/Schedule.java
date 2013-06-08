@@ -37,8 +37,24 @@ public class Schedule {
         return allocationMapping.get(o);
     }
     
+    /**
+     * Returns interval constructed from occurrence's allocation of given
+     * occurrence
+     * @param o
+     * @return 
+     */
     public BaseInterval<Integer> getAllocationIntervalOf(Occurrence o){
         return allocationMapping.get(o).toInterval();
+    }
+    
+    /**
+     * Returns occurrence allocation of occurrence with given id. Or null if id 
+     * does not exists
+     * @param id ID of occurrence
+     * @return 
+     */
+    public OccurrenceAllocation getAllocationOf(int id) {
+        return allocationMapping.get(new Occurrence(null, 0, 0, id));
     }
     
     /**

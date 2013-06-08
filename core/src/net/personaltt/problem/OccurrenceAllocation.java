@@ -59,6 +59,16 @@ public class OccurrenceAllocation {
         this.duration = duration;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public int getStart() {
+        return start;
+    }
+    
+    
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof OccurrenceAllocation) {
