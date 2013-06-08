@@ -12,6 +12,7 @@ import net.personaltt.problem.Schedule;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.IntervalMultimap.MultiInterval;
 
 /**
  * Simple solver finds any feasible schedule for personal timetabling problem.
@@ -68,9 +69,6 @@ public class SimpleSolver {
             // occurrence from it 
             // and find nearest interval where it fits
             
-            currentAllocationIntervals.remove(toSolve);
-            List<BaseInterval<Integer>> domainWithoutAllocatedSpace = 
-                    toSolve.getDomain().getSubtraction(currentAllocationIntervals.intervalsSetIterator()).getBaseIntervals();
             
             // Consider this situation
             // Two occureances with domains (# for min dur, XX for max dur, - for domain:
@@ -99,23 +97,17 @@ public class SimpleSolver {
             // So with this lemma when we align minimum duration on occurrence
             // to the center of the freespace it has the same effect as to the right or the left
             
-            // find largest free interval
-            BaseInterval<Integer> largestInterval = findLargestInterval(domainWithoutAllocatedSpace);
-            System.out.printf("Found largest free interval: %s\n", largestInterval);
+            // removes solving occurrence from intervals to perform computation on others
+            currentAllocationIntervals.remove(toSolve);
+            
+            // Gets domain of toSolve occurrence splitted to intervals
+            // with number of other occurrences allocations in each interval
+            List<IntervalMultimap<Integer,Occurrence>.MultiInterval> allocationIntervals = 
+                    currentAllocationIntervals.getIntervalsIn(toSolve.getDomain());
             
             
-            if (largestInterval != null) {
-                // find fitting duration
-                int newDuration = Math.max(
-                        toSolve.getMinDuration(), 
-                        Math.min(toSolve.getMaxDuration(), largestInterval.getEnd() - largestInterval.getStart())
-                        );
-                
-                int newStart = alignToInterval(toSolve.getDomain(), largestInterval.getStart(), newDuration);
-                
-                solvingAllocation.setStart(newStart);
-                solvingAllocation.setDuration(newDuration);
-            }
+            // then finds start on intervals edges and duration with smallest 
+            // conflict value
             
             
             // store in allocation intervals. if it conflicts with existing intervals, returns true

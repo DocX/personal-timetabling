@@ -205,5 +205,28 @@ public class IntervalMultimap<K extends Comparable, V> {
         BaseIntervalsSet<K> intervalsSet = new BaseIntervalsSet<>();
         return intervalsSet.getUnionWith(this.intervalsSetIterator());
     }
+
+    /**
+     * Iterate through intervals edges for intervals that have more than
+     * intervalsOccurrencesThhresold concurrent values
+     * @param intervalsOccurrencesThresold
+     * @return 
+     */
+    public Iterator<Entry<Integer, Boolean>> intervalsSetIterator(int intervalsOccurrencesThresold) {
+        return new FilteringIntervalMultimapSetIterator(this, intervalsOccurrencesThresold);
+    }
+    
+    public List<MultiInterval> getIntervalsIn(BaseIntervalsSet<K> intervals) {
+        //intervals.
+        return null;
+    }
+    
+    /**
+     * Multi interval is encapsulation of interval and list of values on it
+     */
+    public class MultiInterval {
+        public BaseInterval<K> interval;
+        public List<V> values;
+    }
     
 }

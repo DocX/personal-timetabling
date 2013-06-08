@@ -33,7 +33,7 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolve() {
-        
+        System.out.println("Test start: no conflict");
         // This is rather functional test than unit test
         
         // simple problem
@@ -43,7 +43,7 @@ public class SimpleSolverTest {
         
         // problem occurrences with no conflict
         ProblemDefinition problem = new ProblemDefinition();
-        problem.addOccurrence(new Occurrence(domain, 5, 10, 1), new BaseInterval<>(0, 5));
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 1), new BaseInterval<>(20, 30));
         problem.addOccurrence(new Occurrence(domain, 5, 10, 2), new BaseInterval<>(10, 20));
         problem.addOccurrence(new Occurrence(domain, 5, 10, 3), new BaseInterval<>(30, 35));
         
@@ -63,6 +63,7 @@ public class SimpleSolverTest {
      */
     @Test
     public void testSolveConflictingProblem() {
+        System.out.println("Test start: simple conflict");
         
         // This is rather functional test than unit test
         
@@ -71,12 +72,83 @@ public class SimpleSolverTest {
         BaseIntervalsSet<Integer> domain = new BaseIntervalsSet<>();
         domain.unionWith(10,50);
         
-        // problem occurrences with no conflict
+        // problem occurrences with conflict of 1 and 2
         ProblemDefinition problem = new ProblemDefinition();
-        problem.addOccurrence(new Occurrence(domain, 5, 10, 1), new BaseInterval<>(0, 10));
-        problem.addOccurrence(new Occurrence(domain, 5, 10, 2), new BaseInterval<>(5, 15));
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 1), new BaseInterval<>(10, 20));
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 2), new BaseInterval<>(15, 25));
         problem.addOccurrence(new Occurrence(domain, 5, 10, 3), new BaseInterval<>(30, 35));
         
+        
+        // solve
+        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Schedule solved = solver.solve(problem);
+        
+        // solved schedule should be equal to problem initial but not the same object
+        assertNotSame(problem.initialSchedule, solved);        
+        
+        // should not have conflict
+        assertFalse(solved.hasConflict());
+    }
+    
+    /**
+     * Test of solve method, of class SimpleSolver. 
+     * With conflicting problem and contrained domain
+     * with solution
+     */
+    @Test
+    public void testSolveConflictingProblemConstrained() {
+        System.out.println("Test start: constrained conflict");
+        
+        // This is rather functional test than unit test
+        
+        // simple problem
+        // all occurrences will have same domain
+        // length of domain is sum of minimal lengths of all occurrences
+        BaseIntervalsSet<Integer> domain = new BaseIntervalsSet<>();
+        domain.unionWith(10,25);
+        
+        // problem occurrences with all conflicting
+        ProblemDefinition problem = new ProblemDefinition();
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 1), new BaseInterval<>(10, 20));
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 2), new BaseInterval<>(12, 22));
+        problem.addOccurrence(new Occurrence(domain, 5, 10, 3), new BaseInterval<>(15, 25));
+        
+        // solve
+        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Schedule solved = solver.solve(problem);
+        
+        // solved schedule should be equal to problem initial but not the same object
+        assertNotSame(problem.initialSchedule, solved);        
+        
+        // should not have conflict
+        assertFalse(solved.hasConflict());
+    }
+    
+    /**
+     * Test of solve method, of class SimpleSolver. 
+     * With conflicting problem and contrained domain
+     * with solution. Initial state has no free domain for any of 
+     * occurrence
+     */
+    @Test
+    public void testSolveConflictingProblemConstrained2() {
+        System.out.println("Test start: constrained conflict");
+        
+        // This is rather functional test than unit test
+        
+        // simple problem
+        // all occurrences will have same domain
+        // length of domain is sum of minimal lengths of all occurrences
+        BaseIntervalsSet<Integer> domain = new BaseIntervalsSet<>();
+        domain.unionWith(10,25);
+        
+        // problem occurrences with all conflicting
+        ProblemDefinition problem = new ProblemDefinition();
+        problem.addOccurrence(new Occurrence(domain, 5, 15, 1), new BaseInterval<>(10, 25));
+        problem.addOccurrence(new Occurrence(domain, 5, 15, 2), new BaseInterval<>(10, 25));
+        problem.addOccurrence(new Occurrence(domain, 5, 15, 3), new BaseInterval<>(10, 25));
+        
+        // solution is duration of all 5 and each on one of positions 10,15 and 20
         
         // solve
         SimpleSolver solver = new SimpleSolver(new Random(20130601));

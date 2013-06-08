@@ -74,23 +74,19 @@ public class BaseIntervalsSet<T extends Comparable> {
         } else {
             return null;
         }
-    }
-    
-  
-    private interface MergeFunction {    
-        /*
-         * Determine state of resulting interval set on the edge in given states of two intervals sets
-         */
-        boolean mergeEdge(boolean state_a, boolean state_b);
-    }    
+    } 
     
    /**
      * Union merge operation
      */
-    private class UnionMerge implements MergeFunction {
+    private class UnionMerge implements IntervalsSetMerger.MergeFunction<Boolean, Boolean, Boolean> {
+        
         @Override
-        public boolean mergeEdge(boolean state_a, boolean state_b) {
-            return state_a || state_b;
+        public Boolean mergeEdge(Boolean prev, Boolean state_a, Boolean state_b) {
+            boolean new_state = 
+                    (state_a == null ? false : state_a.booleanValue()) || 
+                    (state_b == null ? false : state_b.booleanValue());
+            return new_state == (prev == null ? false : prev.booleanValue()) ? null : new_state;
         }    
     }    
     
@@ -116,10 +112,13 @@ public class BaseIntervalsSet<T extends Comparable> {
     /**
      * Intersection merge operation
      */
-    private class IntersectMerge implements MergeFunction {
+    private class IntersectMerge implements IntervalsSetMerger.MergeFunction<Boolean, Boolean, Boolean> {
         @Override
-        public boolean mergeEdge(boolean state_a, boolean state_b) {
-            return state_a && state_b;
+        public Boolean mergeEdge(Boolean prev, Boolean state_a, Boolean state_b) {
+            boolean new_state = 
+                    (state_a == null ? false : state_a.booleanValue()) && 
+                    (state_b == null ? false : state_b.booleanValue());
+            return new_state == (prev == null ? false : prev.booleanValue()) ? null : new_state;
         }    
     }    
     
@@ -151,12 +150,15 @@ public class BaseIntervalsSet<T extends Comparable> {
     /**
     * Minus merge operation
     */
-    private class MinusMerge implements MergeFunction {
+    private class MinusMerge implements IntervalsSetMerger.MergeFunction<Boolean, Boolean, Boolean> {
         @Override
-        public boolean mergeEdge(boolean state_a, boolean state_b) {
-            return state_a && !state_b;
+        public Boolean mergeEdge(Boolean prev, Boolean state_a, Boolean state_b) {
+            boolean new_state = 
+                    (state_a == null ? false : state_a.booleanValue()) && 
+                    !(state_b == null ? false : state_b.booleanValue());
+            return new_state == (prev == null ? false : prev.booleanValue()) ? null : new_state;
         }    
-    }
+    }    
     
     /**
      * Subtracts given intervals set from this
@@ -238,73 +240,14 @@ public class BaseIntervalsSet<T extends Comparable> {
      * @param second
      * @param operation 
      */
-    private void merge(BaseIntervalsSet<T> second, MergeFunction operation) {
+    private void merge(BaseIntervalsSet<T> second, IntervalsSetMerger.MergeFunction<Boolean, Boolean,Boolean> operation) {
         this.setMap = this.getMerged(second.setMap.entrySet().iterator(), operation);
     }
     
-    /*
-     * Merge walk througt edges from both intervals sets (this and given) and calls merge function 
-     * implementation for each of them
-     */
-    private TreeMap<T, Boolean> getMerged(Iterator<Map.Entry<T, Boolean>> second_iterator, MergeFunction operation) {
-        Iterator<Map.Entry<T, Boolean>> this_iterator = this.setMap.entrySet().iterator(); 
-        
-        TreeMap<T, Boolean> result = new TreeMap<>();
-        boolean lastResultState = false;
-       
-        // get first steps
-        Map.Entry<T, Boolean> this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
-        Map.Entry<T, Boolean> second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
- 
-        while(this_edge != null || second_edge != null) {
-            // intervals are here considered as closed-open - so if edge start, is inside
-            // and if edge is end, it is outside.
-            boolean this_state;
-            boolean second_state;
-            T step_time;
-            
-            // walk first this until is before second or second has no more edges
-            if (this_edge != null && (second_edge == null || this_edge.getKey().compareTo(second_edge.getKey()) < 0)) {
-                // in this, we are on the edge - if out-in edge, we are in, if in-out, we are out
-                this_state = this_edge.getValue();
-                step_time = this_edge.getKey();
-                
-                // in second, we are somewhere between edges, so state is determined by first next edge:
-                second_state = second_edge == null ? false : !second_edge.getValue();
-                
-                this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
-            // else walk on second
-            } else if (second_edge != null && (this_edge == null || second_edge.getKey().compareTo(this_edge.getKey()) < 0 )) {
-                // in second, we are on the edge - if out-in edge, we are in, if in-out, we are out
-                second_state = second_edge.getValue();
-                step_time = second_edge.getKey();
-                
-                // in this, we are somewhere between edges, so state is determined by first next edge:
-                this_state = this_edge == null ? false : !this_edge.getValue();
-                
-                second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
-            // else must be equal not null
-            } else {
-                this_state = this_edge.getValue();
-                second_state = second_edge.getValue();
-                step_time = this_edge.getKey();
-                
-                // move both
-                this_edge = this_iterator.hasNext() ? this_iterator.next() : null;
-                second_edge = second_iterator.hasNext() ? second_iterator.next() : null;
-            }
-            
-            // if result of merging current state on the edge is other than current state 
-            // in the result interval set, add switch edge
-            boolean result_state_of_edge = operation.mergeEdge(this_state, second_state);
-            if (result_state_of_edge != lastResultState) {
-                result.put(step_time, result_state_of_edge);
-                lastResultState = result_state_of_edge;
-            }
-        }
-        
-        return result;
-    }    
+    private TreeMap<T, Boolean> getMerged(Iterator<Map.Entry<T, Boolean>> second_iterator, IntervalsSetMerger.MergeFunction<Boolean, Boolean,Boolean> operation) {
+        return new IntervalsSetMerger<>(this.setMap.entrySet().iterator(), second_iterator)
+                .merge(operation);
+    }
     
     /**
      * Converts this intervals set to the same set represented with keys converted

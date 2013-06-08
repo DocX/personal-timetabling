@@ -197,7 +197,71 @@ public class IntervalMultimapTest {
         assertFalse(overlappingValues.contains(7));
         
     }
+    
+    
+    /**
+     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
+     */
+    @Test
+    public void testValuesOfOverlappingIntervals2() {
+        System.out.println("valuesOfOverlappingIntervals 2");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 25));
+        instance.put(2, new BaseInterval(10, 25));
+        instance.put(3, new BaseInterval(10, 25));
+        
+        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        
+        assertEquals(3, overlappingValues.size());
+        assertTrue(overlappingValues.contains(1));
+        assertTrue(overlappingValues.contains(2));
+        assertTrue(overlappingValues.contains(3));
+        
+    }
+    
+    /**
+     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
+     */
+    @Test
+    public void testValuesOfOverlappingIntervalsWithDelete() {
+        System.out.println("valuesOfOverlappingIntervals and Delete");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 25));
+        instance.put(2, new BaseInterval(10, 25));
+        instance.put(3, new BaseInterval(10, 25));
+        
+        instance.remove(2);
+        
+        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        
+        assertEquals(2, overlappingValues.size());
+        assertTrue(overlappingValues.contains(1));
+        assertTrue(overlappingValues.contains(3));
+    }
 
+    /**
+     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
+     */
+    @Test
+    public void testValuesOfOverlappingIntervalsWithDelete2() {
+        System.out.println("valuesOfOverlappingIntervals and Delete");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 25));
+        instance.put(2, new BaseInterval(10, 25));
+        instance.put(3, new BaseInterval(10, 25));
+        
+        instance.remove(2);
+        
+        instance.put(2, new BaseInterval(10, 15));
+        
+        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        
+        assertEquals(3, overlappingValues.size());
+        assertTrue(overlappingValues.contains(1));
+        assertTrue(overlappingValues.contains(2));
+        assertTrue(overlappingValues.contains(3));
+    }    
+    
     /**
      * Test of intervalsSetIterator method, of class IntervalMultimap.
      */
