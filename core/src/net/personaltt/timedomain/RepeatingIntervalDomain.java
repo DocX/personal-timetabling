@@ -38,26 +38,37 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
         this.repeatingPeriod = repeatingPeriod;
     }
 
+    /**
+     * Generate interval set with all intervals intersecting given interval i
+     * If repeat period is month, only intervals where the same day of month as
+     * reference is possible si added.
+     * @param i
+     * @return 
+     */
     @Override
     public IntervalsSet getIntervalsIn(Interval i) {
         IntervalsSet set = new IntervalsSet();
         
-        int periods = getNearestPeriodStartToAndBefore(i.getStart());
-        
+        // if period is monthly, add only intervals where same day  of month
+        // as in reference date is possible in given month.
         boolean checkDayInMonth = repeatingPeriod.getPeriodType() == PeriodType.months();
         
+        // get initial periods number from reference 
+        // which is the latest period start before range
+        int periods = getNearestPeriodStartToAndBefore(i.getStart());      
+        LocalDateTime intervalStart = referenceIntervalStart.plus(repeatingPeriod.toPeriod().multipliedBy(periods));
+        LocalDateTime intervalEnd = intervalStart.plus(intervalDuration);     
         
-        while(true) {
-            Period currentPeriod = repeatingPeriod.toPeriod().multipliedBy(periods);
-            
-            LocalDateTime intervalStart = referenceIntervalStart.plus(currentPeriod);
-            LocalDateTime intervalEnd = intervalStart.plus(intervalDuration);
-            
-                // ending after range
-            if (intervalEnd.isAfter(i.getEnd())) {
-                break;
-            }
- 
+        // if first interval do not cross range border, move to the next,
+        // which must be after start due to current is tha latest period before start
+        if (intervalStart.plus(intervalDuration).isBefore(i.getStart())) {
+            periods++;
+            intervalStart = referenceIntervalStart.plus(repeatingPeriod.toPeriod().multipliedBy(periods));
+            intervalEnd = intervalStart.plus(intervalDuration);     
+        }
+        
+        while(!intervalStart.isAfter(i.getEnd())) {
+
             // if start do not match reference start and repeating pattern
             // ie if repeating each month with reference on 31st day of month,
             // months that have less than 31 days are not added
@@ -68,11 +79,20 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
             } 
             
             periods += 1;
+            intervalStart = referenceIntervalStart.plus(repeatingPeriod.toPeriod().multipliedBy(periods));            
+            intervalEnd = intervalStart.plus(intervalDuration);    
+        
         }
         
         return set;
     }
 
+    /**
+     * Returs largest number of periods that when added to reference start time is 
+     * before given start time
+     * @param start
+     * @return 
+     */
     private int getNearestPeriodStartToAndBefore(LocalDateTime start) {
         // compute periods count difference from referenceStart to given start
         int periods = 0;
@@ -93,7 +113,7 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
     }
     
     /**
-     * Generate list of seamless intervals for repeating period
+     * Generate list of intervals of count periods referencing given start
      * @param start start date of first period
      * @param period partial duration of period
      * @param count count of periods to generate
@@ -116,11 +136,20 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
         
     }
 
+    /**
+     * Determine if is bounded. Due to fundamentals of this domain is always false.
+     * @return 
+     */
     @Override
     public boolean isBounded() {
         return false;
     }
 
+    /**
+     * Gets bounding interval for this domain. Due to fundamentals of this domain,
+     * thus it is boundless, null is always returned.
+     * @return 
+     */
     @Override
     public Interval getBoundingInterval() {
         return null;
