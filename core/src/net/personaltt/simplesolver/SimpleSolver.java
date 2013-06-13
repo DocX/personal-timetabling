@@ -155,26 +155,32 @@ public class SimpleSolver {
         return workingSchedule;
         
     }
-    
-    
-    // TODO this is not correct algo:
-    // Consider situation 
-    //    1     3   0    allocations
-    // |------|---|---|
-    // 0      6   9   12
-    // 
-    // and duration of occurrence is 9 - 9
-    // this algo founds "best" as
-    // 
-    // 0          9
-    // *==========* 
-    // which is 6*1 + 3*3 = 15 conflict area
-    // 
-    // but
-    //    3           12
-    //    *===========*
-    // has 3*1+3*3+3*0 = 12 area 
-    // and is the same longest.
+
+
+   
+    private class BestAllocationsStore {
+        int bestCost = Integer.MAX_VALUE;
+        int bestDuration = 0;
+        ArrayList<OccurrenceAllocation> bestAllocations = new ArrayList<>();
+        
+        void checkAndAdd(int cost, int duration, int start) {
+            if (cost > bestCost) {
+                return;
+            }
+            
+            if (cost < bestCost || duration < bestDuration) {
+                bestAllocations.clear();
+                bestDuration = duration;
+                bestCost = cost;
+            }
+            
+            if (duration > bestDuration) {
+                return;
+            }
+            
+            bestAllocations.add(new OccurrenceAllocation(start, duration));
+        }
+    }
     
     /**
      * Find all allocations that are smallest in conflict area and then largest in duration
@@ -185,84 +191,128 @@ public class SimpleSolver {
      */
     private List<OccurrenceAllocation> findBestAllacations(List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> intervals, Occurrence occurrence) {
         // Initialization
-        ArrayList<OccurrenceAllocation> best = new ArrayList<>();
-        int bestConflict = Integer.MAX_VALUE;
-        int bestDuration = 0;
+        BestAllocationsStore bestAllocations = new BestAllocationsStore();
         
-        // Go throught all changes (stops) starts        
-        for (int i = 0; i < intervals.size(); i++) {
-            IntervalMultimap<Integer, Occurrence>.MultiIntervalStop startStop = intervals.get(i);
-            
-            // if change is to "outside intervals", continues
-            if (startStop.isIn == false) {
-                continue;
-            }
-            
-            int start = startStop.stop;
-            int conflict = 0;
-            int duration = 0;
-            int j = i ;
-            
-            IntervalMultimap<Integer, Occurrence>.MultiIntervalStop endStop = startStop;
-            
-            // go now throught all stops j after start stop i, so that 
-            // t_j - t_j+1 contains possible duration of occurrence (exists 
-            // dur in min_dur - max_dur so that t_i + dur is in t_j + t_j+1)
-            // and until t_j - t_j+1 is inside domain (until first j that is_in_j = false)
-            while(++j < intervals.size() && endStop != null && endStop.isIn) {   
-                // if duration is now maximal, it is cropped by previous interval larger, so
-                // end
-                if (duration == occurrence.getMaxDuration()) {
-                    break;
-                }
-                IntervalMultimap<Integer, Occurrence>.MultiIntervalStop currentStart = endStop;
-                
-                endStop = intervals.get(j);
-                
-                // if current interval contains minimal duration, set duration to minimal and
-                // keep this interval for next interation also
-                int prevDuration = duration;
-                if (duration < occurrence.getMinDuration() && (endStop.stop - start) > occurrence.getMinDuration()) {
-                    duration = occurrence.getMinDuration();
-                    j--;
-                    endStop = currentStart;
-                } else {
-                    duration = endStop.stop - start;
-                }
-                
-                // add conflict sum for how much duration is from current start
-                conflict += (duration - (prevDuration)) * currentStart.values.size();
-                
-                // skip until duration is too small
-                if(duration < occurrence.getMinDuration()) {
-                    continue;
-                }
-                
-                // set duration to the end of current interval and crop it by max
-                // duration
-                duration = Math.min(duration, occurrence.getMaxDuration());
-                
-                // if conflict is smaller than best conflict, store.
-                // if duration is larger and conflict is same, store
-                if (conflict < bestConflict) {
-                    bestConflict = conflict;
-                    bestDuration = 0;
-                    best.clear();
-                }
-                if (conflict == bestConflict) {
-                    if (duration > bestDuration) {
-                        bestDuration = duration;
-                        best.clear();
-                    }
-                    if (duration == bestDuration) {
-                        best.add(new OccurrenceAllocation(start, bestDuration));
-                    }
-                }
-                
-           }
+        // index of interval start
+        int currentStartInterval = 0;
+ 
+        // process all compact intervals
+        while (currentStartInterval < intervals.size()) {
+            // returns index of next interval stop after current compact interval end
+            currentStartInterval = findInCompactInterval(intervals, currentStartInterval, bestAllocations, occurrence);
         }
         
-        return best;
+        
+        return bestAllocations.bestAllocations;
     }
+    
+    /**
+     * Finds best allocations in compact interval in intervals starting at currentStartInterval
+     * @param intervals
+     * @param currentStartInterval
+     * @param bestAllocations
+     * @param occurrence
+     * @return 
+     */
+    private int findInCompactInterval(List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> intervals, int startIntervalIndex, BestAllocationsStore bestAllocations, Occurrence occurrence) {
+        
+        int start = intervals.get(startIntervalIndex).stop;
+        int costSum = 0;
+        
+        // get interval index, in whish end of allocation lies (end lies in interval i
+        // when lower bound of i <= end < upperbound of i)
+        int endIntervalIndex = startIntervalIndex;
+        
+        // when compact intervals shoud at least contain minimal duration +1 index is there always
+        while (start + occurrence.getMinDuration() > intervals.get(endIntervalIndex).stop) {
+            // add cost of skiped interval
+            costSum += getCost(intervals.get(endIntervalIndex)) *
+                    (intervals.get(endIntervalIndex).stop - intervals.get(endIntervalIndex+1).stop);    
+            
+            endIntervalIndex++;
+        }
+        
+        // add cost of portion from start of last interval to the end
+        costSum += getCost(intervals.get(endIntervalIndex)) *
+                (start + occurrence.getMinDuration() - intervals.get(endIntervalIndex).stop);
+          
+        // iterate to the end of interval
+        int intervalEnd = 0;
+        for (int i = endIntervalIndex; i < intervals.size(); i++) {
+            intervalEnd = intervals.get(i).stop;
+            if (intervals.get(i).isIn == false) {
+                break;
+            }
+        }
+        
+        // iterate over steps of starts of allocations
+        int startNextStop = intervals.get(startIntervalIndex+1).stop;
+        int endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
+        
+        while (start + occurrence.getMinDuration() <= intervalEnd) {
+
+            int duration = occurrence.getMinDuration();
+            int costSumDuration = costSum;
+            int endIntervalIndexDuration = endIntervalIndex;
+
+            while(costSumDuration == costSum) {
+                bestAllocations.checkAndAdd(costSumDuration, duration, start);
+                
+                // add duration to next step
+                endIntervalIndexDuration++;
+                if (endIntervalIndexDuration >= intervals.size() ||
+                    intervals.get(endIntervalIndexDuration-1).isIn==false ||
+                    duration == occurrence.getMaxDuration()) {
+                    break;
+                }                
+                int prev_duration = duration;
+                duration = intervals.get(endIntervalIndexDuration).stop - start;
+                duration = Math.min(duration, occurrence.getMaxDuration());
+                
+                costSumDuration += getCost(intervals.get(endIntervalIndexDuration-1)) * 
+                        (duration - prev_duration);
+                
+            }
+            
+            // set next step
+            if (endNextStop < startNextStop) {
+                break;
+            }
+            if (startNextStop + occurrence.getMinDuration() <= endNextStop) {
+                // alter costSum, remove area from start, add new area at end
+                costSum += (startNextStop-start)*(
+                        -getCost(intervals.get(startIntervalIndex))
+                        +getCost(intervals.get(endIntervalIndex))
+                        );
+                
+                // move start to next stop
+                start = startNextStop;
+                startIntervalIndex++;
+                startNextStop = intervals.get(startIntervalIndex+1).stop;
+                
+                // move end interval next stop if  now is equal to current end
+                if (endNextStop == start + occurrence.getMinDuration()) {
+                    endIntervalIndex++;
+                    endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
+                }
+            } else {
+                costSum += (endNextStop - occurrence.getMinDuration()-start)*(
+                        -getCost(intervals.get(startIntervalIndex))
+                        +getCost(intervals.get(endIntervalIndex))
+                        );
+                
+                start = endNextStop - occurrence.getMinDuration();
+                endIntervalIndex++;
+                endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
+            }
+        }
+            
+        return endIntervalIndex + 1;
+    }
+    
+    int getCost(IntervalMultimap<Integer,Occurrence>.MultiIntervalStop stop) {
+        return stop.values == null ? 0 : stop.values.size();
+    }
+    
 
 }
