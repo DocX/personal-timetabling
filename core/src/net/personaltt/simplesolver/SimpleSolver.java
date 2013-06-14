@@ -1,9 +1,13 @@
 package net.personaltt.simplesolver;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.personaltt.problem.Occurrence;
@@ -29,7 +33,7 @@ public class SimpleSolver {
     /**
      * Timeout in ms after which solver stops
      */
-    long timeoutLimit = 15000;
+    public long timeoutLimit = 15000;
     
     /**
      * Instance of random used in solver
@@ -43,7 +47,41 @@ public class SimpleSolver {
     public SimpleSolver(Random random) {
         this.random = random;
     }
+
+    private ArrayList<Occurrence> getSortedConflictingOccurrences() {
+        Map<Occurrence, Integer> conflictingOccurrencesWithCost =
+                currentAllocationIntervals.valuesOverlappingSum(new IntegerDifference());
+        
+        ArrayList<Occurrence> list = new ArrayList<>(conflictingOccurrencesWithCost.keySet());
+        Collections.sort(list, new OccurrenceCostComparator(conflictingOccurrencesWithCost) );
+                
+        return list;
+    }
     
+    
+    private class IntegerDifference implements IntervalMultimap.KeyDifference<Integer> {
+
+        @Override
+        public int diff(Integer a, Integer b) {
+            return a.intValue() - b.intValue();
+        }
+        
+    }
+    private class OccurrenceCostComparator implements Comparator<Occurrence> {
+
+        Map<Occurrence, Integer> conflictingOccurrencesWithCost;
+
+        public OccurrenceCostComparator(Map<Occurrence, Integer> conflictingOccurrencesWithCost) {
+            this.conflictingOccurrencesWithCost = conflictingOccurrencesWithCost;
+        }
+        
+        
+        @Override
+        public int compare(Occurrence o1, Occurrence o2) {
+            return conflictingOccurrencesWithCost.get(o1).compareTo(conflictingOccurrencesWithCost.get(o2));
+        }
+        
+    }
     
     // NOTES:
     //
@@ -75,6 +113,8 @@ public class SimpleSolver {
     // to the center of the freespace it has the same effect as to the right or the left
     
     
+    IntervalMultimap<Integer, Occurrence> currentAllocationIntervals;
+    
     /**
      * Solves given problem. It is trying to find feasible solution (solution with
      * minimal conflicting area). Does no optimalization.
@@ -93,14 +133,14 @@ public class SimpleSolver {
         // can be dropped in preprocessing
         
         // Prepare multimap of intervals of occurrences in initial schedule
-        IntervalMultimap<Integer, Occurrence> currentAllocationIntervals = 
-                new IntervalMultimap<>();
+        currentAllocationIntervals = new IntervalMultimap<>();
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : workingSchedule.getOccurrencesAllocations()) {
             currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval());
         }
         
         // get conflicting occurrences list from multimap
-        List<Occurrence> conflictingOccurrences = currentAllocationIntervals.valuesOfOverlappingIntervals();
+        
+        List<Occurrence> conflictingOccurrences = getSortedConflictingOccurrences();
         
         // Start timer
         long startTime = System.currentTimeMillis();
@@ -111,7 +151,9 @@ public class SimpleSolver {
             System.out.printf("Iteration %s, %s conflicts\n", iteration, conflictingOccurrences.size());
             
             // Get random conflicting occurrence and its current allocation
-            Occurrence toSolve = conflictingOccurrences.get(random.nextInt(conflictingOccurrences.size()));
+            // with more probability on first items in arrays, which have more conflicts
+            int indexToSolve = (int)(Math.pow(random.nextDouble(),10d) * (conflictingOccurrences.size()));
+            Occurrence toSolve = conflictingOccurrences.get(indexToSolve);
             OccurrenceAllocation solvingAllocation = workingSchedule.getAllocationOf(toSolve);
            
             System.out.printf("Selected occurrence %s at %s\n", toSolve, solvingAllocation);
@@ -148,7 +190,7 @@ public class SimpleSolver {
             System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
             
             // retrieve new list of conflicting occurrences
-            conflictingOccurrences = currentAllocationIntervals.valuesOfOverlappingIntervals();
+            conflictingOccurrences = getSortedConflictingOccurrences();
             iteration++;
         }
         
@@ -168,13 +210,13 @@ public class SimpleSolver {
                 return;
             }
             
-            if (cost < bestCost || duration < bestDuration) {
+            if (cost < bestCost || duration > bestDuration) {
                 bestAllocations.clear();
                 bestDuration = duration;
                 bestCost = cost;
             }
             
-            if (duration > bestDuration) {
+            if (duration < bestDuration) {
                 return;
             }
             
@@ -225,6 +267,8 @@ public class SimpleSolver {
         
         // when compact intervals shoud at least contain minimal duration +1 index is there always
         while (start + occurrence.getMinDuration() > intervals.get(endIntervalIndex).stop) {
+            
+            
             // add cost of skiped interval
             costSum += getCost(intervals.get(endIntervalIndex)) *
                     (intervals.get(endIntervalIndex).stop - intervals.get(endIntervalIndex+1).stop);    

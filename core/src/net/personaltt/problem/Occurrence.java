@@ -67,6 +67,10 @@ public class Occurrence {
     public String toString() {
         return String.valueOf(id);
     }
+
+    public int getId() {
+        return id;
+    }
     
     
     

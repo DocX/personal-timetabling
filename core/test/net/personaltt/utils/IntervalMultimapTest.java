@@ -185,7 +185,7 @@ public class IntervalMultimapTest {
         instance.put(6, new BaseInterval(220, 250));
         instance.put(7, new BaseInterval(250, 270)); // not overlaps
         
-        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        List<Integer> overlappingValues = instance.overlappingValues();
         
         assertEquals(5, overlappingValues.size());
         assertTrue(overlappingValues.contains(1));
@@ -210,7 +210,7 @@ public class IntervalMultimapTest {
         instance.put(2, new BaseInterval(10, 25));
         instance.put(3, new BaseInterval(10, 25));
         
-        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        List<Integer> overlappingValues = instance.overlappingValues();
         
         assertEquals(3, overlappingValues.size());
         assertTrue(overlappingValues.contains(1));
@@ -232,7 +232,7 @@ public class IntervalMultimapTest {
         
         instance.remove(2);
         
-        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        List<Integer> overlappingValues = instance.overlappingValues();
         
         assertEquals(2, overlappingValues.size());
         assertTrue(overlappingValues.contains(1));
@@ -254,7 +254,7 @@ public class IntervalMultimapTest {
         
         instance.put(2, new BaseInterval(10, 15));
         
-        List<Integer> overlappingValues = instance.valuesOfOverlappingIntervals();
+        List<Integer> overlappingValues = instance.overlappingValues();
         
         assertEquals(3, overlappingValues.size());
         assertTrue(overlappingValues.contains(1));

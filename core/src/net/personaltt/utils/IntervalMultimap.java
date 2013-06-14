@@ -4,12 +4,14 @@
  */
 package net.personaltt.utils;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -172,22 +174,52 @@ public class IntervalMultimap<K extends Comparable, V> {
      * List has non deterministic order
      * @return 
      */
-    public ArrayList<V> valuesOfOverlappingIntervals() {
+    public Map<V, Integer> valuesOverlappingSum(KeyDifference<K> diff) {
         // for each edge that have more than one value, record these values as 
         // overlapping.
         // Because values on the edge means "intervals values that are from the moment of the
         // edge at least to the moment of next edge parallel"
         
-        Set<V> overlappingIntervalsValues = new HashSet<>();
+        Map<V, Integer> overlappingIntervalsValues = new HashMap<>();
         
-        for (List<V> edgeValues : edges.values()) {
-            if (edgeValues.size() > 1) {
-                overlappingIntervalsValues.addAll(edgeValues);
+        Entry<K,List<V>> prev = new AbstractMap.SimpleImmutableEntry<K,List<V>>(null, new ArrayList<V>());
+        for (Entry<K,List<V>> edgeValues : edges.entrySet()) {
+
+            if (prev.getValue().size() > 1) {
+                // add to each value one
+                for (V v : prev.getValue()) {
+                    Integer old = overlappingIntervalsValues.get(v);
+                    int add = diff.diff(edgeValues.getKey(), prev.getKey()) * prev.getValue().size();
+                    overlappingIntervalsValues.put(v, (old == null ? 0 : old.intValue()) + add);
+                }
             }
+
+            prev = edgeValues;
         }
         
-        return new ArrayList<>(overlappingIntervalsValues);
+        // the last "prev" is not need to process, since the last edge is always
+        // "ending" edge
+        
+        return overlappingIntervalsValues;
     }
+    
+    public interface KeyDifference<K> {
+        public int diff(K a, K b);
+    }
+    
+    public Map<V, Integer> valuesOverlappingSum() {
+        return valuesOverlappingSum(new KeyDifference<K>() {
+            @Override
+            public int diff(K a, K b) {
+                return 1;
+            }
+        });
+    }
+    
+    public List<V> overlappingValues() {
+        return new ArrayList<>(valuesOverlappingSum().keySet());
+    }
+    
     
     /**
      * Returns iterator over changing edges
