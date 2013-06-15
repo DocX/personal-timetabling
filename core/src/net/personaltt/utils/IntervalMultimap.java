@@ -75,10 +75,10 @@ public class IntervalMultimap<K extends Comparable, V> {
         startPoints.put(value, interval.getStart());
         
         // creates first edge stub (without this value) for interval, if this edge do not exists yet
-        createEdgeStub(interval.getStart());
+        addEdge(interval.getStart());
         
         // creates end edge stub (without this value) for interval, if not exists yet
-        createEdgeStub(interval.getEnd());
+        addEdge(interval.getEnd());
         
         // add value to all edges including start to excluding end
         int newOverlappings = 0;
@@ -107,6 +107,26 @@ public class IntervalMultimap<K extends Comparable, V> {
         return newOverlappings;
     }
     
+    /**
+    * Adds edge in given key if not exists. New edge has copied values from 
+    * edge before it, so it actually not change state.
+    * If edge in given key exists, does nothing
+    * @param key 
+    */
+    private void addEdge(K key) {
+        K floorKey = edges.floorKey(key);
+        if(floorKey == null || !floorKey.equals(key)) {
+            // going to add new edge, but with what values?
+            List<V> list = new ArrayList<>();
+            if (floorKey != null) {
+                //some edge is before, add its values (adding to its territory)
+                list.addAll(edges.get(floorKey));
+            }
+            
+            // add new starting edge
+            edges.put(key,list);
+        }
+    }
     
     /**
      * Removes interval for given value. Returns number of other values, which are
@@ -174,70 +194,89 @@ public class IntervalMultimap<K extends Comparable, V> {
     }
     
     
-    
-    /**
-     * Retrievs values of all intervals that overlaps (touches) other interval.
-     * List has non deterministic order
-     * @return 
-     */
-    public Map<V, Integer> valuesOverlappingSum(KeyDifference<K> diff) {
-        // for each edge that have more than one value, record these values as 
-        // overlapping.
-        // Because values on the edge means "intervals values that are from the moment of the
-        // edge at least to the moment of next edge parallel"
-        
-        Map<V, Integer> overlappingIntervalsValues = new HashMap<>();
-        
-        Entry<K,List<V>> prev = new AbstractMap.SimpleImmutableEntry<K,List<V>>(null, new ArrayList<V>());
-        for (Entry<K,List<V>> edgeValues : edges.entrySet()) {
-
-            if (prev.getValue().size() > 1) {
-                // add to each value one
-                for (V v : prev.getValue()) {
-                    Integer old = overlappingIntervalsValues.get(v);
-                    int add = diff.diff(edgeValues.getKey(), prev.getKey()) * prev.getValue().size();
-                    overlappingIntervalsValues.put(v, (old == null ? 0 : old.intValue()) + add);
-                }
-            }
-
-            prev = edgeValues;
-        }
-        
-        // the last "prev" is not need to process, since the last edge is always
-        // "ending" edge
-        
-        return overlappingIntervalsValues;
-    }
-
-    /**
-     * Return overlapping values with zero sum.
-     * @return 
-     */
-    public Map<V, Integer> valuesOverlappingSum() {
-        return valuesOverlappingSum(new KeyDifference<K>() {
-            @Override
-            public int diff(K a, K b) {
-                return 0;
-            }
-        });
-    }
-    
-    /**
-     * List of values that overlaps itself. 
-     * @return 
-     */
-    public List<V> overlappingValues() {
-        return new ArrayList<>(valuesOverlappingSum().keySet());
-    }
-    
     /**
      * Values intervals iterator. Iterates over intervals with list of values on it
      * @return 
      */
-    public Iterator<ValuesInterval> valuesIntervals() {
-        return new ValuesIntervalsIterator(this);
+    public Iterable<ValuesInterval> valuesIntervals() {
+        return new ValuesIntervalsIterable(this);
     }
     
+    /**
+     * Values interval of given point. Point p is in interval i iff e_i leq p le e_i+1..
+     * Returns null if it lies outside intervals multimap boudary (before first interval
+     * or after last interval)
+     * @param point
+     * @return 
+     */
+    public ValuesInterval valuesIntervalOfPoint(K point) {
+        Entry<K, List<V>> startEntry = edges.floorEntry(point);
+        K endEdge = edges.higherKey(point);
+        
+        // if it lies before any interval, return null
+        if (startEntry == null || endEdge == null) {
+            return null;
+        }
+        
+        ValuesInterval vi = new ValuesInterval(
+            new BaseInterval<>(startEntry.getKey(), endEdge),
+            startEntry.getValue()
+                );
+        return vi;
+    }
+    
+    /**
+     * Values in interval. Splits given interval to chunks by values changes in
+     * current multimap on that intervals.
+     * Retuns list of chunks with values in chunk interval. First chunk has start to 
+     * start of given interval and last chunk ends on given interval end. Whole
+     * interval range is covered by chunks.
+     * @param interval
+     * @return 
+     */
+    public List<ValuesInterval> valuesInInterval(BaseInterval<K> interval) {
+        List<ValuesInterval> values = new ArrayList<>();
+        
+        if(edges.isEmpty()) {
+            return values;
+        }
+        
+        Entry<K, List<V>> floorEdge = edges.floorEntry(interval.start);
+        if (floorEdge == null) {
+            floorEdge = edges.firstEntry();
+            values.add(new ValuesInterval(new BaseInterval<>(interval.start, floorEdge.getKey()), new ArrayList<V>()));
+        }
+        
+        for (Entry<K, List<V>> entry : edges.subMap(floorEdge.getKey(),false, interval.end, false).entrySet()) {
+            values.add(
+                    new ValuesInterval(new BaseInterval<>(
+                        floorEdge.getKey().compareTo(interval.start) < 0 ? interval.start : floorEdge.getKey(),
+                        entry.getKey().compareTo(interval.end) > 0 ? interval.end : entry.getKey()
+                    ),
+                    floorEdge.getValue()));
+            
+            floorEdge = entry;
+        }
+        
+        // add last interval
+        K endKey = floorEdge.getKey().compareTo(interval.start) < 0 ? interval.start : floorEdge.getKey();
+        Entry<K, List<V>> endEntry = edges.floorEntry(endKey);
+        values.add(
+                new ValuesInterval(new BaseInterval<>(
+                    endKey,
+                    interval.end
+                ),
+                endEntry.getValue()
+                )
+           );
+        
+        return values;
+    }
+
+    
+    /**
+     * Interval multimap entry. Stores interval and values that covers it.
+     */
     public class ValuesInterval {
         BaseInterval<K> interval;
         List<V> values;
@@ -249,6 +288,29 @@ public class IntervalMultimap<K extends Comparable, V> {
         public BaseInterval<K> getInterval() {
             return interval;
         }
+
+        public ValuesInterval(BaseInterval<K> interval, List<V> values) {
+            this.interval = interval;
+            this.values = values;
+        }
+    }
+    
+    /**
+     * Values Intervals iterable. Iterable wrapper around ValuesIntervalsIterator
+     */
+    private class ValuesIntervalsIterable implements Iterable<ValuesInterval> {
+
+        IntervalMultimap<K,V> multimap;
+
+        public ValuesIntervalsIterable(IntervalMultimap<K, V> multimap) {
+            this.multimap = multimap;
+        }
+        
+        @Override
+        public Iterator<ValuesInterval> iterator() {
+            return new ValuesIntervalsIterator(multimap);
+        }
+        
     }
     
     /**
@@ -281,9 +343,10 @@ public class IntervalMultimap<K extends Comparable, V> {
             previous = current;
             current = multimapIterator.next();
                         
-            ValuesInterval vi = new ValuesInterval();
-            vi.interval = new BaseInterval<>(previous.getKey(), current.getKey());
-            vi.values = previous.getValue();
+            ValuesInterval vi = new ValuesInterval(
+                new BaseInterval<>(previous.getKey(), current.getKey()),
+                previous.getValue()
+                        );
             
             // if current is end of interval, skip to next new interval
             if (current.getValue().isEmpty() && multimapIterator.hasNext()) {
@@ -300,114 +363,5 @@ public class IntervalMultimap<K extends Comparable, V> {
         
     }
     
-    /**
-     * Returns iterator over changing edges
-     * @return 
-     */
-    public Iterator<Entry<K,Boolean>> intervalsSetIterator() {
-        return new IntervalMultimapSetIterator(this);
-    }
-    
-    /**
-     * Return new intervalsset corresponding to intervals allocated by all of 
-     * intervals in this
-     * @return 
-     */
-    public BaseIntervalsSet<K> toIntervalsSet() {
-        BaseIntervalsSet<K> intervalsSet = new BaseIntervalsSet<>();
-        return intervalsSet.getUnionWith(this.intervalsSetIterator());
-    }
-
-    /**
-     * Iterate through intervals edges for intervals that have more than
-     * intervalsOccurrencesThhresold concurrent values
-     * @param intervalsOccurrencesThresold
-     * @return 
-     */
-    public Iterator<Entry<Integer, Boolean>> intervalsSetIterator(int intervalsOccurrencesThresold) {
-        return new FilteringIntervalMultimapSetIterator(this, intervalsOccurrencesThresold);
-    }
-    
-    /**
-     * Returns list of sorted intervals splitting given intervals set into 
-     * pieces where is different values. Union of intervals in the list is
-     * equal to given intervals. Each interval in list have list of values in 
-     * this multimap in the same interval.
-     * @param intervals
-     * @return 
-     */
-    public List<MultiIntervalStop> getIntervalsIn(BaseIntervalsSet<K> intervals) {
-        TreeMap<K, ListEdge<V>> intervalsMap = new IntervalsSetMerger<>(
-            this.edges.entrySet().iterator(),
-            intervals.setMap.entrySet().iterator()
-            )
-            .merge(new IntervalsSetMerger.MergeFunction<ListEdge<V>, List<V>, Boolean>() {
-
-                @Override
-                public ListEdge<V> mergeEdge(ListEdge<V> previous_state, List<V> state_a, Boolean state_b) {
-                    ListEdge<V> new_edge = new ListEdge<>();
-                    new_edge.edge = state_b == null ? false : state_b.booleanValue();
-                    new_edge.list = new_edge.edge ? (state_a == null ? new ArrayList<V>() : state_a) : null;
-                    
-                    // previous state is not substantial
-                    
-                    return new_edge;
-                }
-                
-            });
-        
-        List<MultiIntervalStop> multiIntervals = new ArrayList<>();
-        for (Entry<K, ListEdge<V>> entry : intervalsMap.entrySet()) {
-            multiIntervals.add(new MultiIntervalStop(entry.getValue().edge, entry.getKey(), entry.getValue().list));
-        }
-        
-        return multiIntervals;
-    }
-    
-    /**
-     * Creates edge in given key if not exists. New edge has copied values from 
-     * edge before it. If edge in given key exists, does nothing
-     * @param key 
-     */
-    private void createEdgeStub(K key) {
-        K floorKey = edges.floorKey(key);
-        if(floorKey == null || !floorKey.equals(key)) {
-            // going to add new edge, but with what values?
-            List<V> list = new ArrayList<>();
-            if (floorKey != null) {
-                //some edge is before, add its values (adding to its territory)
-                list.addAll(edges.get(floorKey));
-            }
-            
-            // add new starting edge
-            edges.put(key,list);
-        }
-    }
-
-    
-    public interface KeyDifference<K> {
-        public int diff(K a, K b);
-    }
-       
-    
-    private class ListEdge<V> {
-        List<V> list;
-        boolean edge;
-    }
-    
-    /**
-     * Multi interval is encapsulation of interval and list of values on it
-     */
-    public class MultiIntervalStop {
-        public boolean isIn;
-        public K stop;
-        public List<V> values;
-
-        public MultiIntervalStop(boolean in, K stop, List<V> values) {
-            this.isIn = in;
-            this.stop = stop;
-            this.values = values;
-        }
-    }
     
 }

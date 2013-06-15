@@ -209,206 +209,81 @@ public class IntervalMultimapTest {
     
     
     /**
-     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
+     * 
      */
     @Test
-    public void testValuesOfOverlappingIntervals() {
-        System.out.println("valuesOfOverlappingIntervals");
+    public void testValuesInInterval() {
         IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
-        instance.put(2, new BaseInterval(20, 55));
-        instance.put(3, new BaseInterval(10, 30));
-        instance.put(4, new BaseInterval(100, 130));
-        instance.put(5, new BaseInterval(200, 230));
-        instance.put(6, new BaseInterval(220, 250));
-        instance.put(7, new BaseInterval(250, 270)); // not overlaps
+        instance.put(2, new BaseInterval(70, 100));
+        instance.put(3, new BaseInterval(45, 80));
+       
+        BaseInterval<Integer> interval = new BaseInterval<>(40,90);
         
-        List<Integer> overlappingValues = instance.overlappingValues();
+        // 10  45  50  70  80  100
+        // |---|---|---|---|---|
+        // 1   13  3   32  2   -
+        //    |--------------|
+        //    1 13 3   32  2 
         
-        assertEquals(5, overlappingValues.size());
-        assertTrue(overlappingValues.contains(1));
-        assertTrue(overlappingValues.contains(2));
-        assertTrue(overlappingValues.contains(3));
-        assertTrue(overlappingValues.contains(5));
-        assertTrue(overlappingValues.contains(6));
-        assertFalse(overlappingValues.contains(4));
-        assertFalse(overlappingValues.contains(7));
+        List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
+        assertEquals(5, values.size());
         
-    }
-    
-    
-    /**
-     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
-     */
-    @Test
-    public void testValuesOfOverlappingIntervals2() {
-        System.out.println("valuesOfOverlappingIntervals 2");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
-        instance.put(1, new BaseInterval(10, 25));
-        instance.put(2, new BaseInterval(10, 25));
-        instance.put(3, new BaseInterval(10, 25));
-        
-        List<Integer> overlappingValues = instance.overlappingValues();
-        
-        assertEquals(3, overlappingValues.size());
-        assertTrue(overlappingValues.contains(1));
-        assertTrue(overlappingValues.contains(2));
-        assertTrue(overlappingValues.contains(3));
-        
-    }
-    
-    /**
-     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
-     */
-    @Test
-    public void testValuesOfOverlappingIntervalsWithDelete() {
-        System.out.println("valuesOfOverlappingIntervals and Delete");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
-        instance.put(1, new BaseInterval(10, 25));
-        instance.put(2, new BaseInterval(10, 25));
-        instance.put(3, new BaseInterval(10, 25));
-        
-        instance.remove(2);
-        
-        List<Integer> overlappingValues = instance.overlappingValues();
-        
-        assertEquals(2, overlappingValues.size());
-        assertTrue(overlappingValues.contains(1));
-        assertTrue(overlappingValues.contains(3));
-    }
+        assertEquals(new BaseInterval<Integer>(40,45), values.get(0).interval);
+        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
 
+        assertEquals(new BaseInterval<Integer>(45,50), values.get(1).interval);
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
+
+        assertEquals(new BaseInterval<Integer>(50,70), values.get(2).interval);
+        assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
+        
+        assertEquals(new BaseInterval<Integer>(70,80), values.get(3).interval);
+        assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
+
+        assertEquals(new BaseInterval<Integer>(80,90), values.get(4).interval);
+        assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
+    }
+    
     /**
-     * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
+     * 
      */
     @Test
-    public void testValuesOfOverlappingIntervalsWithDelete2() {
-        System.out.println("valuesOfOverlappingIntervals and Delete");
+    public void testValuesInInterval2() {
         IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
-        instance.put(1, new BaseInterval(10, 25));
-        instance.put(2, new BaseInterval(10, 25));
-        instance.put(3, new BaseInterval(10, 25));
+        instance.put(1, new BaseInterval(10, 50));
+        instance.put(2, new BaseInterval(70, 100));
+        instance.put(3, new BaseInterval(45, 80));
+       
+        BaseInterval<Integer> interval = new BaseInterval<>(40,130);
         
-        instance.remove(2);
+        // 10  45  50  70  80  100
+        // |---|---|---|---|---|
+        // 1   13  3   32  2   -
+        //    |-------------------|
+        //    1 13 3   32  2   -
         
-        instance.put(2, new BaseInterval(10, 15));
+        List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
+        assertEquals(6, values.size());
         
-        List<Integer> overlappingValues = instance.overlappingValues();
-        
-        assertEquals(3, overlappingValues.size());
-        assertTrue(overlappingValues.contains(1));
-        assertTrue(overlappingValues.contains(2));
-        assertTrue(overlappingValues.contains(3));
-    }    
-    
-    /**
-     * Test of intervalsSetIterator method, of class IntervalMultimap.
-     */
-    @Test
-    public void testIntervalsSetIterator() {
+        assertEquals(new BaseInterval<Integer>(40,45), values.get(0).interval);
+        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
 
-    }
+        assertEquals(new BaseInterval<Integer>(45,50), values.get(1).interval);
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
 
-    /**
-     * Test of toIntervalsSet method, of class IntervalMultimap.
-     */
-    @Test
-    public void testToIntervalsSet() {
-        IntervalMultimap multimap = new IntervalMultimap();
-        multimap.put(1, new BaseInterval(10,20));
-        multimap.put(2, new BaseInterval(30,40));
-        multimap.put(3, new BaseInterval(40,50));
-        multimap.put(4, new BaseInterval(100,140));
-        multimap.put(5, new BaseInterval(120,130));
+        assertEquals(new BaseInterval<Integer>(50,70), values.get(2).interval);
+        assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
         
-        multimap.put(6, new BaseInterval(123,180));
+        assertEquals(new BaseInterval<Integer>(70,80), values.get(3).interval);
+        assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
+
+        assertEquals(new BaseInterval<Integer>(80,100), values.get(4).interval);
+        assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
         
-        BaseInterval[] intervals = new BaseInterval[] {
-            new BaseInterval(10,20),
-            new BaseInterval(30,50),
-            new BaseInterval(100,180)
-        };
-        
-        Object[] actual = multimap.toIntervalsSet().getBaseIntervals().toArray();
-        
-        assertArrayEquals(intervals, actual);
+        assertEquals(new BaseInterval<Integer>(100,130), values.get(5).interval);
+        assertArrayEquals(new Integer[]{}, values.get(5).values.toArray());
     }
     
-    /**
-     * Test of toIntervalsSet method, of class IntervalMultimap.
-     */
-    @Test
-    public void testGetIntervalsIn() {
-        IntervalMultimap multimap = new IntervalMultimap();
-        multimap.put(1, new BaseInterval(10,20));
-        multimap.put(2, new BaseInterval(15,40));
-        multimap.put(3, new BaseInterval(40,50));
-        multimap.put(4, new BaseInterval(100,140));
-        multimap.put(5, new BaseInterval(120,130));
-        
-        // 0   10  15  20  40  50  100 120 130 140 150
-        // |---|---|---|---|---|---|---|---|---|---|
-        // /   1  1,2  2   3   /   4   4,5 4   /   -
-        
-        BaseIntervalsSet domain = new BaseIntervalsSet();
-        domain.unionWith(0, 150);
-        
-        List<IntervalMultimap.MultiIntervalStop> actual = multimap.getIntervalsIn(domain);
-        
-        assertEquals(11, actual.size());
-        int i = 0;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(0, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(10, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(15, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {1,2});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(20, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {2});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(40, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {3});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(50, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(100, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(120, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4,5});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(130, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {4});
-        i++;
-        
-        assertEquals(true, actual.get(i).isIn);
-        assertEquals(140, actual.get(i).stop);
-        assertArrayEquals(actual.get(i).values.toArray(), new Integer[] {});
-        i++;
-        
-        assertEquals(false, actual.get(i).isIn);
-        assertEquals(150, actual.get(i).stop);
-        i++;
-    }
+    
 }

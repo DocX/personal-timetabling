@@ -5,11 +5,15 @@
 package net.personaltt.simplesolver;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ConcurrentSkipListMap;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
+import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.IntervalMultimap.ValuesInterval;
 
 /**
  * Simple allocation selection. Selects allocation from occurrence's domain that 
@@ -23,28 +27,18 @@ public class SimpleAllocationSelection implements AllocationSelection {
     
     @Override
     public OccurrenceAllocation select(IntervalMultimap<Integer, Occurrence> schedule, Occurrence forOccurrence) {
-        // allocationIntervals = ordered list of triples t_i time, n_i N, d_i bool, 
-        // so that in interval t_i - t_i+1 there is n_i allocated occurences in 
-        // currentAllocationIntervals and union of all t_i - t_i+1 where d_i = true
-        // is equal to domain of toSolve.
-        List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> allocationIntervals = 
-                schedule.getIntervalsIn(forOccurrence.getDomain());
-
 
         // find all allocations in domain of toSolve, which are
         // minimal in area of conflict by allocationInterals
         // and then maximal in duration
-        List<OccurrenceAllocation> bestAllocations = findBestAllacations(
-                allocationIntervals, 
-                forOccurrence
-                );
+        List<OccurrenceAllocation> bestAllocations = findBestAllacations(forOccurrence, schedule);
         
         System.out.printf("No. of found best possible allocations: %s \n", bestAllocations.size());
 
         return bestAllocations.get(random.nextInt(bestAllocations.size()));
     }
-    
-     private class BestAllocationsStore {
+   
+    private class BestAllocationsStore {
         int bestCost = Integer.MAX_VALUE;
         int bestDuration = 0;
         ArrayList<OccurrenceAllocation> bestAllocations = new ArrayList<>();
@@ -75,130 +69,170 @@ public class SimpleAllocationSelection implements AllocationSelection {
      * @param occurrence Occurrence which is subject to finding allocation
      * @return 
      */
-    private List<OccurrenceAllocation> findBestAllacations(List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> intervals, Occurrence occurrence) {
+    private List<OccurrenceAllocation> findBestAllacations(Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule) {
         // Initialization
         BestAllocationsStore bestAllocations = new BestAllocationsStore();
         
-        // index of interval start
-        int currentStartInterval = 0;
- 
-        // process all compact intervals
-        while (currentStartInterval < intervals.size()) {
-            // returns index of next interval stop after current compact interval end
-            currentStartInterval = findInCompactInterval(intervals, currentStartInterval, bestAllocations, occurrence);
-        }
+        List<BaseInterval<Integer>> occurrenceDomainIntervals = occurrence.getDomain().getBaseIntervals();
         
+        // for all continuous intervals of domain, search possible
+        // allocations aligned to points of change values count in schedule
+        for (BaseInterval<Integer> baseInterval : occurrenceDomainIntervals) {
+            findInDomainInterval(baseInterval, occurrence, schedule, bestAllocations);
+        }
         
         return bestAllocations.bestAllocations;
     }
+   
+    private void findInDomainInterval(BaseInterval<Integer> baseInterval, Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule, BestAllocationsStore bestAllocations) {
+
+        List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values = 
+                schedule.valuesInInterval(baseInterval);
+        
+        for (Iterator<AllocationStop> it = new AllocationStopsIteratorInInterval(occurrence.getMinDuration(), values); it.hasNext();) {
+            AllocationStop stop = it.next();
+            
+            // compute cost between startPoint and endPoint
+            SimpleCostCoutner cost = new SimpleCostCoutner();
+            
+            // compute from start to interval before end interval
+            // so intervals that are full to end of interval
+            int current = stop.startValuesIndex;
+            int endPoint = stop.startPoint + occurrence.getMinDuration();
+            
+            while(current < values.size() && values.get(current).getInterval().getStart() < endPoint) {
+                
+                // length of current interval cropped by start and end point
+                int length = 
+                        Math.min(endPoint, values.get(current).getInterval().getEnd()) -
+                        Math.max(stop.startPoint, values.get(current).getInterval().getStart());
+                
+                cost.add(length, values.get(current).getValues());
+                
+                current++;
+            }
+            
+            // here in cost is cost of allocation of minimal duration
+            bestAllocations.checkAndAdd(cost.cost, endPoint - stop.startPoint, stop.startPoint);
+            
+            // current is now on the first interval after minimal duration
+            // if minimal duration ends inside last interval, revert to it
+            if (current < values.size() && values.get(current).getInterval().getStart() > endPoint) {
+                current--;
+            }
+            
+            // walk by next intervals stops to enlarge duration
+            while(current < values.size() && values.get(current).getInterval().getStart() <
+                    stop.startPoint + occurrence.getMaxDuration() && 
+                    endPoint < stop.startPoint + occurrence.getMaxDuration()) {
+                
+                int beforeEndPoint = endPoint;
+                endPoint = Math.min(
+                        stop.startPoint + occurrence.getMaxDuration(), 
+                        values.get(current).getInterval().getEnd());
+                 
+                
+                cost.add(endPoint - beforeEndPoint, values.get(current).getValues());
+                bestAllocations.checkAndAdd(cost.cost, endPoint - stop.startPoint, stop.startPoint);
+                current++;
+            }
+        }
+    }
+    
+    private class AllocationStop {
+        int startPoint;
+        int startValuesIndex;
+    }
     
     /**
-     * Finds best allocations in compact interval in intervals starting at currentStartInterval
-     * @param intervals
-     * @param currentStartInterval
-     * @param bestAllocations
-     * @param occurrence
-     * @return 
+     * Iterate over stops of allocation with given length in given intervals stops.
+     * 
      */
-    private int findInCompactInterval(List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> intervals, int startIntervalIndex, BestAllocationsStore bestAllocations, Occurrence occurrence) {
+    private class AllocationStopsIteratorInInterval implements Iterator<AllocationStop> {
         
-        int start = intervals.get(startIntervalIndex).stop;
-        int costSum = 0;
+        int allocationDuration;
+        List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values;
         
-        // get interval index, in whish end of allocation lies (end lies in interval i
-        // when lower bound of i <= end < upperbound of i)
-        int endIntervalIndex = startIntervalIndex;
-        
-        // when compact intervals shoud at least contain minimal duration +1 index is there always
-        while (start + occurrence.getMinDuration() > intervals.get(endIntervalIndex).stop) {
+        int startPoint;
+        int startValuesIndex;
+        int endPoint;
+        int endValuesIndex;
+
+        public AllocationStopsIteratorInInterval(int allocationDuration, List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values) {
+            this.allocationDuration = allocationDuration;
+            this.values = values;
+
+            startPoint = values.get(0).getInterval().getStart();
+            startValuesIndex = 0;
             
-            // add cost of skiped interval
-            costSum += getCost(intervals.get(endIntervalIndex)) *
-                    (intervals.get(endIntervalIndex).stop - intervals.get(endIntervalIndex+1).stop);    
-            
-            endIntervalIndex++;
+            endPoint = startPoint + allocationDuration;
+            endValuesIndex = 0;
+            // find interval where is end point
+            while(endValuesIndex < values.size() && values.get(endValuesIndex).getInterval().getEnd()<=endPoint) { endValuesIndex++; }
         }
         
-        // add cost of portion from start of last interval to the end
-        costSum += getCost(intervals.get(endIntervalIndex)) *
-                (start + occurrence.getMinDuration() - intervals.get(endIntervalIndex).stop);
-          
-        // iterate to the end of interval
-        int intervalEnd = 0;
-        for (int i = endIntervalIndex; i < intervals.size(); i++) {
-            intervalEnd = intervals.get(i).stop;
-            if (intervals.get(i).isIn == false) {
-                break;
-            }
+        @Override
+        public boolean hasNext() {
+            return endValuesIndex <= values.size();
         }
-        
-        // iterate over steps of starts of allocations
-        int startNextStop = intervals.get(startIntervalIndex+1).stop;
-        int endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
-        
-        while (start + occurrence.getMinDuration() <= intervalEnd) {
 
-            int duration = occurrence.getMinDuration();
-            int costSumDuration = costSum;
-            int endIntervalIndexDuration = endIntervalIndex;
+        @Override
+        public AllocationStop next() {
+            AllocationStop s = new AllocationStop();
+            s.startPoint = startPoint;
+            s.startValuesIndex = startValuesIndex;
+            
+            move();
+            
+            // return current
+            return s;
+        }
 
-            while(costSumDuration == costSum) {
-                bestAllocations.checkAndAdd(costSumDuration, duration, start);
-                
-                // add duration to next step
-                endIntervalIndexDuration++;
-                if (endIntervalIndexDuration >= intervals.size() ||
-                    intervals.get(endIntervalIndexDuration-1).isIn==false ||
-                    duration == occurrence.getMaxDuration()) {
-                    break;
-                }                
-                int prev_duration = duration;
-                duration = intervals.get(endIntervalIndexDuration).stop - start;
-                duration = Math.min(duration, occurrence.getMaxDuration());
-                
-                costSumDuration += getCost(intervals.get(endIntervalIndexDuration-1)) * 
-                        (duration - prev_duration);
-                
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        private void move() {
+            if(endValuesIndex >= values.size()) {
+                endValuesIndex++;
+                return;
             }
             
-            // set next step
-            if (endNextStop < startNextStop) {
-                break;
-            }
-            if (startNextStop + occurrence.getMinDuration() <= endNextStop) {
-                // alter costSum, remove area from start, add new area at end
-                costSum += (startNextStop-start)*(
-                        -getCost(intervals.get(startIntervalIndex))
-                        +getCost(intervals.get(endIntervalIndex))
-                        );
+             // select next
+            // move start to next stop of values change
+            int compare = values.get(startValuesIndex).getInterval().getEnd().compareTo(
+                    values.get(endValuesIndex).getInterval().getEnd() - allocationDuration
+                    );
+            if (compare <= 0) {
+                // next stop of start is closer to current start than next stop of end
                 
-                // move start to next stop
-                start = startNextStop;
-                startIntervalIndex++;
-                startNextStop = intervals.get(startIntervalIndex+1).stop;
+                startPoint = values.get(startValuesIndex).getInterval().getEnd();
+                endPoint = startPoint + allocationDuration;
+                startValuesIndex++;
                 
-                // move end interval next stop if  now is equal to current end
-                if (endNextStop == start + occurrence.getMinDuration()) {
-                    endIntervalIndex++;
-                    endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
+                if (compare == 0) {
+                    endValuesIndex++;
                 }
             } else {
-                costSum += (endNextStop - occurrence.getMinDuration()-start)*(
-                        -getCost(intervals.get(startIntervalIndex))
-                        +getCost(intervals.get(endIntervalIndex))
-                        );
-                
-                start = endNextStop - occurrence.getMinDuration();
-                endIntervalIndex++;
-                endNextStop = endIntervalIndex+1 < intervals.size() ? intervals.get(endIntervalIndex+1).stop : 0;
+                endPoint = values.get(endValuesIndex).getInterval().getEnd() ;
+                startPoint = endPoint - allocationDuration;
+                endValuesIndex++;
             }
         }
-            
-        return endIntervalIndex + 1;
+        
     }
     
-    int getCost(IntervalMultimap<Integer,Occurrence>.MultiIntervalStop stop) {
-        return stop.values == null ? 0 : stop.values.size();
+    /**
+     * Simple cost counter. Counts sum of lengths of occurrences
+     */
+    private class SimpleCostCoutner {
+        int cost = 0;
+        
+        void add(int length, List<Occurrence> occurrences) {
+            cost += length * occurrences.size();
+        }
     }
+    
     
 }

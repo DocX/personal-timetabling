@@ -1,23 +1,10 @@
 package net.personaltt.simplesolver;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.problem.ProblemDefinition;
 import net.personaltt.problem.Schedule;
-import net.personaltt.utils.BaseInterval;
-import net.personaltt.utils.BaseIntervalsSet;
-import net.personaltt.utils.IntervalMultimap;
-import net.personaltt.utils.IntervalMultimap.MultiIntervalStop;
 
 /**
  * Simple solver finds any feasible schedule for personal timetabling problem.

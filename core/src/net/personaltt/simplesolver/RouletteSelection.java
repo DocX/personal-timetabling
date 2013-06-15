@@ -4,6 +4,7 @@
  */
 package net.personaltt.simplesolver;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
@@ -11,7 +12,8 @@ import net.personaltt.problem.Schedule;
 import net.personaltt.utils.IntervalMultimap;
 
 /**
- * Roulette selection selects occurrence with larger cost with more probability
+ * Roulette occurrence selection. Selects occurrence with larger cost with more probability
+ * cost is sum of lengths shared with occurrence for each of other occurrences allocations
  * @author docx
  */
 public class RouletteSelection implements OccurrenceSelection {
@@ -27,15 +29,20 @@ public class RouletteSelection implements OccurrenceSelection {
     @Override
     public Occurrence select(IntervalMultimap<Integer, Occurrence> schedule) {
         
-        // roulete selection by occurrence cost
-        
-        Map<Occurrence, Integer> occurrencesCosts = schedule.valuesOverlappingSum(new IntervalMultimap.KeyDifference<Integer>() {
-
-            @Override
-            public int diff(Integer a, Integer b) {
-                return a.intValue() - b.intValue();
+        // map of 
+        Map<Occurrence, Integer> occurrencesCosts = new HashMap<>();
+      
+        for (IntervalMultimap<Integer, Occurrence>.ValuesInterval valuesInterval : schedule.valuesIntervals()) {
+            for (Occurrence occurrence : valuesInterval.getValues()) {
+                Integer oldSum = occurrencesCosts.get(occurrence);
+                // add value of interval length multiplied by count of other occurrences filling that interval
+                int newSum = (oldSum == null ? 0 : oldSum) + 
+                        (valuesInterval.getInterval().getEnd() - valuesInterval.getInterval().getStart()) *
+                        (valuesInterval.getValues().size() - 1);
+                
+                occurrencesCosts.put(occurrence, newSum);
             }
-        });
+        }
         
         // sum costs
         int costSum = 0;
