@@ -12,7 +12,9 @@ import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.utils.IntervalMultimap;
 
 /**
- *
+ * Simple allocation selection. Selects allocation from occurrence's domain that 
+ * has lowest cost. Cost is sum of lenght that allocation shares with other allocations
+ * in given shedule for each other allocation.
  * @author docx
  */
 public class SimpleAllocationSelection implements AllocationSelection {
@@ -22,23 +24,24 @@ public class SimpleAllocationSelection implements AllocationSelection {
     @Override
     public OccurrenceAllocation select(IntervalMultimap<Integer, Occurrence> schedule, Occurrence forOccurrence) {
         // allocationIntervals = ordered list of triples t_i time, n_i N, d_i bool, 
-            // so that in interval t_i - t_i+1 there is n_i allocated occurences in 
-            // currentAllocationIntervals and union of all t_i - t_i+1 where d_i = true
-            // is equal to domain of toSolve.
-            List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> allocationIntervals = 
-                    schedule.getIntervalsIn(forOccurrence.getDomain());
-            
-            
-            // find all allocations in domain of toSolve, which are
-            // minimal in area of conflict by allocationInterals
-            // and then maximal in duration
-            List<OccurrenceAllocation> bestAllocations = findBestAllacations(
-                    allocationIntervals, 
-                    forOccurrence
-                    );
-            System.out.printf("No. of found best possible allocations: %s \n", bestAllocations.size());
-            
-            return bestAllocations.get(random.nextInt(bestAllocations.size()));
+        // so that in interval t_i - t_i+1 there is n_i allocated occurences in 
+        // currentAllocationIntervals and union of all t_i - t_i+1 where d_i = true
+        // is equal to domain of toSolve.
+        List<IntervalMultimap<Integer,Occurrence>.MultiIntervalStop> allocationIntervals = 
+                schedule.getIntervalsIn(forOccurrence.getDomain());
+
+
+        // find all allocations in domain of toSolve, which are
+        // minimal in area of conflict by allocationInterals
+        // and then maximal in duration
+        List<OccurrenceAllocation> bestAllocations = findBestAllacations(
+                allocationIntervals, 
+                forOccurrence
+                );
+        
+        System.out.printf("No. of found best possible allocations: %s \n", bestAllocations.size());
+
+        return bestAllocations.get(random.nextInt(bestAllocations.size()));
     }
     
      private class BestAllocationsStore {
@@ -108,7 +111,6 @@ public class SimpleAllocationSelection implements AllocationSelection {
         
         // when compact intervals shoud at least contain minimal duration +1 index is there always
         while (start + occurrence.getMinDuration() > intervals.get(endIntervalIndex).stop) {
-            
             
             // add cost of skiped interval
             costSum += getCost(intervals.get(endIntervalIndex)) *

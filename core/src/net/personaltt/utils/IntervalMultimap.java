@@ -37,7 +37,8 @@ import net.personaltt.timedomain.IntervalsSet;
 public class IntervalMultimap<K extends Comparable, V> {
     
     /** 
-     * Sorted structure for keeping intervals edges and values on them
+     * Sorted structure for keeping intervals edges and values on them.
+     * Edges with empty list are ending edges.
      */
     TreeMap<K, List<V>> edges;
     
@@ -229,6 +230,75 @@ public class IntervalMultimap<K extends Comparable, V> {
         return new ArrayList<>(valuesOverlappingSum().keySet());
     }
     
+    /**
+     * Values intervals iterator. Iterates over intervals with list of values on it
+     * @return 
+     */
+    public Iterator<ValuesInterval> valuesIntervals() {
+        return new ValuesIntervalsIterator(this);
+    }
+    
+    public class ValuesInterval {
+        BaseInterval<K> interval;
+        List<V> values;
+
+        public List<V> getValues() {
+            return values;
+        }
+
+        public BaseInterval<K> getInterval() {
+            return interval;
+        }
+    }
+    
+    /**
+     * Values intervals iterator. Iterates over intervals of distinct values list.
+     */
+    private class ValuesIntervalsIterator implements Iterator<ValuesInterval> {
+
+        IntervalMultimap<K,V> multimap;
+        Iterator<Entry<K,List<V>>> multimapIterator;
+        Entry<K,List<V>> previous;
+        Entry<K,List<V>> current;
+
+        public ValuesIntervalsIterator(IntervalMultimap<K, V> multimap) {
+            this.multimap = multimap;
+            multimapIterator = multimap.edges.entrySet().iterator();
+            // get firt edge
+            if (multimapIterator.hasNext()) {
+                current = multimapIterator.next();
+            }
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return multimapIterator.hasNext();
+        }
+
+        @Override
+        public ValuesInterval next() {
+            // move to next intervalwith list of values in it.
+            previous = current;
+            current = multimapIterator.next();
+                        
+            ValuesInterval vi = new ValuesInterval();
+            vi.interval = new BaseInterval<>(previous.getKey(), current.getKey());
+            vi.values = previous.getValue();
+            
+            // if current is end of interval, skip to next new interval
+            if (current.getValue().isEmpty() && multimapIterator.hasNext()) {
+                current = multimapIterator.next();
+            }
+
+            return vi;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported.");
+        }
+        
+    }
     
     /**
      * Returns iterator over changing edges
