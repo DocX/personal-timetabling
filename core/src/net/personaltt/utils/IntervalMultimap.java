@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import net.personaltt.problem.Occurrence;
 import net.personaltt.timedomain.IntervalsSet;
 
 /**
@@ -45,22 +46,29 @@ public class IntervalMultimap<K extends Comparable, V> {
      * of some value starts.
      */
     HashMap<V, K> startPoints;
+    
+    /**
+     * Overlapping values map. Map of values to list of other values that overlaps.
+     */
+    HashMap<V, Set<V>> overlappingValues;
 
     public IntervalMultimap() {
         edges = new TreeMap<>();
         startPoints = new HashMap<>();
+        overlappingValues = new HashMap<>();
     }
     
     
     /**
-     * Adds interval with given value
+     * Adds interval with given value. Retrun number of distinct values that was in 
+     * multimap before adding, that are now conflicting due to this addition
      * @param value
      * @param interval 
      */
-    public boolean put(V value, BaseInterval<K> interval) {
+    public int put(V value, BaseInterval<K> interval) {
         // if adding value already exists in multiset, throw exception
         if (startPoints.containsKey(value)) {
-            throw new IllegalArgumentException("Adding value already exists or is evaluated as eqaual to already existing value."); 
+            return 0;
         }
         
         startPoints.put(value, interval.getStart());
@@ -72,57 +80,45 @@ public class IntervalMultimap<K extends Comparable, V> {
         createEdgeStub(interval.getEnd());
         
         // add value to all edges including start to excluding end
-        boolean conflicts = false;
-        for(List<V> edgeValues : edges.subMap(interval.getStart(), interval.getEnd()).values()) {
-            if (!conflicts && !edgeValues.isEmpty()) {
-                conflicts = true;
-            }
-            edgeValues.add(value);
-        }
-        
-        return conflicts;
-    }
-    
-    /**
-     * Adds all entries in collection
-     * @param collection
-     * @return 
-     */
-    public boolean putAll(Iterable<Entry<V, BaseInterval<K>>> collection) {
-        boolean conflicts = false;
-        for (Entry<V, BaseInterval<K>> entry : collection) {
-            conflicts |= this.put(entry.getKey(), entry.getValue());
-        }
-        
-        return conflicts;
-    }
-    
-    private void createEdgeStub(K key) {
-        K floorKey = edges.floorKey(key);
-        if(floorKey == null || !floorKey.equals(key)) {
-            // going to add new edge, but with what values?
-            List<V> list = new ArrayList<>();
-            if (floorKey != null) {
-                //some edge is before, add its values (adding to its territory)
-                list.addAll(edges.get(floorKey));
+        int newOverlappings = 0;
+        HashSet<V> overlappings = new HashSet<>();
+        for(Entry<K,List<V>> edge : edges.subMap(interval.getStart(), interval.getEnd()).entrySet()) {
+            // add this to overlapping list of all values in edge
+            for (V v : edge.getValue()) {
+                Set<V> vOverlappings = overlappingValues.get(v);
+                // if value has no overlapping now, add it as new conflict
+                if (vOverlappings.isEmpty()){
+                    newOverlappings += 1;
+                }                    
+                vOverlappings.add(value);
+                overlappings.add(v);
             }
             
-            // add new starting edge
-            edges.put(key,list);
+            edge.getValue().add(value);
         }
+        
+        overlappingValues.put(value, overlappings);
+        
+        if (overlappings.isEmpty() == false) {
+            // adds one also for current added, if is overlapping
+            newOverlappings += 1;
+        }
+        return newOverlappings;
     }
     
+    
     /**
-     * Removes interval for given value
+     * Removes interval for given value. Returns number of other values, which are
+     * after removal with no conflict and before it with conflict.
      * @param value 
      */
-    public void remove(V value) {
+    public int remove(V value) {
         // get start ofgiven value
         K start = startPoints.remove(value);
         
         // if non existing value is removed, return
         if (start == null) {
-            return;
+            return 0;
         }
         
         // go throug edges and remove value from all 
@@ -156,18 +152,27 @@ public class IntervalMultimap<K extends Comparable, V> {
                 }
             }
         }
+        
+        // removes from overlappings for values that overlaps removing value
+        int newNonOverlapping = 0;
+        for (V v : overlappingValues.get(value)) {
+            Set<V> valueOverlappings = overlappingValues.get(v);
+            boolean contained = valueOverlappings.remove(value);
+            
+            if (contained && valueOverlappings.isEmpty()) {
+                newNonOverlapping += 1;
+            }
+        }
+        
+       
+        if (overlappingValues.remove(value).isEmpty() == false) {
+            // removes one also for removed, if was overlapping
+            newNonOverlapping += 1;
+        }
+        return newNonOverlapping;
     }
     
     
-    
-    /**
-     * Get list of values (intervals) in given point
-     * @param point
-     * @return 
-     */
-    public List<V> valuesIn(K point) {
-        return edges.floorEntry(point).getValue();
-    }
     
     /**
      * Retrievs values of all intervals that overlaps (touches) other interval.
@@ -202,20 +207,24 @@ public class IntervalMultimap<K extends Comparable, V> {
         
         return overlappingIntervalsValues;
     }
-    
-    public interface KeyDifference<K> {
-        public int diff(K a, K b);
-    }
-    
+
+    /**
+     * Return overlapping values with zero sum.
+     * @return 
+     */
     public Map<V, Integer> valuesOverlappingSum() {
         return valuesOverlappingSum(new KeyDifference<K>() {
             @Override
             public int diff(K a, K b) {
-                return 1;
+                return 0;
             }
         });
     }
     
+    /**
+     * List of values that overlaps itself. 
+     * @return 
+     */
     public List<V> overlappingValues() {
         return new ArrayList<>(valuesOverlappingSum().keySet());
     }
@@ -284,6 +293,32 @@ public class IntervalMultimap<K extends Comparable, V> {
         
         return multiIntervals;
     }
+    
+    /**
+     * Creates edge in given key if not exists. New edge has copied values from 
+     * edge before it. If edge in given key exists, does nothing
+     * @param key 
+     */
+    private void createEdgeStub(K key) {
+        K floorKey = edges.floorKey(key);
+        if(floorKey == null || !floorKey.equals(key)) {
+            // going to add new edge, but with what values?
+            List<V> list = new ArrayList<>();
+            if (floorKey != null) {
+                //some edge is before, add its values (adding to its territory)
+                list.addAll(edges.get(floorKey));
+            }
+            
+            // add new starting edge
+            edges.put(key,list);
+        }
+    }
+
+    
+    public interface KeyDifference<K> {
+        public int diff(K a, K b);
+    }
+       
     
     private class ListEdge<V> {
         List<V> list;

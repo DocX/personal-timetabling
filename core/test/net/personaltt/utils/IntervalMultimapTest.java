@@ -88,6 +88,42 @@ public class IntervalMultimapTest {
         assertArrayEquals(new Integer[] {}, instance.edges.get(55).toArray());
         
     }
+    
+    /**
+     * Test of put method, of class IntervalMultimap.
+     */
+    @Test
+    public void testPutNewConflicts() {
+        System.out.println("put");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        int newConflicts;
+        newConflicts = instance.put(1, new BaseInterval(10, 50));
+        assertEquals(0, newConflicts);
+
+        newConflicts = instance.put(2, new BaseInterval(20, 55));
+        assertEquals(2, newConflicts);
+        
+        newConflicts = instance.put(3, new BaseInterval(10, 30));
+        assertEquals(1, newConflicts);
+    }
+    
+    /**
+     * Test of put method, of class IntervalMultimap.
+     */
+    @Test
+    public void testPutNewConflicts2() {
+        System.out.println("put");
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        int newConflicts;
+        newConflicts = instance.put(1, new BaseInterval(10, 50));
+        assertEquals(0, newConflicts);
+
+        newConflicts = instance.put(2, new BaseInterval(70, 100));
+        assertEquals(0, newConflicts);
+        
+        newConflicts = instance.put(3, new BaseInterval(45, 80));
+        assertEquals(3, newConflicts);
+    }
 
     /**
      * Test of remove method, of class IntervalMultimap.
@@ -156,20 +192,22 @@ public class IntervalMultimapTest {
         
     }
     
-    
     /**
-     * Test of valuesIn method, of class IntervalMultimap.
+     * Test of put method, of class IntervalMultimap.
      */
     @Test
-    public void testValuesIn() {
-        System.out.println("valuesIn");
-        IntervalMultimap instance = new IntervalMultimap();
-        instance.put(10, new BaseInterval(10, 50));
-        
-        assertEquals(1, instance.valuesIn(15).size());
-        assertEquals(10, instance.valuesIn(15).get(0));
+    public void testRemoveReturn() {
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 50));
+        instance.put(2, new BaseInterval(70, 100));
+        instance.put(3, new BaseInterval(45, 80));
+       
+        int newNoConflicts;
+        newNoConflicts = instance.remove(3);
+        assertEquals(3, newNoConflicts);
     }
-
+    
+    
     /**
      * Test of valuesOfOverlappingIntervals method, of class IntervalMultimap.
      */

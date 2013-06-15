@@ -133,7 +133,7 @@ public class Schedule {
         IntervalMultimap<Integer, Occurrence> currentAllocationIntervals = 
                 new IntervalMultimap<>();
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : getOccurrencesAllocations()) {
-            if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval())) {
+            if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval()) > 0) {
                 return true;
             }
         }
