@@ -4,6 +4,7 @@
  */
 package net.personaltt.simplesolver;
 
+import net.personaltt.utils.IntervalsAlignedToStopsIterator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -89,8 +90,8 @@ public class SimpleAllocationSelection implements AllocationSelection {
         List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values = 
                 schedule.valuesInInterval(baseInterval);
         
-        for (Iterator<AllocationStop> it = new AllocationStopsIteratorInInterval(occurrence.getMinDuration(), values); it.hasNext();) {
-            AllocationStop stop = it.next();
+        for (Iterator<IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop> it = new IntervalsAlignedToStopsIterator<>((Integer)occurrence.getMinDuration(), values, new IntegerMetric()); it.hasNext();) {
+            IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop stop = it.next();
             
             // compute cost between startPoint and endPoint
             SimpleCostCoutner cost = new SimpleCostCoutner();
@@ -100,12 +101,12 @@ public class SimpleAllocationSelection implements AllocationSelection {
             int current = stop.startValuesIndex;
             int endPoint = stop.startPoint + occurrence.getMinDuration();
             
-            while(current < values.size() && values.get(current).getInterval().getStart() < endPoint) {
+            while(current < values.size() && values.get(current).getStart() < endPoint) {
                 
                 // length of current interval cropped by start and end point
                 int length = 
-                        Math.min(endPoint, values.get(current).getInterval().getEnd()) -
-                        Math.max(stop.startPoint, values.get(current).getInterval().getStart());
+                        Math.min(endPoint, values.get(current).getEnd()) -
+                        Math.max(stop.startPoint, values.get(current).getStart());
                 
                 cost.add(length, values.get(current).getValues());
                 
@@ -117,19 +118,19 @@ public class SimpleAllocationSelection implements AllocationSelection {
             
             // current is now on the first interval after minimal duration
             // if minimal duration ends inside last interval, revert to it
-            if (current < values.size() && values.get(current).getInterval().getStart() > endPoint) {
+            if (current < values.size() && values.get(current).getStart() > endPoint) {
                 current--;
             }
             
             // walk by next intervals stops to enlarge duration
-            while(current < values.size() && values.get(current).getInterval().getStart() <
+            while(current < values.size() && values.get(current).getStart() <
                     stop.startPoint + occurrence.getMaxDuration() && 
                     endPoint < stop.startPoint + occurrence.getMaxDuration()) {
                 
                 int beforeEndPoint = endPoint;
                 endPoint = Math.min(
                         stop.startPoint + occurrence.getMaxDuration(), 
-                        values.get(current).getInterval().getEnd());
+                        values.get(current).getEnd());
                  
                 
                 cost.add(endPoint - beforeEndPoint, values.get(current).getValues());
@@ -137,90 +138,6 @@ public class SimpleAllocationSelection implements AllocationSelection {
                 current++;
             }
         }
-    }
-    
-    private class AllocationStop {
-        int startPoint;
-        int startValuesIndex;
-    }
-    
-    /**
-     * Iterate over stops of allocation with given length in given intervals stops.
-     * 
-     */
-    private class AllocationStopsIteratorInInterval implements Iterator<AllocationStop> {
-        
-        int allocationDuration;
-        List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values;
-        
-        int startPoint;
-        int startValuesIndex;
-        int endPoint;
-        int endValuesIndex;
-
-        public AllocationStopsIteratorInInterval(int allocationDuration, List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values) {
-            this.allocationDuration = allocationDuration;
-            this.values = values;
-
-            startPoint = values.get(0).getInterval().getStart();
-            startValuesIndex = 0;
-            
-            endPoint = startPoint + allocationDuration;
-            endValuesIndex = 0;
-            // find interval where is end point
-            while(endValuesIndex < values.size() && values.get(endValuesIndex).getInterval().getEnd()<=endPoint) { endValuesIndex++; }
-        }
-        
-        @Override
-        public boolean hasNext() {
-            return endValuesIndex <= values.size();
-        }
-
-        @Override
-        public AllocationStop next() {
-            AllocationStop s = new AllocationStop();
-            s.startPoint = startPoint;
-            s.startValuesIndex = startValuesIndex;
-            
-            move();
-            
-            // return current
-            return s;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        private void move() {
-            if(endValuesIndex >= values.size()) {
-                endValuesIndex++;
-                return;
-            }
-            
-             // select next
-            // move start to next stop of values change
-            int compare = values.get(startValuesIndex).getInterval().getEnd().compareTo(
-                    values.get(endValuesIndex).getInterval().getEnd() - allocationDuration
-                    );
-            if (compare <= 0) {
-                // next stop of start is closer to current start than next stop of end
-                
-                startPoint = values.get(startValuesIndex).getInterval().getEnd();
-                endPoint = startPoint + allocationDuration;
-                startValuesIndex++;
-                
-                if (compare == 0) {
-                    endValuesIndex++;
-                }
-            } else {
-                endPoint = values.get(endValuesIndex).getInterval().getEnd() ;
-                startPoint = endPoint - allocationDuration;
-                endValuesIndex++;
-            }
-        }
-        
     }
     
     /**

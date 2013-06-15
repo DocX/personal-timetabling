@@ -277,20 +277,16 @@ public class IntervalMultimap<K extends Comparable, V> {
     /**
      * Interval multimap entry. Stores interval and values that covers it.
      */
-    public class ValuesInterval {
-        BaseInterval<K> interval;
+    public class ValuesInterval extends BaseInterval<K> {
         List<V> values;
 
         public List<V> getValues() {
             return values;
         }
 
-        public BaseInterval<K> getInterval() {
-            return interval;
-        }
 
         public ValuesInterval(BaseInterval<K> interval, List<V> values) {
-            this.interval = interval;
+            super(interval.start, interval.end);
             this.values = values;
         }
     }

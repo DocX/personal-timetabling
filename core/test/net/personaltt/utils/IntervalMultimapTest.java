@@ -229,19 +229,19 @@ public class IntervalMultimapTest {
         List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
         assertEquals(5, values.size());
         
-        assertEquals(new BaseInterval<Integer>(40,45), values.get(0).interval);
+        assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
         assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(45,50), values.get(1).interval);
+        assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
         assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(50,70), values.get(2).interval);
+        assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
         assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
         
-        assertEquals(new BaseInterval<Integer>(70,80), values.get(3).interval);
+        assertEquals(new BaseInterval<Integer>(70,80), values.get(3));
         assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(80,90), values.get(4).interval);
+        assertEquals(new BaseInterval<Integer>(80,90), values.get(4));
         assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
     }
     
@@ -266,22 +266,22 @@ public class IntervalMultimapTest {
         List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
         assertEquals(6, values.size());
         
-        assertEquals(new BaseInterval<Integer>(40,45), values.get(0).interval);
+        assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
         assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(45,50), values.get(1).interval);
+        assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
         assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(50,70), values.get(2).interval);
+        assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
         assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
         
-        assertEquals(new BaseInterval<Integer>(70,80), values.get(3).interval);
+        assertEquals(new BaseInterval<Integer>(70,80), values.get(3));
         assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
 
-        assertEquals(new BaseInterval<Integer>(80,100), values.get(4).interval);
+        assertEquals(new BaseInterval<Integer>(80,100), values.get(4));
         assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
         
-        assertEquals(new BaseInterval<Integer>(100,130), values.get(5).interval);
+        assertEquals(new BaseInterval<Integer>(100,130), values.get(5));
         assertArrayEquals(new Integer[]{}, values.get(5).values.toArray());
     }
     

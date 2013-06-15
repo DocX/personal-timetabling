@@ -37,7 +37,7 @@ public class RouletteSelection implements OccurrenceSelection {
                 Integer oldSum = occurrencesCosts.get(occurrence);
                 // add value of interval length multiplied by count of other occurrences filling that interval
                 int newSum = (oldSum == null ? 0 : oldSum) + 
-                        (valuesInterval.getInterval().getEnd() - valuesInterval.getInterval().getStart()) *
+                        (valuesInterval.getEnd() - valuesInterval.getStart()) *
                         (valuesInterval.getValues().size() - 1);
                 
                 occurrencesCosts.put(occurrence, newSum);
