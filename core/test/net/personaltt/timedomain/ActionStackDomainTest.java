@@ -232,7 +232,7 @@ public class ActionStackDomainTest {
             );
         
         // should
-        // 1.1. 0:0 - 4.1. 0:0
+        // not 1.1. 0:0 - 4.1. 0:0 (does not cross range)
         //  8.1. 0:0 - 11.1. 0:0 -- 8.1. 05:0 - 8.1. 13:0 = 
         // 8.1. 0:0 - 8.1. 5:0
         // 8.1 13:00 - 11.1. 0:0
@@ -244,7 +244,7 @@ public class ActionStackDomainTest {
         List<Interval> intervals = intervalset.getIntervals();
         
         ArrayList<Interval> expecteds = new ArrayList<>();
-        expecteds.add(new Interval(new LocalDateTime(2010,1,1,0,0,0), new LocalDateTime(2010,1,4,0,0,0)));
+        //expecteds.add(new Interval(new LocalDateTime(2010,1,1,0,0,0), new LocalDateTime(2010,1,4,0,0,0)));
         expecteds.add(new Interval(new LocalDateTime(2010,1,8,0,0,0), new LocalDateTime(2010,1,8,5,0,0)));
         expecteds.add(new Interval(new LocalDateTime(2010,1,8,13,0,0), new LocalDateTime(2010,1,11,0,0,0)));
         expecteds.add(new Interval(new LocalDateTime(2010,1,15,0,0,0), new LocalDateTime(2010,1,18,0,0,0)));
