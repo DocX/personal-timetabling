@@ -1,5 +1,6 @@
 package net.personaltt.simplesolver;
 
+import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
@@ -59,6 +60,11 @@ public class SimpleSolver {
         // while there is conflict, solve it
         while(!currentSolution.terminationCondition() && System.currentTimeMillis() - startTime < timeoutLimit) {
             System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
+            
+            System.out.printf("State:");
+//            for (Integer integer : currentSolution.allocationsMultimap().) {
+//                
+//            }
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts

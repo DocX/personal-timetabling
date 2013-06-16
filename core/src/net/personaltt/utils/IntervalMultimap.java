@@ -4,6 +4,7 @@
  */
 package net.personaltt.utils;
 
+import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -194,14 +195,8 @@ public class IntervalMultimap<K extends Comparable, V> {
     }
     
     
-    /**
-     * Values intervals iterator. Iterates over intervals with list of values on it
-     * @return 
-     */
-    public Iterable<ValuesInterval> valuesIntervals() {
-        return new ValuesIntervalsIterable(this);
-    }
     
+   
     /**
      * Values interval of given point. Point p is in interval i iff e_i leq p le e_i+1..
      * Returns null if it lies outside intervals multimap boudary (before first interval
@@ -209,7 +204,7 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param point
      * @return 
      */
-    public ValuesInterval valuesIntervalOfPoint(K point) {
+    public ValuedInterval<K,List<V>> valuesIntervalOfPoint(K point) {
         Entry<K, List<V>> startEntry = edges.floorEntry(point);
         K endEdge = edges.higherKey(point);
         
@@ -218,7 +213,7 @@ public class IntervalMultimap<K extends Comparable, V> {
             return null;
         }
         
-        ValuesInterval vi = new ValuesInterval(
+        ValuedInterval<K,List<V>> vi = new ValuedInterval<>(
             new BaseInterval<>(startEntry.getKey(), endEdge),
             startEntry.getValue()
                 );
@@ -234,128 +229,91 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param interval
      * @return 
      */
-    public List<ValuesInterval> valuesInInterval(BaseInterval<K> interval) {
-        List<ValuesInterval> values = new ArrayList<>();
-        
-        if(edges.isEmpty()) {
-            return values;
+    public Iterable<ValuedInterval<K,List<V>>> valuesInInterval(final BaseInterval<K> interval) {
+        // if edges are empty, no interval is there, so return abstract empty list
+        if (edges.isEmpty()) {
+            return Collections.emptyList();
         }
         
-        Entry<K, List<V>> floorEdge = edges.floorEntry(interval.start);
-        if (floorEdge == null) {
-            floorEdge = edges.firstEntry();
-            values.add(new ValuesInterval(new BaseInterval<>(interval.start, floorEdge.getKey()), new ArrayList<V>()));
-        }
-        
-        for (Entry<K, List<V>> entry : edges.subMap(floorEdge.getKey(),false, interval.end, false).entrySet()) {
-            values.add(
-                    new ValuesInterval(new BaseInterval<>(
-                        floorEdge.getKey().compareTo(interval.start) < 0 ? interval.start : floorEdge.getKey(),
-                        entry.getKey().compareTo(interval.end) > 0 ? interval.end : entry.getKey()
-                    ),
-                    floorEdge.getValue()));
-            
-            floorEdge = entry;
-        }
-        
-        // add last interval
-        K endKey = floorEdge.getKey().compareTo(interval.start) < 0 ? interval.start : floorEdge.getKey();
-        Entry<K, List<V>> endEntry = edges.floorEntry(endKey);
-        values.add(
-                new ValuesInterval(new BaseInterval<>(
-                    endKey,
-                    interval.end
-                ),
-                endEntry.getValue()
-                )
-           );
-        
-        return values;
-    }
-
-    
-    /**
-     * Interval multimap entry. Stores interval and values that covers it.
-     */
-    public class ValuesInterval extends BaseInterval<K> {
-        List<V> values;
-
-        public List<V> getValues() {
-            return values;
-        }
-
-
-        public ValuesInterval(BaseInterval<K> interval, List<V> values) {
-            super(interval.start, interval.end);
-            this.values = values;
-        }
-    }
-    
-    /**
-     * Values Intervals iterable. Iterable wrapper around ValuesIntervalsIterator
-     */
-    private class ValuesIntervalsIterable implements Iterable<ValuesInterval> {
-
-        IntervalMultimap<K,V> multimap;
-
-        public ValuesIntervalsIterable(IntervalMultimap<K, V> multimap) {
-            this.multimap = multimap;
-        }
-        
-        @Override
-        public Iterator<ValuesInterval> iterator() {
-            return new ValuesIntervalsIterator(multimap);
-        }
-        
-    }
-    
-    /**
-     * Values intervals iterator. Iterates over intervals of distinct values list.
-     */
-    private class ValuesIntervalsIterator implements Iterator<ValuesInterval> {
-
-        IntervalMultimap<K,V> multimap;
-        Iterator<Entry<K,List<V>>> multimapIterator;
-        Entry<K,List<V>> previous;
-        Entry<K,List<V>> current;
-
-        public ValuesIntervalsIterator(IntervalMultimap<K, V> multimap) {
-            this.multimap = multimap;
-            multimapIterator = multimap.edges.entrySet().iterator();
-            // get firt edge
-            if (multimapIterator.hasNext()) {
-                current = multimapIterator.next();
+        // otherwise make stops iterator in edges boundary and wrap it in intervals
+        // from stops iterator
+        return new Iterable<ValuedInterval<K, List<V>>>() {
+            @Override
+            public Iterator<ValuedInterval<K, List<V>>> iterator() {
+                return new IntervalsFromStops(new MultimapSubsetStopsIterator(
+                        interval
+                        ));
             }
+        };
+    }
+
+     /**
+     * Values intervals iterator. Iterates over intervals with list of values on it
+     * @return 
+     */
+    public Iterable<ValuedInterval<K, List<V>>> valuesIntervals() {
+        return valuesInInterval(new BaseInterval<>(edges.firstKey(), edges.lastKey()));
+    }
+    
+    /**
+     * Multimap subsets stops iterator. Splits given interval to chunks by 
+     * distinct values in multimap. Iterates over all stops strictly before interval
+     * end - last stop determine value of interval from it to given interval end
+     */
+    private class MultimapSubsetStopsIterator implements IntervalsStopsIterator<K,List<V>> {
+
+        BaseInterval<K> boundary;
+        Iterator<Entry<K,List<V>>> subsetIterator;
+        
+        Entry<K, List<V>> current;
+
+        public MultimapSubsetStopsIterator(BaseInterval<K> boundary) {
+            this.boundary = boundary;
+            
+            // set first step - it is always boundary start,
+            // only determine if it is before edges map or inside
+            Entry<K, List<V>> floor = edges.floorEntry(boundary.start);
+            if (floor == null) {
+                current = new AbstractMap.SimpleEntry<K, List<V>>(boundary.start, new ArrayList<V>());
+            } else {
+                current = new AbstractMap.SimpleEntry<>(boundary.start, floor.getValue());
+            }
+            
+            // all stops is between first and boundary end.
+            // if map contains key equal to boundary start, skip it (is already in current)
+            // if map contains key eqaul to boundary end, also skip it
+            subsetIterator = edges.subMap(current.getKey(),false, boundary.end, false).entrySet().iterator();
         }
         
         @Override
         public boolean hasNext() {
-            return multimapIterator.hasNext();
+            return current != null;
         }
 
         @Override
-        public ValuesInterval next() {
-            // move to next intervalwith list of values in it.
-            previous = current;
-            current = multimapIterator.next();
-                        
-            ValuesInterval vi = new ValuesInterval(
-                new BaseInterval<>(previous.getKey(), current.getKey()),
-                previous.getValue()
-                        );
+        public Entry<K,List<V>> next() {
+            Entry<K, List<V>> ret = current;
             
-            // if current is end of interval, skip to next new interval
-            if (current.getValue().isEmpty() && multimapIterator.hasNext()) {
-                current = multimapIterator.next();
+            if (subsetIterator.hasNext()) {
+                current = subsetIterator.next();
+            } else {
+                current = null;
             }
-
-            return vi;
+            
+            return ret;
         }
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("Not supported.");
+            throw new UnsupportedOperationException("Not supported yet.");
         }
+
+        @Override
+        public K upperBound() {
+            return boundary.end;
+        }
+        
+        
         
     }
     

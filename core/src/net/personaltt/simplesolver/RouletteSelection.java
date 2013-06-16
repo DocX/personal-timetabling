@@ -5,11 +5,13 @@
 package net.personaltt.simplesolver;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.Schedule;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.ValuedInterval;
 
 /**
  * Roulette occurrence selection. Selects occurrence with larger cost with more probability
@@ -32,7 +34,7 @@ public class RouletteSelection implements OccurrenceSelection {
         // map of 
         Map<Occurrence, Integer> occurrencesCosts = new HashMap<>();
       
-        for (IntervalMultimap<Integer, Occurrence>.ValuesInterval valuesInterval : schedule.valuesIntervals()) {
+        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : schedule.valuesIntervals()) {
             for (Occurrence occurrence : valuesInterval.getValues()) {
                 Integer oldSum = occurrencesCosts.get(occurrence);
                 // add value of interval length multiplied by count of other occurrences filling that interval

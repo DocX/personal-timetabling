@@ -6,6 +6,8 @@ package net.personaltt.simplesolver;
 
 import net.personaltt.utils.IntervalsAlignedToStopsIterator;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -14,7 +16,7 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.IntervalMultimap;
-import net.personaltt.utils.IntervalMultimap.ValuesInterval;
+import net.personaltt.utils.ValuedInterval;
 
 /**
  * Simple allocation selection. Selects allocation from occurrence's domain that 
@@ -87,14 +89,17 @@ public class SimpleAllocationSelection implements AllocationSelection {
    
     private void findInDomainInterval(BaseInterval<Integer> baseInterval, Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule, BestAllocationsStore bestAllocations) {
 
-        List<IntervalMultimap<Integer, Occurrence>.ValuesInterval> values = 
-                schedule.valuesInInterval(baseInterval);
+        List<ValuedInterval<Integer, List<Occurrence>>> values = new ArrayList<>();
+
+        for (ValuedInterval<Integer, List<Occurrence>> valuedInterval : schedule.valuesInInterval(baseInterval)) {
+            values.add(valuedInterval);
+        }
         
-        for (Iterator<IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop> it = new IntervalsAlignedToStopsIterator<>((Integer)occurrence.getMinDuration(), values, new IntegerMetric()); it.hasNext();) {
+        for (IntervalsAlignedToStopsIterator it = new IntervalsAlignedToStopsIterator<>((Integer)occurrence.getMinDuration(), values, new IntegerMetric()); it.hasNext();) {
             IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop stop = it.next();
             
             // compute cost between startPoint and endPoint
-            SimpleCostCoutner cost = new SimpleCostCoutner();
+            CostCounter cost = new MinDurationCostCoutner();
             
             // compute from start to interval before end interval
             // so intervals that are full to end of interval
@@ -114,7 +119,7 @@ public class SimpleAllocationSelection implements AllocationSelection {
             }
             
             // here in cost is cost of allocation of minimal duration
-            bestAllocations.checkAndAdd(cost.cost, endPoint - stop.startPoint, stop.startPoint);
+            bestAllocations.checkAndAdd(cost.cost(), endPoint - stop.startPoint, stop.startPoint);
             
             // current is now on the first interval after minimal duration
             // if minimal duration ends inside last interval, revert to it
@@ -134,21 +139,64 @@ public class SimpleAllocationSelection implements AllocationSelection {
                  
                 
                 cost.add(endPoint - beforeEndPoint, values.get(current).getValues());
-                bestAllocations.checkAndAdd(cost.cost, endPoint - stop.startPoint, stop.startPoint);
+                bestAllocations.checkAndAdd(cost.cost(), endPoint - stop.startPoint, stop.startPoint);
                 current++;
             }
         }
     }
     
+    private interface CostCounter {
+        void add (int length, List<Occurrence> occurrences);
+        int cost();
+    }
+    
     /**
      * Simple cost counter. Counts sum of lengths of occurrences
      */
-    private class SimpleCostCoutner {
+    private class SimpleCostCoutner implements CostCounter {
         int cost = 0;
         
-        void add(int length, List<Occurrence> occurrences) {
+        @Override
+        public void add(int length, List<Occurrence> occurrences) {
             cost += length * occurrences.size();
         }
+
+        @Override
+        public int cost() {
+            return cost;
+        }
+        
+        
+    }
+        
+        
+    /**
+     * Minimal duration cost counter. Counts sum of lengths of occurrences,
+     * but only up to minimal duration of each occurrence. Length allocated by
+     * occurrence that is over minimal duration is not counted.
+     */
+    private class MinDurationCostCoutner implements CostCounter {
+        int cost = 0;
+        
+        HashMap<Occurrence, Integer> usedDuration = new HashMap<>();
+        
+        @Override
+        public void add(int length, List<Occurrence> occurrences) {
+            for (Occurrence occurrence : occurrences) {
+                Integer used = usedDuration.get(occurrence);
+                // remaining, length  --> length up to remaining
+                int croppedLength = Math.min(length, occurrence.getMinDuration() - (used == null ? 0 : used.intValue()));
+                cost += croppedLength + (length - croppedLength) / 2;
+                usedDuration.put(occurrence, (used == null ? 0 : used.intValue()) + croppedLength);
+            }
+        }
+
+        @Override
+        public int cost() {
+            return cost;
+        }
+        
+        
     }
     
     

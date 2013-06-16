@@ -4,8 +4,10 @@
  */
 package net.personaltt.utils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import net.personaltt.problem.Occurrence;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -226,7 +228,11 @@ public class IntervalMultimapTest {
         //    |--------------|
         //    1 13 3   32  2 
         
-        List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
+        Iterable<ValuedInterval<Integer, List<Integer>>> valuesIterable = instance.valuesInInterval(interval);
+        ArrayList<ValuedInterval<Integer, List<Integer>>> values = new ArrayList<>();
+        for (ValuedInterval<Integer, List<Integer>> valuedInterval : valuesIterable) {
+            values.add(valuedInterval);
+        }
         assertEquals(5, values.size());
         
         assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
@@ -263,7 +269,12 @@ public class IntervalMultimapTest {
         //    |-------------------|
         //    1 13 3   32  2   -
         
-        List<IntervalMultimap<Integer,Integer>.ValuesInterval> values = instance.valuesInInterval(interval);
+        Iterable<ValuedInterval<Integer, List<Integer>>> valuesIterable = instance.valuesInInterval(interval);
+        ArrayList<ValuedInterval<Integer, List<Integer>>> values = new ArrayList<>();
+        for (ValuedInterval<Integer, List<Integer>> valuedInterval : valuesIterable) {
+            values.add(valuedInterval);
+        }
+
         assertEquals(6, values.size());
         
         assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
@@ -283,6 +294,48 @@ public class IntervalMultimapTest {
         
         assertEquals(new BaseInterval<Integer>(100,130), values.get(5));
         assertArrayEquals(new Integer[]{}, values.get(5).values.toArray());
+    }
+    
+    /**
+     * 
+     */
+    @Test
+    public void testValuesInInterval3() {
+        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        instance.put(1, new BaseInterval(10, 50));
+        instance.put(2, new BaseInterval(70, 100));
+        instance.put(3, new BaseInterval(45, 50));
+       
+        BaseInterval<Integer> interval = new BaseInterval<>(40,130);
+        
+        // 10  45  50  70    100
+        // |---|---|---|-----|
+        // 1   13  -   2     -
+        //    |-------------------|
+        //    1 13 -   2     -
+        
+        Iterable<ValuedInterval<Integer, List<Integer>>> valuesIterable = instance.valuesInInterval(interval);
+        ArrayList<ValuedInterval<Integer, List<Integer>>> values = new ArrayList<>();
+        for (ValuedInterval<Integer, List<Integer>> valuedInterval : valuesIterable) {
+            values.add(valuedInterval);
+        }
+        assertEquals(5, values.size());
+        
+        assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
+        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
+
+        assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
+
+        assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
+        assertArrayEquals(new Integer[]{}, values.get(2).values.toArray());
+        
+        assertEquals(new BaseInterval<Integer>(70,100), values.get(3));
+        assertArrayEquals(new Integer[]{2}, values.get(3).values.toArray());
+
+        
+        assertEquals(new BaseInterval<Integer>(100,130), values.get(4));
+        assertArrayEquals(new Integer[]{}, values.get(4).values.toArray());
     }
     
     

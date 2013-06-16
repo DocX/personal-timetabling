@@ -28,7 +28,7 @@ public class Benchmark {
         SimpleSolver solver = new SimpleSolver();
         solver.timeoutLimit = 60000;
         
-        ProblemDefinition problem = SeqentialProblem(1000);
+        ProblemDefinition problem = SeqentialProblem(10);
         //ProblemDefinition problem = SeqentialProblemInitialyFilled(1000);
         Schedule solved = solver.solve(problem); 
         
