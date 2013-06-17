@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver;
+package net.personaltt.simplesolver.heuristics;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.Schedule;
+import net.personaltt.simplesolver.OccurrenceSelection;
 import net.personaltt.utils.IntervalMultimap;
 import net.personaltt.utils.ValuedInterval;
 

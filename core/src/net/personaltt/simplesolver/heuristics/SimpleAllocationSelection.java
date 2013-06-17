@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver;
+package net.personaltt.simplesolver.heuristics;
 
 import net.personaltt.utils.IntervalsAlignedToStopsIterator;
 import java.util.ArrayList;
@@ -10,12 +10,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
+import net.personaltt.simplesolver.AllocationSelection;
+import net.personaltt.simplesolver.IntegerMetric;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.IntervalsStopsIterator;
 import net.personaltt.utils.ValuedInterval;
 
 /**
@@ -196,6 +200,34 @@ public class SimpleAllocationSelection implements AllocationSelection {
             return cost;
         }
         
+        
+    }
+    
+    private class MinDurationStopsIterator implements IntervalsStopsIterator<Integer, Integer> {
+
+        IntervalsStopsIterator<Integer, List<Occurrence>> occurrencesStops;
+        
+        
+        
+        @Override
+        public Integer upperBound() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public boolean hasNext() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Entry<Integer, Integer> next() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
         
     }
     

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver;
+package net.personaltt.simplesolver.heuristics;
 
 import java.util.Map.Entry;
 import net.personaltt.problem.Occurrence;

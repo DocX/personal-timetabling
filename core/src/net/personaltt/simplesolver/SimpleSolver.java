@@ -1,5 +1,8 @@
 package net.personaltt.simplesolver;
 
+import net.personaltt.simplesolver.heuristics.SimpleAllocationSelection;
+import net.personaltt.simplesolver.heuristics.RouletteSelection;
+import net.personaltt.simplesolver.heuristics.SimpleSolverSolution;
 import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
