@@ -48,13 +48,14 @@ public class RouletteSelection implements OccurrenceSelection {
         }
         
         // sum costs
-        int costSum = 0;
+        long costSum = 0;
         for (Map.Entry<Occurrence, Integer> entry : occurrencesCosts.entrySet()) {
             costSum += entry.getValue();
         }
         
         // get random in sum
-        int selection = random.nextInt(costSum);
+        long selection = nextLong(random, costSum);
+        
         // go throught occurrences and first where sum is less than random
         costSum = 0;
         Occurrence selectedOccurrence = null;
@@ -67,6 +68,19 @@ public class RouletteSelection implements OccurrenceSelection {
         }
         
         return selectedOccurrence;
+    }
+    
+    long nextLong(Random rng, long n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException("n must be positive");
+        }
+
+        long bits, val;
+        do {
+            bits = (rng.nextLong() << 1) >>> 1;
+            val = bits % n;
+        } while (bits - val + (n - 1) < 0L);
+        return val;
     }
     
 }

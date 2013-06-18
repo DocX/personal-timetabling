@@ -68,7 +68,13 @@ public class SimpleSolver {
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
-            Occurrence toSolve = selection.select(currentSolution.allocationsMultimap());
+            Occurrence toSolve = null;
+            try {
+                toSolve = selection.select(currentSolution.allocationsMultimap());
+            } catch (Exception e) {
+                printState(currentSolution);
+                throw e;
+            }
             
             //printState(currentSolution);
              
