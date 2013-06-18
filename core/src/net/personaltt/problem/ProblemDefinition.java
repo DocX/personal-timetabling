@@ -31,7 +31,8 @@ public class ProblemDefinition {
      */
     public void addOccurrence(Occurrence occurrence, BaseInterval<Integer> initialAllocation) {
         problemOccurrences.add(occurrence);
-        initialSchedule.allocationMapping.put(occurrence, new OccurrenceAllocation(initialAllocation));
+        OccurrenceAllocation allocationInstance = new OccurrenceAllocation(initialAllocation);
+        initialSchedule.allocationMapping.put(occurrence, allocationInstance);
     }
     
 }

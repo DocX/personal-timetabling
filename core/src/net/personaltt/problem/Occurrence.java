@@ -29,6 +29,11 @@ public class Occurrence {
      * ID of occurrence used to associate with other parts of algorithm and client
      */
     int id;
+    
+    /**
+     * Reference to assigned allocation
+     */
+    OccurrenceAllocation allocation;
 
     public Occurrence(BaseIntervalsSet<Integer> domain, int minDuration, int maxDuration, int id) {
         this.domain = domain;
@@ -36,29 +41,50 @@ public class Occurrence {
         this.maxDuration = maxDuration;
         this.id = id;
     }
-    
-    @Override
-    public int hashCode() {
-        return this.id;
-    }
 
+    
+
+    /**
+     * Occurrences are equal iff their ids are equal
+     * @param obj
+     * @return 
+     */
     @Override
     public boolean equals(Object obj) {
-        if (obj.getClass() == this.getClass()) {
+        if (obj instanceof Occurrence) {
             return this.id == ((Occurrence)(obj)).id;
         }
         
         return super.equals(obj);
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + this.id;
+        return hash;
+    }
     
+    /**
+     * Domain of occurrence. Set of intervals where can be occurrence allocated
+     * @return 
+     */
     public BaseIntervalsSet<Integer> getDomain() {
         return domain;
     }
 
+    /**
+     * Maximum duration of allocation of occurrence.
+     * @return 
+     */
     public int getMaxDuration() {
         return maxDuration;
     }
 
+    /**
+     * Minimum duration of allocation of occurrence
+     * @return 
+     */
     public int getMinDuration() {
         return minDuration;
     }
@@ -67,13 +93,28 @@ public class Occurrence {
     public String toString() {
         return String.valueOf(id);
     }
-
+    
+    /**
+     * ID of occurrence.
+     * @return 
+     */
     public int getId() {
         return id;
     }
-    
-    
-    
+
+    /**
+     * Shallow clone of occurrence. Since all fields of occurrence are atomic 
+     * their are copied. Only domain is referenced to source. Allocation is not copied.
+     * @return 
+     */
+    @Override
+    protected Object clone() {
+        return new Occurrence(domain, minDuration, maxDuration, id);
+    }
+
+    public OccurrenceAllocation getAllocation() {
+        return allocation;
+    }
     
     
     

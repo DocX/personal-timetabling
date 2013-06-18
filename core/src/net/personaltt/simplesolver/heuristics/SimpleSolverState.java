@@ -29,10 +29,10 @@ public class SimpleSolverState implements SolverState {
     @Override
     public void init(Schedule schedule) {
         allocationMultimap = new IntervalMultimap<>();
-        solutionSchedule = (Schedule)schedule.clone();
+        solutionSchedule = (Schedule)schedule.deepClone();
         conflictingOccurrences = 0;
         
-        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : schedule.getOccurrencesAllocations()) {
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : solutionSchedule.getOccurrencesAllocations()) {
             int newConflicts = allocationMultimap.put(entry.getKey(), entry.getValue().toInterval());
             conflictingOccurrences += newConflicts;
         }
@@ -77,7 +77,7 @@ public class SimpleSolverState implements SolverState {
     @Override
     public SolverSolution cloneSolution() {
         final int cost = this.cost();
-        final Schedule clonedSchedule = (Schedule)this.getSchedule().clone();
+        final Schedule clonedSchedule = (Schedule)this.getSchedule().allocationsClone();
         
         return new SolverSolution() {
             

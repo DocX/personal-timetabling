@@ -7,7 +7,6 @@ package net.personaltt.simplesolver.heuristics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.Schedule;
@@ -33,18 +32,21 @@ public class RouletteSelection implements OccurrenceSelection {
     @Override
     public Occurrence select(IntervalMultimap<Integer, Occurrence> schedule) {
         
-        // map of cost of occurrences.
-        Map<Occurrence, Long> occurrencesCosts = new HashMap<>();
-        
-        // for all occurrences in multimap, walk values in interval of occurrence and add 
-        // cost
-        for (Occurrence valuesInterval : schedule.values()) {
-            long cost = 0;
-            for (ValuedInterval<Integer, List<Occurrence>> overlapping : schedule.intervalsIn(valuesInterval)) {
-                // length of interval times number of other overlapping values
-                cost += (overlapping.getEnd() - overlapping.getStart()) * (overlapping.getValues().size() - 1);
+        // map of costs of occurrences
+        Map<Occurrence, Long> occurrencesCosts = new HashMap<>(schedule.size(),1f);
+      
+        // Sum cost for each occurrence. Walk throught all intervals chunks in map
+        // and sum number of values in chunk to each value in chunk, which is occurrence
+        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : schedule.valuesIntervals()) {
+            for (Occurrence occurrence : valuesInterval.getValues()) {
+                Long oldSum = occurrencesCosts.get(occurrence);
+                // add value of interval length multiplied by count of other occurrences filling that interval
+                long newSum = (oldSum == null ? 0 : oldSum) + 
+                        (valuesInterval.getEnd() - valuesInterval.getStart()) *
+                        (valuesInterval.getValues().size() - 1);
+                
+                occurrencesCosts.put(occurrence, newSum);
             }
-            occurrencesCosts.put(valuesInterval, cost);
         }
         
         // sum costs

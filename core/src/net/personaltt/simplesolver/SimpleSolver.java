@@ -56,7 +56,7 @@ public class SimpleSolver {
         // clones initial schedule from problem definition
         SolverSolution bestSolution = null;
         SolverState currentSolution = new SimpleSolverState();
-        currentSolution.init((Schedule)problem.initialSchedule.clone());
+        currentSolution.init(problem.initialSchedule);
         
         // Start timer
         long startTime = System.currentTimeMillis();
@@ -68,14 +68,8 @@ public class SimpleSolver {
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
-            Occurrence toSolve = null;
-            try {
-                toSolve = selection.select(currentSolution.allocationsMultimap());
-            } catch (Exception e) {
-                printState(currentSolution);
-                throw e;
-            }
-            
+            Occurrence toSolve =  selection.select(currentSolution.allocationsMultimap());
+
             //printState(currentSolution);
              
             // remove solving occurrence allocation from state,

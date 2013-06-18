@@ -284,6 +284,10 @@ public class IntervalMultimap<K extends Comparable, V> {
             }
         };
     }
+
+    public int size() {
+        return startPoints.size();
+    }
     
     
     /**

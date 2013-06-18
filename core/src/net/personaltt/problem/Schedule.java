@@ -30,7 +30,7 @@ public class Schedule {
     }
     
     public Set<Entry<Occurrence, OccurrenceAllocation>> getOccurrencesAllocations() {
-        return Collections.unmodifiableSet(allocationMapping.entrySet());
+        return allocationMapping.entrySet();
     }
     
     public OccurrenceAllocation getAllocationOf(Occurrence o){
@@ -71,18 +71,34 @@ public class Schedule {
     }
 
     /**
-     * Clones this shedule. Maintains the same keys references to occurrences but
-     * creates new OccurrenceAllocation objects for each key with the same value of
-     * this
+     * Deep clone of this shedule. Deeply clones schedule - occurrences and its allocation
+     * instances. Occurrences are cloned with referencing the same domain object.
      * @return
      * @throws CloneNotSupportedException 
      */
-    @Override
-    public Object clone() {
-        Schedule clone = new Schedule(this.allocationMapping.size(), this.allocationMapping.keySet());
+    public Schedule deepClone() {
+        Schedule clone = new Schedule();
         
         for (Occurrence occurrence : this.allocationMapping.keySet()) {
-            clone.allocationMapping.get(occurrence).copy(this.allocationMapping.get(occurrence));
+            Occurrence occurrenceClone = (Occurrence)occurrence.clone();
+            occurrenceClone.allocation = new OccurrenceAllocation(getAllocationOf(occurrence).toInterval());
+            
+            clone.allocationMapping.put(occurrenceClone, occurrenceClone.allocation);
+        }
+        
+        return clone;
+    }
+    
+    /**
+     * Clone of schedule with allocations. References to occurrences instances is
+     * kept and occurrences are untouched. Allocations are copied into new schedule map. 
+     * @return 
+     */
+    public Schedule allocationsClone() {
+        Schedule clone = new Schedule();
+        
+        for (Occurrence occurrence : this.allocationMapping.keySet()) {
+            clone.allocationMapping.put(occurrence, new OccurrenceAllocation(getAllocationOf(occurrence).toInterval()));
         }
         
         return clone;

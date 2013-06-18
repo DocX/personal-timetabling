@@ -103,7 +103,8 @@ public class SimpleAllocationSelection implements AllocationSelection {
             IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop stop = it.next();
             
             // compute cost between startPoint and endPoint
-            CostCounter cost = new SimpleCostCoutner();
+            CostCounter cost = new MinDurationCostCoutner(schedule.size());
+            //CostCounter cost = new SimpleCostCoutner();
             
             // compute from start to interval before end interval
             // so intervals that are full to end of interval
@@ -175,23 +176,34 @@ public class SimpleAllocationSelection implements AllocationSelection {
         
         
     /**
-     * Minimal duration cost counter. Counts sum of lengths of occurrences,
-     * but only up to minimal duration of each occurrence. Length allocated by
-     * occurrence that is over minimal duration is not counted.
+     * Minimal duration cost counter. Counts sum of lengths of occurrences by half
+     * up to length that is over minimal. Then it counts as normal
      */
     private class MinDurationCostCoutner implements CostCounter {
         int cost = 0;
         
-        HashMap<Occurrence, Integer> usedDuration = new HashMap<>();
+        HashMap<Occurrence, Integer> usedDuration;
+
+        public MinDurationCostCoutner(int durations) {
+            usedDuration = new HashMap<>(durations*2);
+        }
         
+
         @Override
         public void add(int length, List<Occurrence> occurrences) {
             for (Occurrence occurrence : occurrences) {
-                Integer used = usedDuration.get(occurrence);
-                // remaining, length  --> length up to remaining
-                int croppedLength = Math.min(length, occurrence.getMinDuration() - (used == null ? 0 : used.intValue()));
-                cost += croppedLength + (length - croppedLength) / 2;
-                usedDuration.put(occurrence, (used == null ? 0 : used.intValue()) + croppedLength);
+                int used = ifNullZero(usedDuration.get(occurrence));
+                
+                // get length that remains over minimal duration
+                int remainingOver = Math.max(0, (occurrence.getAllocation().getDuration()-used) - occurrence.getMinDuration());
+                
+                // count length over only by half
+                int lengthOver = Math.min(remainingOver, length);
+                cost += lengthOver;
+                // length in minimal duration count full
+                cost += (length - lengthOver) * 2;
+                
+                usedDuration.put(occurrence, used+ length);
             }
         }
 
@@ -200,7 +212,9 @@ public class SimpleAllocationSelection implements AllocationSelection {
             return cost;
         }
         
-        
+        private int ifNullZero(Integer i) {
+            return i == null ? 0 : i.intValue();
+        }
     }
     
     private class MinDurationStopsIterator implements IntervalsStopsIterator<Integer, Integer> {

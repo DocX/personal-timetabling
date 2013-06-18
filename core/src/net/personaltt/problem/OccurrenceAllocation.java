@@ -12,8 +12,14 @@ import net.personaltt.utils.BaseInterval;
  */
 public class OccurrenceAllocation {
     
+    /**
+     * Start of occurrence.
+     */
     int start;
     
+    /**
+     * Duration of occurrence.
+     */
     int duration; 
 
     public OccurrenceAllocation() {
@@ -31,14 +37,6 @@ public class OccurrenceAllocation {
         this.duration = allocation.getEnd() - this.start;
     }
     
-    /**
-     * Sets this values to values of other
-     * @param other 
-     */
-    public void copy(OccurrenceAllocation other) {
-        this.start = other.start;
-        this.duration = other.duration;
-    }
     
     /**
      * Returns interval of this allocation
@@ -59,15 +57,31 @@ public class OccurrenceAllocation {
         this.duration = duration;
     }
 
+    
+    /**
+     * Duration of allocation.
+     * @return 
+     */
     public int getDuration() {
         return duration;
     }
 
+    /**
+     * Start of allocation
+     * @return 
+     */
     public int getStart() {
         return start;
     }
     
-    
+     /**
+     * Sets values from given allocation
+     * @param get 
+     */
+    public void set(OccurrenceAllocation get) {
+        this.start = get.start;
+        this.duration = get.duration;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -88,18 +102,7 @@ public class OccurrenceAllocation {
 
     @Override
     public String toString() {
-        return String.format("%s+%s", start, duration);
+        return start + "+" + duration;
     }
-
-    public void set(OccurrenceAllocation get) {
-        this.start = get.start;
-        this.duration = get.duration;
-    }
-    
-    
-    
-    
-    
-    
-    
+ 
 }
