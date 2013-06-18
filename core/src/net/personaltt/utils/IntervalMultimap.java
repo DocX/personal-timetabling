@@ -20,9 +20,9 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.timedomain.IntervalsSet;
 
 /**
- * Interval multimap stores intervals with mapped value and provides searching
- * through intervals for all mapped values in given interval in O(log n).
- * Intervals are identified by its value.
+ * Interval multimap maps values to its intervals and provides searching
+ * through intervals for split intervals of overlapping values 
+ * in O(n log n).
  * 
  * It stores intervals edges in sorted structure (like binary tree) and maps them to
  * the list of values that are from edge point to the right. Each value is for each
@@ -260,6 +260,32 @@ public class IntervalMultimap<K extends Comparable, V> {
         return edges.entrySet();
     }
     
+    
+    /**
+     * Iterable over maped values to intervals
+     * @return 
+     */
+    public Iterable<V> values() {
+        return startPoints.keySet();
+    }
+
+    
+    /**
+     * Iterable over intervals chunks spliting interval of given value
+     * @param value
+     * @return 
+     */
+    public Iterable<ValuedInterval<K, List<V>>> intervalsIn(final V value) {
+        return new Iterable<ValuedInterval<K, List<V>>>() {
+
+            @Override
+            public Iterator<ValuedInterval<K, List<V>>> iterator() {
+                return new IntervalsFromStops<>(new StopsInValueInterval(value));
+            }
+        };
+    }
+    
+    
     /**
      * Multimap subsets stops iterator. Splits given interval to chunks by 
      * distinct values in multimap. Iterates over all stops strictly before interval
@@ -318,9 +344,49 @@ public class IntervalMultimap<K extends Comparable, V> {
             return boundary.end;
         }
         
+    }
+
+    private class StopsInValueInterval implements IntervalsStopsIterator<K,List<V>>  {
+        V value;
+        Iterator<Entry<K,List<V>>> subsetIterator;
         
+        Entry<K, List<V>> current;
+
+        public StopsInValueInterval(V value) {
+            this.value = value;
+            
+            K startPoint = startPoints.get(value);
+            subsetIterator = edges.tailMap(startPoint, true).entrySet().iterator();
+            current = subsetIterator.next();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current.getValue().contains(value);
+        }
+
+        @Override
+        public Entry<K, List<V>> next() {
+            Entry<K, List<V>> ret = current;
+            
+            current = subsetIterator.next();
+            return ret;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public K upperBound() {
+            if (current.getValue().contains(value)) {
+                throw new UnsupportedOperationException("Stops iterator do not iterate to bound yet.");
+            }
+            
+            return current.getKey();
+        }
         
     }
-    
     
 }

@@ -7,6 +7,7 @@ package net.personaltt.simplesolver.heuristics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.Schedule;
@@ -32,24 +33,23 @@ public class RouletteSelection implements OccurrenceSelection {
     @Override
     public Occurrence select(IntervalMultimap<Integer, Occurrence> schedule) {
         
-        // map of 
-        Map<Occurrence, Integer> occurrencesCosts = new HashMap<>();
-      
-        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : schedule.valuesIntervals()) {
-            for (Occurrence occurrence : valuesInterval.getValues()) {
-                Integer oldSum = occurrencesCosts.get(occurrence);
-                // add value of interval length multiplied by count of other occurrences filling that interval
-                int newSum = (oldSum == null ? 0 : oldSum) + 
-                        (valuesInterval.getEnd() - valuesInterval.getStart()) *
-                        (valuesInterval.getValues().size() - 1);
-                
-                occurrencesCosts.put(occurrence, newSum);
+        // map of cost of occurrences.
+        Map<Occurrence, Long> occurrencesCosts = new HashMap<>();
+        
+        // for all occurrences in multimap, walk values in interval of occurrence and add 
+        // cost
+        for (Occurrence valuesInterval : schedule.values()) {
+            long cost = 0;
+            for (ValuedInterval<Integer, List<Occurrence>> overlapping : schedule.intervalsIn(valuesInterval)) {
+                // length of interval times number of other overlapping values
+                cost += (overlapping.getEnd() - overlapping.getStart()) * (overlapping.getValues().size() - 1);
             }
+            occurrencesCosts.put(valuesInterval, cost);
         }
         
         // sum costs
         long costSum = 0;
-        for (Map.Entry<Occurrence, Integer> entry : occurrencesCosts.entrySet()) {
+        for (Map.Entry<Occurrence, Long> entry : occurrencesCosts.entrySet()) {
             costSum += entry.getValue();
         }
         
@@ -59,7 +59,7 @@ public class RouletteSelection implements OccurrenceSelection {
         // go throught occurrences and first where sum is less than random
         costSum = 0;
         Occurrence selectedOccurrence = null;
-        for (Map.Entry<Occurrence, Integer> entry : occurrencesCosts.entrySet()) {
+        for (Map.Entry<Occurrence, Long> entry : occurrencesCosts.entrySet()) {
             if (costSum > selection) {
                 break;
             }
