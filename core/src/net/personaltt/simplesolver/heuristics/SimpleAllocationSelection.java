@@ -103,7 +103,7 @@ public class SimpleAllocationSelection implements AllocationSelection {
             IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop stop = it.next();
             
             // compute cost between startPoint and endPoint
-            CostCounter cost = new MinDurationCostCoutner();
+            CostCounter cost = new SimpleCostCoutner();
             
             // compute from start to interval before end interval
             // so intervals that are full to end of interval

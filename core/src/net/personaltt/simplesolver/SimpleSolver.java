@@ -1,8 +1,9 @@
 package net.personaltt.simplesolver;
 
+import java.util.List;
 import net.personaltt.simplesolver.heuristics.SimpleAllocationSelection;
 import net.personaltt.simplesolver.heuristics.RouletteSelection;
-import net.personaltt.simplesolver.heuristics.SimpleSolverSolution;
+import net.personaltt.simplesolver.heuristics.SimpleSolverState;
 import java.util.Map;
 import java.util.Random;
 import net.personaltt.problem.Occurrence;
@@ -53,7 +54,8 @@ public class SimpleSolver {
         // Initialize solver working variables
         
         // clones initial schedule from problem definition
-        SolverSolution currentSolution = new SimpleSolverSolution();
+        SolverSolution bestSolution = null;
+        SolverState currentSolution = new SimpleSolverState();
         currentSolution.init((Schedule)problem.initialSchedule.clone());
         
         // Start timer
@@ -64,16 +66,15 @@ public class SimpleSolver {
         while(!currentSolution.terminationCondition() && System.currentTimeMillis() - startTime < timeoutLimit) {
             System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
             
-            System.out.printf("State:");
-//            for (Integer integer : currentSolution.allocationsMultimap().) {
-//                
-//            }
-            
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
             Occurrence toSolve = selection.select(currentSolution.allocationsMultimap());
-
-            // remove solving occurrence allocation for allocation selection
+            
+            //printState(currentSolution);
+             
+            // remove solving occurrence allocation from state,
+            // in order to allocation selection can select place on schedule without
+            // allocating occurrence itself.
             OccurrenceAllocation toSolveAllocation = currentSolution.removeAllocationOf(toSolve);
             
             System.out.printf("Selected occurrence %s at %s\n", toSolve, toSolveAllocation);
@@ -87,11 +88,23 @@ public class SimpleSolver {
             
             System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
             
+            // store best solution
+            if (bestSolution == null || bestSolution.cost() > currentSolution.cost()) {
+                bestSolution = currentSolution.cloneSolution();
+            }
+            
             iteration++;
         }
         
-        return currentSolution.getSchedule();
+        return bestSolution.getSchedule();
         
+    }
+
+    private void printState(SolverState currentSolution) {
+        System.out.printf("State:\n");
+        for (Map.Entry<Integer, List<Occurrence>> entry : currentSolution.allocationsMultimap().stopsInMap()) {
+            System.out.printf("%s: %s\n", entry.getKey(), entry.getValue());
+        }
     }
 
 

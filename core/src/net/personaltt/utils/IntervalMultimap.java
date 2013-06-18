@@ -115,13 +115,13 @@ public class IntervalMultimap<K extends Comparable, V> {
     * @param key 
     */
     private void addEdge(K key) {
-        K floorKey = edges.floorKey(key);
-        if(floorKey == null || !floorKey.equals(key)) {
+        Entry<K, List<V>> floorKey = edges.floorEntry(key);
+        if(floorKey == null || floorKey.getKey().compareTo(key) != 0) {
             // going to add new edge, but with what values?
             List<V> list = new ArrayList<>();
             if (floorKey != null) {
                 //some edge is before, add its values (adding to its territory)
-                list.addAll(edges.get(floorKey));
+                list.addAll(floorKey.getValue());
             }
             
             // add new starting edge
@@ -149,7 +149,7 @@ public class IntervalMultimap<K extends Comparable, V> {
         
         List<V> previousEdge = new ArrayList<>();
         if (edges.lowerKey(start) != null) {
-            edges.lowerEntry(start).getValue();
+            previousEdge = edges.lowerEntry(start).getValue();
         }
         
         for (Iterator<Entry<K,List<V>>> it = edges.tailMap(start).entrySet().iterator(); it.hasNext();) {
@@ -170,8 +170,9 @@ public class IntervalMultimap<K extends Comparable, V> {
                 // if it doesn contain any other value, remove edge
                  if (edge.getValue().size() == previousEdge.size() && edge.getValue().containsAll(previousEdge)) {
                     it.remove();
-                    break;
-                }
+                    
+                 }
+                 break;
             }
         }
         
@@ -253,6 +254,10 @@ public class IntervalMultimap<K extends Comparable, V> {
      */
     public Iterable<ValuedInterval<K, List<V>>> valuesIntervals() {
         return valuesInInterval(new BaseInterval<>(edges.firstKey(), edges.lastKey()));
+    }
+    
+    public Iterable<Entry<K,List<V>>> stopsInMap() {
+        return edges.entrySet();
     }
     
     /**

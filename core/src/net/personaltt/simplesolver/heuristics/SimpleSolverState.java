@@ -10,6 +10,7 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.problem.Schedule;
 import net.personaltt.simplesolver.SolverSolution;
+import net.personaltt.simplesolver.SolverState;
 import net.personaltt.utils.IntervalMultimap;
 
 /**
@@ -17,7 +18,7 @@ import net.personaltt.utils.IntervalMultimap;
  * allocations. Also keeps updated Schedule all time
  * @author docx
  */
-public class SimpleSolverSolution implements SolverSolution {
+public class SimpleSolverState implements SolverState {
 
     IntervalMultimap<Integer, Occurrence> allocationMultimap;
     
@@ -72,5 +73,26 @@ public class SimpleSolverSolution implements SolverSolution {
     public Schedule getSchedule() {
         return solutionSchedule;
     }
+
+    @Override
+    public SolverSolution cloneSolution() {
+        final int cost = this.cost();
+        final Schedule clonedSchedule = (Schedule)this.getSchedule().clone();
+        
+        return new SolverSolution() {
+            
+            @Override
+            public int cost() {
+                return cost;
+            }
+
+            @Override
+            public Schedule getSchedule() {
+                return clonedSchedule;
+            }
+        };
+    }
+    
+    
     
 }
