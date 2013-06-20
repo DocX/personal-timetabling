@@ -151,7 +151,9 @@ public class SimpleAllocationSelection implements AllocationSelection {
     }
     
     private interface CostCounter {
-        void add (int length, List<Occurrence> occurrences);
+        void init(int start, List<Occurrence> occurrencesInStart);
+        
+        void add(int length, List<Occurrence> occurrences);
         int cost();
     }
     
@@ -182,17 +184,17 @@ public class SimpleAllocationSelection implements AllocationSelection {
     private class MinDurationCostCoutner implements CostCounter {
         int cost = 0;
         
-        HashMap<Occurrence, Integer> usedDuration;
+        cern.colt.map.OpenIntIntHashMap usedDuration;
 
         public MinDurationCostCoutner(int durations) {
-            usedDuration = new HashMap<>(durations*2);
+            usedDuration = new cern.colt.map.OpenIntIntHashMap(durations*2);
         }
         
 
         @Override
         public void add(int length, List<Occurrence> occurrences) {
             for (Occurrence occurrence : occurrences) {
-                int used = ifNullZero(usedDuration.get(occurrence));
+                int used = usedDuration.get(occurrence.getId());
                 
                 // get length that remains over minimal duration
                 int remainingOver = Math.max(0, (occurrence.getAllocation().getDuration()-used) - occurrence.getMinDuration());
@@ -203,7 +205,7 @@ public class SimpleAllocationSelection implements AllocationSelection {
                 // length in minimal duration count full
                 cost += (length - lengthOver) * 2;
                 
-                usedDuration.put(occurrence, used+ length);
+                usedDuration.put(occurrence.getId(), used+ length);
             }
         }
 
@@ -212,9 +214,6 @@ public class SimpleAllocationSelection implements AllocationSelection {
             return cost;
         }
         
-        private int ifNullZero(Integer i) {
-            return i == null ? 0 : i.intValue();
-        }
     }
     
     private class MinDurationStopsIterator implements IntervalsStopsIterator<Integer, Integer> {

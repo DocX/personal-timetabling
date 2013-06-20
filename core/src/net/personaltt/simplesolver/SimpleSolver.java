@@ -10,6 +10,7 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.problem.ProblemDefinition;
 import net.personaltt.problem.Schedule;
+import net.personaltt.utils.IntervalMultimap;
 
 /**
  * Simple solver finds any feasible schedule for personal timetabling problem.
@@ -102,8 +103,8 @@ public class SimpleSolver {
 
     private void printState(SolverState currentSolution) {
         System.out.printf("State:\n");
-        for (Map.Entry<Integer, List<Occurrence>> entry : currentSolution.allocationsMultimap().stopsInMap()) {
-            System.out.printf("%s: %s\n", entry.getKey(), entry.getValue());
+        for (Map.Entry<Integer, IntervalMultimap.MultimapEdge<Occurrence>> entry : currentSolution.allocationsMultimap().stopsInMap()) {
+            System.out.printf("%s: %s\n", entry.getKey(), entry.getValue().getValues());
         }
     }
 
