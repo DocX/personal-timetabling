@@ -328,6 +328,33 @@ public class IntervalMultimap<K extends Comparable, V> {
             }
         };
     }
+    
+    /**
+     * Values in interval. Splits given interval to chunks by values changes in
+     * current multimap on that intervals.
+     * Retuns list of chunks with values in chunk interval. First chunk has start to 
+     * start of given interval and last chunk ends on given interval end. Whole
+     * interval range is covered by chunks.
+     * @param interval
+     * @return 
+     */
+    public Iterable<ValuedInterval<K,MultimapEdge<V>>> valuesChangesInInterval(final BaseInterval<K> interval) {
+        // if edges are empty, no interval is there, so return abstract empty list
+        if (edges.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // otherwise make stops iterator in edges boundary and wrap it in intervals
+        // from stops iterator
+        return new Iterable<ValuedInterval<K, MultimapEdge<V>>>() {
+            @Override
+            public Iterator<ValuedInterval<K, MultimapEdge<V>>> iterator() {
+                return new IntervalsFromStops(new MultimapSubsetEdgeIterator(
+                        interval
+                        ));
+            }
+        };
+    }
 
      /**
      * Values intervals iterator. Iterates over intervals with list of values on it
@@ -375,13 +402,17 @@ public class IntervalMultimap<K extends Comparable, V> {
         return startPoints.size();
     }
     
+    public Iterable<V> keys() {
+        return startPoints.keySet();
+    }
+   
     
     /**
      * Multimap subsets stops iterator. Splits given interval to chunks by 
      * distinct values in multimap. Iterates over all stops strictly before interval
      * end - last stop determine value of interval from it to given interval end
      */
-    private class MultimapSubsetEdgeIterator implements Iterator<Entry<K,MultimapEdge<V>>> {
+    private class MultimapSubsetEdgeIterator implements IntervalsStopsIterator<K,MultimapEdge<V>> {
 
         BaseInterval<K> boundary;
         Iterator<Entry<K,MultimapEdge<V>>> subsetIterator;

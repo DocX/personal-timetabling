@@ -65,7 +65,7 @@ public class SimpleSolver {
         
         // while there is conflict, solve it
         while(!currentSolution.terminationCondition() && System.currentTimeMillis() - startTime < timeoutLimit) {
-            System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
+            //System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
@@ -78,7 +78,7 @@ public class SimpleSolver {
             // allocating occurrence itself.
             OccurrenceAllocation toSolveAllocation = currentSolution.removeAllocationOf(toSolve);
             
-            System.out.printf("Selected occurrence %s at %s\n", toSolve, toSolveAllocation);
+            //System.out.printf("Selected occurrence %s at %s\n", toSolve, toSolveAllocation);
             
             // select allocation of solving occurrence
             OccurrenceAllocation solvingAllocation = allocationSelection.select(
@@ -87,7 +87,7 @@ public class SimpleSolver {
             // set selected allocation
             boolean conflicts = currentSolution.setAllocation(toSolve, solvingAllocation);
             
-            System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
+            //System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
             
             // store best solution
             if (bestSolution == null || bestSolution.cost() > currentSolution.cost()) {

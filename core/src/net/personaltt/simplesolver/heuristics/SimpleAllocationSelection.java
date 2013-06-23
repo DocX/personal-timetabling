@@ -4,6 +4,7 @@
  */
 package net.personaltt.simplesolver.heuristics;
 
+import java.util.AbstractMap;
 import net.personaltt.utils.IntervalsAlignedToStopsIterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,10 +42,11 @@ public class SimpleAllocationSelection implements AllocationSelection {
         // and then maximal in duration
         List<OccurrenceAllocation> bestAllocations = findBestAllacations(forOccurrence, schedule);
         
-        System.out.printf("No. of found best possible allocations: %s \n", bestAllocations.size());
+        //System.out.printf("No. of found best possible allocations: %s \n", bestAllocations.size());
 
         return bestAllocations.get(random.nextInt(bestAllocations.size()));
     }
+
 
    
 
@@ -111,8 +113,8 @@ public class SimpleAllocationSelection implements AllocationSelection {
     private void findInDomainInterval(BaseInterval<Integer> baseInterval, Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule, BestAllocationsStore bestAllocations) {
 
         // retrieve list of intervals chungs in given interval
-        List<ValuedInterval<Integer, List<Occurrence>>> values = new ArrayList<>();
-        for (ValuedInterval<Integer, List<Occurrence>> valuedInterval : schedule.valuesInInterval(baseInterval)) {
+        List<ValuedInterval<Integer, MultimapEdge<Occurrence>>> values = new ArrayList<>();
+        for (ValuedInterval<Integer, MultimapEdge<Occurrence>> valuedInterval : schedule.valuesChangesInInterval(baseInterval)) {
             values.add(valuedInterval);
         }
         
@@ -132,7 +134,9 @@ public class SimpleAllocationSelection implements AllocationSelection {
             
             // for all possible durations, that are aligned to stops
             while (duration <= occurrence.getMaxDuration() && alignment.startPoint + duration <= baseInterval.getEnd()) {
-                int cost = computeCostOfAllocation(alignment.startPoint, duration, schedule);
+                int cost = computeCostOfAllocation(alignment.startPoint, duration, 
+                        //schedule.edgesIteratorInInterval(new BaseInterval<>(alignment.startPoint, alignment.startPoint + duration)));
+                        new EdgesInDurationFromList(values,alignment.startValuesIndex,alignment.startPoint + duration));
                 
                 if (bestAllocations.storeIfBest(cost, duration, alignment.startPoint) == false) {
                     // if allocation is not best, more durable allocation will not sure be also best, so can 
@@ -156,19 +160,49 @@ public class SimpleAllocationSelection implements AllocationSelection {
         }
     }
     
+    private class EdgesInDurationFromList implements Iterator<Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>>> {
+
+        List<ValuedInterval<Integer, MultimapEdge<Occurrence>>> values;
+        int currentIndex;
+        int endPoint;
+        
+        public EdgesInDurationFromList(List<ValuedInterval<Integer, MultimapEdge<Occurrence>>> values, int startIndex, int endPoint) {
+            this.values = values;
+            currentIndex = startIndex;
+            this.endPoint = endPoint;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return currentIndex<values.size() && values.get(currentIndex).getStart() < endPoint;
+        }
+
+        @Override
+        public Entry<Integer, MultimapEdge<Occurrence>> next() {
+            Entry<Integer, MultimapEdge<Occurrence>> ret = 
+                    new AbstractMap.SimpleEntry<>(values.get(currentIndex).getStart(), values.get(currentIndex).getValues());
+            
+            currentIndex++;
+            return ret;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+        
+    }
+    
     /**
      * Cost of allocation. Compute cost of given occurrence allocation to given allocations.
      * Cost is sum for each allocation overlapping given allocation of 
      * max(length_over_min_duration - length_of_overlap, 0)/2 + (length_of_overlap - max(length_over_min_duration - length_of_overlap, 0))
      * @param startPoint
      * @param duration
-     * @param schedule
+     * @param edgesIterator iterator throught edges up to duration
      * @return 
      */
-    private int computeCostOfAllocation(Integer startPoint, int duration, IntervalMultimap<Integer, Occurrence> schedule) {
-
-        Iterator<Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>>> edgesIterator = 
-                 schedule.edgesIteratorInInterval(new BaseInterval<>(startPoint, startPoint + duration));
+    private int computeCostOfAllocation(Integer startPoint, int duration, Iterator<Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>>> edgesIterator) {
         
         int endPoint = startPoint + duration;
         Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>> currentEdge;
@@ -204,19 +238,21 @@ public class SimpleAllocationSelection implements AllocationSelection {
     private int sumOccurrencesCost(List<Occurrence> occurrences, int endPoint, Integer startPoint) {
          int cost = 0;
          for (Occurrence occurrence : occurrences) {
-            // for all occurrences that are overlaping start point, count duration
-            // that is cropped by its allocation
-            
-            int durationInOccurrence = Math.min(occurrence.getAllocation().getStart() + occurrence.getAllocation().getDuration(), endPoint) - 
-                    Math.max(occurrence.getAllocation().getStart(), startPoint);
-            
-            // compute duration up to duration that takes over minimal duration as half
-            int overMinDuration = Math.max(0, occurrence.getAllocation().getDuration() - occurrence.getMinDuration());
-            cost += Math.min(durationInOccurrence, overMinDuration) + Math.max(0, durationInOccurrence - overMinDuration) * 2;
+            cost += occurrenceCost(occurrence, endPoint, startPoint);
         }
         return cost;
     }
     
+     private int occurrenceCost(Occurrence occurrence, int endPoint, Integer startPoint) {
+        // for all occurrences that are overlaping start point, count duration
+        // that is cropped by its allocation
+        int durationInOccurrence = Math.min(occurrence.getAllocation().getStart() + occurrence.getAllocation().getDuration(), endPoint) - 
+                Math.max(occurrence.getAllocation().getStart(), startPoint);
+        // compute duration up to duration that takes over minimal duration as half
+        int overMinDuration = Math.max(0, occurrence.getAllocation().getDuration() - occurrence.getMinDuration());
+        return Math.min(durationInOccurrence, overMinDuration) + Math.max(0, durationInOccurrence - overMinDuration) * 2;
+    }
+
     
     
 }

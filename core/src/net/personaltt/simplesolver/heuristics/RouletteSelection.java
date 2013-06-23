@@ -4,6 +4,8 @@
  */
 package net.personaltt.simplesolver.heuristics;
 
+import cern.colt.function.IntDoubleProcedure;
+import cern.colt.map.OpenIntDoubleHashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import net.personaltt.problem.Schedule;
 import net.personaltt.simplesolver.OccurrenceSelection;
 import net.personaltt.utils.IntervalMultimap;
 import net.personaltt.utils.ValuedInterval;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 
 /**
  * Roulette occurrence selection. Selects occurrence with larger cost with more probability
@@ -33,44 +36,60 @@ public class RouletteSelection implements OccurrenceSelection {
     public Occurrence select(IntervalMultimap<Integer, Occurrence> schedule) {
         
         // map of costs of occurrences
-        Map<Occurrence, Long> occurrencesCosts = new HashMap<>(schedule.size(),1f);
+        cern.colt.map.OpenIntDoubleHashMap occurrencesCosts = new OpenIntDoubleHashMap(schedule.size()*2);
+        
+        long costSum = 0;
       
         // Sum cost for each occurrence. Walk throught all intervals chunks in map
         // and sum number of values in chunk to each value in chunk, which is occurrence
         for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : schedule.valuesIntervals()) {
             for (Occurrence occurrence : valuesInterval.getValues()) {
-                Long oldSum = occurrencesCosts.get(occurrence);
+                double oldSum = occurrencesCosts.get(occurrence.getId());
                 // add value of interval length multiplied by count of other occurrences filling that interval
-                long newSum = (oldSum == null ? 0 : oldSum) + 
+                long cost =  
                         (valuesInterval.getEnd() - valuesInterval.getStart()) *
                         (valuesInterval.getValues().size() - 1);
+                costSum += cost;
                 
-                occurrencesCosts.put(occurrence, newSum);
+                occurrencesCosts.put(occurrence.getId(), oldSum + cost);
             }
         }
         
-        // sum costs
-        long costSum = 0;
-        for (Map.Entry<Occurrence, Long> entry : occurrencesCosts.entrySet()) {
-            costSum += entry.getValue();
-        }
         
         // get random in sum
         long selection = nextLong(random, costSum);
         
         // go throught occurrences and first where sum is less than random
-        costSum = 0;
-        Occurrence selectedOccurrence = null;
-        for (Map.Entry<Occurrence, Long> entry : occurrencesCosts.entrySet()) {
-            if (costSum > selection) {
-                break;
-            }
-            selectedOccurrence = entry.getKey();
-            costSum += entry.getValue();
-        }
+        SelectionFunc select = new SelectionFunc(selection);
+        occurrencesCosts.forEachPair(select);
         
-        return selectedOccurrence;
+        for (Occurrence occurrence : schedule.keys()) {
+            if (occurrence.getId() == select.selectedOccurrenceId) {
+                return occurrence;
+            }
+        }
+        throw new IllegalStateException();
     }
+    
+    private class SelectionFunc implements IntDoubleProcedure {
+        long costSum = 0;
+        int selectedOccurrenceId = 0;
+        long selection;
+
+        public SelectionFunc(long selection) {
+            this.selection = selection;
+        }
+
+        @Override
+        public boolean apply(int i, double d) {
+            if (costSum > selection) {
+                return false;
+            }
+            selectedOccurrenceId = i;
+            costSum += d;
+            return true;
+        }
+    };
     
     long nextLong(Random rng, long n) {
         if (n <= 0) {
