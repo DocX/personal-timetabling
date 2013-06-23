@@ -19,6 +19,7 @@ import net.personaltt.simplesolver.AllocationSelection;
 import net.personaltt.simplesolver.IntegerMetric;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.IntervalMultimap.MultimapEdge;
 import net.personaltt.utils.IntervalsStopsIterator;
 import net.personaltt.utils.ValuedInterval;
 
@@ -44,15 +45,23 @@ public class SimpleAllocationSelection implements AllocationSelection {
 
         return bestAllocations.get(random.nextInt(bestAllocations.size()));
     }
+
    
+
+
+   
+    
+    /** Best allocations store class. Provides simplification to storing best
+     * of allocations. Allocation a is better than b iff a.cost lt b.cost or (a.duration gt b.duration and a.cost == b.cost)
+     */
     private class BestAllocationsStore {
         int bestCost = Integer.MAX_VALUE;
         int bestDuration = 0;
         ArrayList<OccurrenceAllocation> bestAllocations = new ArrayList<>();
         
-        void checkAndAdd(int cost, int duration, int start) {
+        boolean storeIfBest(int cost, int duration, int start) {
             if (cost > bestCost) {
-                return;
+                return false;
             }
             
             if (cost < bestCost || duration > bestDuration) {
@@ -62,10 +71,11 @@ public class SimpleAllocationSelection implements AllocationSelection {
             }
             
             if (duration < bestDuration) {
-                return;
+                return false;
             }
             
             bestAllocations.add(new OccurrenceAllocation(start, duration));
+            return true;
         }
     }
     
@@ -91,158 +101,122 @@ public class SimpleAllocationSelection implements AllocationSelection {
         return bestAllocations.bestAllocations;
     }
    
+    /**
+     * Walks throught actuall allocations in given interval and search for best possible allocations.
+     * @param baseInterval
+     * @param occurrence
+     * @param schedule
+     * @param bestAllocations 
+     */
     private void findInDomainInterval(BaseInterval<Integer> baseInterval, Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule, BestAllocationsStore bestAllocations) {
 
+        // retrieve list of intervals chungs in given interval
         List<ValuedInterval<Integer, List<Occurrence>>> values = new ArrayList<>();
-
         for (ValuedInterval<Integer, List<Occurrence>> valuedInterval : schedule.valuesInInterval(baseInterval)) {
             values.add(valuedInterval);
         }
         
+        // for all allocations alligned to intervals changes
         for (IntervalsAlignedToStopsIterator it = new IntervalsAlignedToStopsIterator<>((Integer)occurrence.getMinDuration(), values, new IntegerMetric()); it.hasNext();) {
-            IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop stop = it.next();
+            IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop alignment = it.next();
             
-            // compute cost between startPoint and endPoint
-            CostCounter cost = new MinDurationCostCoutner(schedule.size());
-            //CostCounter cost = new SimpleCostCoutner();
+            int current = alignment.startValuesIndex;
+            int duration = occurrence.getMinDuration();
             
-            // compute from start to interval before end interval
-            // so intervals that are full to end of interval
-            int current = stop.startValuesIndex;
-            int endPoint = stop.startPoint + occurrence.getMinDuration();
+            // if duration is before current interval end, set current to minus one
+            // so next stop in cycle below will first select end of first interval, rather
+            // than end of next interval, which would skip one stop
+            if (values.get(current).getEnd() <= alignment.startPoint + duration) {
+                current -= 1;
+            }
             
-            while(current < values.size() && values.get(current).getStart() < endPoint) {
+            // for all possible durations, that are aligned to stops
+            while (duration <= occurrence.getMaxDuration() && alignment.startPoint + duration <= baseInterval.getEnd()) {
+                int cost = computeCostOfAllocation(alignment.startPoint, duration, schedule);
                 
-                // length of current interval cropped by start and end point
-                int length = 
-                        Math.min(endPoint, values.get(current).getEnd()) -
-                        Math.max(stop.startPoint, values.get(current).getStart());
+                if (bestAllocations.storeIfBest(cost, duration, alignment.startPoint) == false) {
+                    // if allocation is not best, more durable allocation will not sure be also best, so can 
+                    // break
+                    break;
+                }
                 
-                cost.add(length, values.get(current).getValues());
+                // if duration is maximal, break cycle
+                if (duration == occurrence.getMaxDuration()) {
+                    break;
+                }
                 
+                // set duration to next stop
                 current++;
+                if (current == values.size()) {
+                    break;
+                }
+                duration = Math.min(values.get(current).getEnd() - alignment.startPoint, occurrence.getMaxDuration());
             }
-            
-            // here in cost is cost of allocation of minimal duration
-            bestAllocations.checkAndAdd(cost.cost(), endPoint - stop.startPoint, stop.startPoint);
-            
-            // current is now on the first interval after minimal duration
-            // if minimal duration ends inside last interval, revert to it
-            if (current < values.size() && values.get(current).getStart() > endPoint) {
-                current--;
-            }
-            
-            // walk by next intervals stops to enlarge duration
-            while(current < values.size() && values.get(current).getStart() <
-                    stop.startPoint + occurrence.getMaxDuration() && 
-                    endPoint < stop.startPoint + occurrence.getMaxDuration()) {
-                
-                int beforeEndPoint = endPoint;
-                endPoint = Math.min(
-                        stop.startPoint + occurrence.getMaxDuration(), 
-                        values.get(current).getEnd());
-                 
-                
-                cost.add(endPoint - beforeEndPoint, values.get(current).getValues());
-                bestAllocations.checkAndAdd(cost.cost(), endPoint - stop.startPoint, stop.startPoint);
-                current++;
-            }
+           
         }
-    }
-    
-    private interface CostCounter {
-        void init(int start, List<Occurrence> occurrencesInStart);
-        
-        void add(int length, List<Occurrence> occurrences);
-        int cost();
     }
     
     /**
-     * Simple cost counter. Counts sum of lengths of occurrences
+     * Cost of allocation. Compute cost of given occurrence allocation to given allocations.
+     * Cost is sum for each allocation overlapping given allocation of 
+     * max(length_over_min_duration - length_of_overlap, 0)/2 + (length_of_overlap - max(length_over_min_duration - length_of_overlap, 0))
+     * @param startPoint
+     * @param duration
+     * @param schedule
+     * @return 
      */
-    private class SimpleCostCoutner implements CostCounter {
+    private int computeCostOfAllocation(Integer startPoint, int duration, IntervalMultimap<Integer, Occurrence> schedule) {
+
+        Iterator<Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>>> edgesIterator = 
+                 schedule.edgesIteratorInInterval(new BaseInterval<>(startPoint, startPoint + duration));
+        
+        int endPoint = startPoint + duration;
+        Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>> currentEdge;
         int cost = 0;
         
-        @Override
-        public void add(int length, List<Occurrence> occurrences) {
-            cost += length * occurrences.size();
-        }
-
-        @Override
-        public int cost() {
+        
+        // first count allocations that are at the point of startPoint
+        if (!edgesIterator.hasNext()) {
             return cost;
         }
         
+        currentEdge = edgesIterator.next();
+        cost += sumOccurrencesCost(currentEdge.getValue().getValues(), endPoint, startPoint);
         
-    }
-        
-        
-    /**
-     * Minimal duration cost counter. Counts sum of lengths of occurrences by half
-     * up to length that is over minimal. Then it counts as normal
-     */
-    private class MinDurationCostCoutner implements CostCounter {
-        int cost = 0;
-        
-        cern.colt.map.OpenIntIntHashMap usedDuration;
-
-        public MinDurationCostCoutner(int durations) {
-            usedDuration = new cern.colt.map.OpenIntIntHashMap(durations*2);
+        // next walk thgrought edges and compute for all new added occurrences
+        while(edgesIterator.hasNext()) {
+            currentEdge = edgesIterator.next();
+            
+            cost += sumOccurrencesCost(currentEdge.getValue().getAdded(), endPoint, startPoint);
         }
         
-
-        @Override
-        public void add(int length, List<Occurrence> occurrences) {
-            for (Occurrence occurrence : occurrences) {
-                int used = usedDuration.get(occurrence.getId());
-                
-                // get length that remains over minimal duration
-                int remainingOver = Math.max(0, (occurrence.getAllocation().getDuration()-used) - occurrence.getMinDuration());
-                
-                // count length over only by half
-                int lengthOver = Math.min(remainingOver, length);
-                cost += lengthOver;
-                // length in minimal duration count full
-                cost += (length - lengthOver) * 2;
-                
-                usedDuration.put(occurrence.getId(), used+ length);
-            }
-        }
-
-        @Override
-        public int cost() {
-            return cost;
-        }
-        
+        return cost;
     }
     
-    private class MinDurationStopsIterator implements IntervalsStopsIterator<Integer, Integer> {
-
-        IntervalsStopsIterator<Integer, List<Occurrence>> occurrencesStops;
-        
-        
-        
-        @Override
-        public Integer upperBound() {
-            throw new UnsupportedOperationException("Not supported yet.");
+    /**
+     * Sum cost of occurrences over given allocation. It counts half sum for duration that is 
+     * over minimal duration in occurrence.
+     * @param occurrences
+     * @param endPoint
+     * @param startPoint
+     * @return 
+     */
+    private int sumOccurrencesCost(List<Occurrence> occurrences, int endPoint, Integer startPoint) {
+         int cost = 0;
+         for (Occurrence occurrence : occurrences) {
+            // for all occurrences that are overlaping start point, count duration
+            // that is cropped by its allocation
+            
+            int durationInOccurrence = Math.min(occurrence.getAllocation().getStart() + occurrence.getAllocation().getDuration(), endPoint) - 
+                    Math.max(occurrence.getAllocation().getStart(), startPoint);
+            
+            // compute duration up to duration that takes over minimal duration as half
+            int overMinDuration = Math.max(0, occurrence.getAllocation().getDuration() - occurrence.getMinDuration());
+            cost += Math.min(durationInOccurrence, overMinDuration) + Math.max(0, durationInOccurrence - overMinDuration) * 2;
         }
-
-        @Override
-        public boolean hasNext() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Entry<Integer, Integer> next() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-        
+        return cost;
     }
+    
     
     
 }

@@ -98,6 +98,10 @@ public class IntervalMultimap<K extends Comparable, V> {
         public Object[] toArray() {
             return values.toArray();
         }
+        
+        public List<V> getAdded() {
+            return addedValues;
+        }
     }
     
     /** 
@@ -333,8 +337,13 @@ public class IntervalMultimap<K extends Comparable, V> {
         return valuesInInterval(new BaseInterval<>(edges.firstKey(), edges.lastKey()));
     }
     
+    
     public Iterable<Entry<K,MultimapEdge<V>>> stopsInMap() {
         return edges.entrySet();
+    }
+    
+    public Iterator<Entry<K,MultimapEdge<V>>> edgesIteratorInInterval(BaseInterval<K> interval) {
+        return new MultimapSubsetEdgeIterator(interval);
     }
     
     
@@ -372,14 +381,14 @@ public class IntervalMultimap<K extends Comparable, V> {
      * distinct values in multimap. Iterates over all stops strictly before interval
      * end - last stop determine value of interval from it to given interval end
      */
-    private class MultimapSubsetStopsIterator implements IntervalsStopsIterator<K,List<V>> {
+    private class MultimapSubsetEdgeIterator implements Iterator<Entry<K,MultimapEdge<V>>> {
 
         BaseInterval<K> boundary;
         Iterator<Entry<K,MultimapEdge<V>>> subsetIterator;
         
         Entry<K, MultimapEdge<V>> current;
 
-        public MultimapSubsetStopsIterator(BaseInterval<K> boundary) {
+        public MultimapSubsetEdgeIterator(BaseInterval<K> boundary) {
             this.boundary = boundary;
             
             // set first step - it is always boundary start,
@@ -403,8 +412,8 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         @Override
-        public Entry<K,List<V>> next() {
-            Entry<K, List<V>> ret = new AbstractMap.SimpleEntry<K, List<V>>(current.getKey(), current.getValue().values);;
+        public Entry<K,MultimapEdge<V>> next() {
+            Entry<K, MultimapEdge<V>> ret = current;
             
             if (subsetIterator.hasNext()) {
                 current = subsetIterator.next();
@@ -420,13 +429,43 @@ public class IntervalMultimap<K extends Comparable, V> {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
-        @Override
         public K upperBound() {
             return boundary.end;
         }
         
     }
 
+    private class MultimapSubsetStopsIterator implements IntervalsStopsIterator<K,List<V>> {
+
+        MultimapSubsetEdgeIterator edgesIterator;
+        
+        public MultimapSubsetStopsIterator(BaseInterval<K> boundary) {
+            edgesIterator = new MultimapSubsetEdgeIterator(boundary);
+        }     
+        
+        @Override
+        public K upperBound() {
+            return edgesIterator.upperBound();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return edgesIterator.hasNext();
+        }
+
+        @Override
+        public Entry<K, List<V>> next() {
+            Entry<K,MultimapEdge<V>> next = edgesIterator.next();
+            return new AbstractMap.SimpleEntry<>(next.getKey(), next.getValue().values);
+        }
+
+        @Override
+        public void remove() {
+            edgesIterator.remove();
+        }
+        
+    }
+    
     private class StopsInValueInterval implements IntervalsStopsIterator<K,List<V>>  {
         V value;
         Iterator<Entry<K,MultimapEdge<V>>> subsetIterator;
