@@ -23,6 +23,12 @@ public class SimpleSolver {
      */
     public long timeoutLimit = 15000;
     
+    /*
+     * Number of iterations that do not changes cost of solutions 
+     * considered as that solver is stuck
+     */
+    public int stuckedThreshold = 5000;
+    
     /**
      * Instance of random used in solver
      */
@@ -62,10 +68,22 @@ public class SimpleSolver {
         // Start timer
         long startTime = System.currentTimeMillis();
         long iteration = 0;
+        long prevCost = -1;
+        long firstCostIteration = 0;
         
         // while there is conflict, solve it
         while(!currentSolution.terminationCondition() && System.currentTimeMillis() - startTime < timeoutLimit) {
-            //System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
+            System.out.printf("Iteration %s, Cost %s\n", iteration, currentSolution.cost());
+            
+            if (prevCost == currentSolution.cost()) {
+                if ((iteration - firstCostIteration) > stuckedThreshold) {
+                    System.out.printf("Detected stuck. Ending solver.\n");
+                    break;
+                }
+            } else {
+                prevCost = currentSolution.cost();
+                firstCostIteration = iteration;
+            }
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
@@ -95,6 +113,7 @@ public class SimpleSolver {
             }
             
             iteration++;
+
         }
         
         return bestSolution.getSchedule();

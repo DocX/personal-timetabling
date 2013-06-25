@@ -55,6 +55,14 @@ public class RouletteSelection implements OccurrenceSelection {
             }
         }
         
+        // add cost for smaller duration
+        
+        for (Occurrence occurrence : schedule.keys()) {
+            double old = occurrencesCosts.get(occurrence.getId());
+            long durCost =  (long)(occurrence.getMaxDuration() - occurrence.getAllocation().getDuration());
+            costSum += durCost;
+            occurrencesCosts.put(occurrence.getId(), old + durCost);
+        }
         
         // get random in sum
         long selection = nextLong(random, costSum);
@@ -82,6 +90,10 @@ public class RouletteSelection implements OccurrenceSelection {
 
         @Override
         public boolean apply(int i, double d) {
+            if (d == 0) {
+                return true;
+            }
+            
             if (costSum > selection) {
                 return false;
             }

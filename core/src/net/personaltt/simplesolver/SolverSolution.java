@@ -15,7 +15,7 @@ public interface SolverSolution {
      * Returns current cost
      * @return 
      */
-    public int cost();
+    public long cost();
     
     
     /**

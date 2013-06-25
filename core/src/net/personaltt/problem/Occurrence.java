@@ -115,6 +115,10 @@ public class Occurrence {
     public OccurrenceAllocation getAllocation() {
         return allocation;
     }
+
+    public void setAllocation(OccurrenceAllocation allocation) {
+        this.allocation = allocation;
+    }
     
     
     
