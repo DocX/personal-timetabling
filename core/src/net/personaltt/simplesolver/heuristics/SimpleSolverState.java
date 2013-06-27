@@ -57,7 +57,7 @@ public class SimpleSolverState implements SolverState {
     @Override
     public long cost() {
         //return conflictingOccurrences;
-        return maxDurationsSum - durationsSum;
+        return (conflictingOccurrences * maxDurationsSum) + (maxDurationsSum - durationsSum);
     }
 
     @Override

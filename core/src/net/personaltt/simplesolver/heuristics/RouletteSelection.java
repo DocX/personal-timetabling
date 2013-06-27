@@ -14,6 +14,7 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.Schedule;
 import net.personaltt.simplesolver.OccurrenceSelection;
 import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.RandomUtils;
 import net.personaltt.utils.ValuedInterval;
 import org.omg.CORBA.DynAnyPackage.Invalid;
 
@@ -60,12 +61,14 @@ public class RouletteSelection implements OccurrenceSelection {
         for (Occurrence occurrence : schedule.keys()) {
             double old = occurrencesCosts.get(occurrence.getId());
             long durCost =  (long)(occurrence.getMaxDuration() - occurrence.getAllocation().getDuration());
-            costSum += durCost;
+            // add one to each occurrence to ensure all have at least 1/n probabilty of selection
+            durCost += 1;
+            costSum += durCost ;
             occurrencesCosts.put(occurrence.getId(), old + durCost);
         }
         
         // get random in sum
-        long selection = nextLong(random, costSum);
+        long selection = RandomUtils.nextLong(random, costSum);
         
         // go throught occurrences and first where sum is less than random
         SelectionFunc select = new SelectionFunc(selection);
@@ -102,18 +105,5 @@ public class RouletteSelection implements OccurrenceSelection {
             return true;
         }
     };
-    
-    long nextLong(Random rng, long n) {
-        if (n <= 0) {
-            throw new IllegalArgumentException("n must be positive");
-        }
-
-        long bits, val;
-        do {
-            bits = (rng.nextLong() << 1) >>> 1;
-            val = bits % n;
-        } while (bits - val + (n - 1) < 0L);
-        return val;
-    }
     
 }

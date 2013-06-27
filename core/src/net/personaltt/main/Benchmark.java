@@ -35,6 +35,7 @@ public class Benchmark {
         //bench2();
         //bench3();
         bench4();
+        //bench5();
 
     }
     
@@ -66,7 +67,7 @@ public class Benchmark {
      * time horizont. It may be overconstrained - no not-conflicting solution exists.
      */
     private static void bench3() {
-        ProblemDefinition problem = (new RandomProblemGenerator(24*60*60, 1000, 0f)).generateRandomProblem();
+        ProblemDefinition problem = (new RandomProblemGenerator(24*60*60, 100, 0f)).generateRandomProblem();
         printProblem(problem.problemOccurrences);
         benchSolve(problem);
     }
@@ -95,6 +96,38 @@ public class Benchmark {
         // print optimal solutions
         System.out.println("\nOptimal solution:");
         printProblem(generator.optimalSolution);
+        
+        // print initial problem
+        System.out.println("\nInitial problem:");
+        printProblem(problem.problemOccurrences);
+        
+        System.out.println();
+        benchSolve(problem);
+    }
+    
+    /**
+     * Stuck test bench. Problem where to obtain lower cost from
+     * initial must be placed conflicting allocation.
+     */
+    private static void bench5() {
+        ProblemDefinition problem = new ProblemDefinition();
+        
+        BaseIntervalsSet<Integer> domain1 = new BaseIntervalsSet<>();
+        domain1.unionWith(0,20);
+        
+        BaseIntervalsSet<Integer> domain2 = new BaseIntervalsSet<>();
+        domain2.unionWith(0,20);
+        domain2.unionWith(30,40);
+        
+        // initial complicated problem with no conflict but not maximal duration sum
+        problem.addOccurrence(new Occurrence(domain1, 10, 20, 1), new BaseInterval<>(0,10));
+        problem.addOccurrence(new Occurrence(domain2, 10, 20, 2), new BaseInterval<>(10,20));
+        problem.addOccurrence(new Occurrence(domain2, 5, 5, 3), new BaseInterval<>(30,35));
+        
+        // optimal solution in duration sum is
+        // 1: 0-15
+        // 2: 30-40
+        // 3: 15-20
         
         // print initial problem
         System.out.println("\nInitial problem:");

@@ -1,7 +1,7 @@
 package net.personaltt.simplesolver;
 
 import java.util.List;
-import net.personaltt.simplesolver.heuristics.SimpleAllocationSelection;
+import net.personaltt.simplesolver.heuristics.AllocationSelectionBase;
 import net.personaltt.simplesolver.heuristics.RouletteSelection;
 import net.personaltt.simplesolver.heuristics.SimpleSolverState;
 import java.util.Map;
@@ -10,6 +10,8 @@ import net.personaltt.problem.Occurrence;
 import net.personaltt.problem.OccurrenceAllocation;
 import net.personaltt.problem.ProblemDefinition;
 import net.personaltt.problem.Schedule;
+import net.personaltt.simplesolver.heuristics.BestAllocationSelection;
+import net.personaltt.simplesolver.heuristics.RouletteAllocationSelection;
 import net.personaltt.utils.IntervalMultimap;
 
 /**
@@ -56,7 +58,8 @@ public class SimpleSolver {
         // Occurrence selection
         OccurrenceSelection selection = new RouletteSelection();
 
-        AllocationSelection allocationSelection = new SimpleAllocationSelection();
+        AllocationSelection allocationSelection = new BestAllocationSelection();
+        AllocationSelection stuckedAllocationSelection = new RouletteAllocationSelection();
         
         // Initialize solver working variables
         
@@ -87,7 +90,8 @@ public class SimpleSolver {
             
             // Get random conflicting occurrence and its current allocation
             // with more probability on first items in arrays, which have more conflicts
-            Occurrence toSolve =  selection.select(currentSolution.allocationsMultimap());
+            
+            Occurrence toSolve = selection.select(currentSolution.allocationsMultimap());
 
             //printState(currentSolution);
              
@@ -96,16 +100,26 @@ public class SimpleSolver {
             // allocating occurrence itself.
             OccurrenceAllocation toSolveAllocation = currentSolution.removeAllocationOf(toSolve);
             
-            //System.out.printf("Selected occurrence %s at %s\n", toSolve, toSolveAllocation);
+            System.out.printf("Selected occurrence %s at %s\n", toSolve, toSolveAllocation);
             
             // select allocation of solving occurrence
-            OccurrenceAllocation solvingAllocation = allocationSelection.select(
-                    currentSolution.allocationsMultimap(), toSolve);
+            
+            // with larger time in the same cost increase probability of roulette allocation selection
+            // instead of best selection. if cost is stucked for half of stucked threshold, probabilty is 1
+            OccurrenceAllocation solvingAllocation;
+            if (random.nextDouble() >= (iteration - firstCostIteration) / (stuckedThreshold / 2)) {
+                System.out.println("Standart allocation selection used");
+                solvingAllocation = allocationSelection.select(currentSolution.allocationsMultimap(), toSolve);
+            } else {
+                // use roulette selection
+                System.out.println("Stucked allocation selection used");
+                solvingAllocation = stuckedAllocationSelection.select(currentSolution.allocationsMultimap(), toSolve);
+            }
            
             // set selected allocation
             boolean conflicts = currentSolution.setAllocation(toSolve, solvingAllocation);
             
-            //System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
+            System.out.printf("Resolved as: %s With conflict: %s\n", solvingAllocation, conflicts);
             
             // store best solution
             if (bestSolution == null || bestSolution.cost() > currentSolution.cost()) {
