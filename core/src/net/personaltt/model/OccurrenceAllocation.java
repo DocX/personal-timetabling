@@ -56,6 +56,10 @@ public class OccurrenceAllocation {
         }
         this.duration = duration;
     }
+    
+    public int getEnd() {
+        return start + duration;
+    }
 
     
     /**

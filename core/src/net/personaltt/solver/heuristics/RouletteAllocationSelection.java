@@ -39,7 +39,7 @@ public class RouletteAllocationSelection implements AllocationSelection {
         while(allocations.hasNext()) {
             BaseInterval<Integer> allocation = allocations.next();
             
-            int allocationCost = cost.computeCostOfAllocation(allocation);
+            long allocationCost = cost.computeCostOfAllocation(allocation);
             
             allocationsList.add(new AllocationAndCost(allocation, 1d/(allocationCost+1)));
         }

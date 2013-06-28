@@ -32,7 +32,7 @@ public class ProblemDefinition {
     public void addOccurrence(Occurrence occurrence, BaseInterval<Integer> initialAllocation) {
         problemOccurrences.add(occurrence);
         OccurrenceAllocation allocationInstance = new OccurrenceAllocation(initialAllocation);
-        occurrence.allocation = allocationInstance;
+        occurrence.setInitialAllocation(allocationInstance);;
         initialSchedule.allocationMapping.put(occurrence, allocationInstance);
     }
     

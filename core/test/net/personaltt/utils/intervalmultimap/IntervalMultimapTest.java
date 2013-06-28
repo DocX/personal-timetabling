@@ -2,13 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.utils;
+package net.personaltt.utils.intervalmultimap;
 
 import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import net.personaltt.model.Occurrence;
+import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.Iterables;
+import net.personaltt.utils.ValuedInterval;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -47,7 +50,7 @@ public class IntervalMultimapTest {
     @Test
     public void testPut() {
         System.out.println("put");
-        IntervalMultimap<Integer,Object> instance = new IntervalMultimap<>();
+        IntervalMultimap<Object> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         
         // |----------------|
@@ -68,7 +71,7 @@ public class IntervalMultimapTest {
     @Test
     public void testPut3() {
         System.out.println("put");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(20, 55));
         instance.put(3, new BaseInterval(10, 30));
@@ -98,16 +101,16 @@ public class IntervalMultimapTest {
     @Test
     public void testPutNewConflicts() {
         System.out.println("put");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
-        int newConflicts;
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
+        long newConflicts;
         newConflicts = instance.put(1, new BaseInterval(10, 50));
         assertEquals(0, newConflicts);
 
         newConflicts = instance.put(2, new BaseInterval(20, 55));
-        assertEquals(2, newConflicts);
+        assertEquals(60, newConflicts);
         
         newConflicts = instance.put(3, new BaseInterval(10, 30));
-        assertEquals(1, newConflicts);
+        assertEquals(20+40, newConflicts);
     }
     
     /**
@@ -116,8 +119,8 @@ public class IntervalMultimapTest {
     @Test
     public void testPutNewConflicts2() {
         System.out.println("put");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
-        int newConflicts;
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
+        long newConflicts;
         newConflicts = instance.put(1, new BaseInterval(10, 50));
         assertEquals(0, newConflicts);
 
@@ -125,7 +128,7 @@ public class IntervalMultimapTest {
         assertEquals(0, newConflicts);
         
         newConflicts = instance.put(3, new BaseInterval(45, 80));
-        assertEquals(3, newConflicts);
+        assertEquals(10+20, newConflicts);
     }
 
     /**
@@ -134,7 +137,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemove() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(20, 55));
         instance.put(3, new BaseInterval(10, 30));
@@ -162,7 +165,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemoveFirst() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(20, 55));
         instance.put(3, new BaseInterval(25, 30));
@@ -198,7 +201,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemoveLast() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(30, 50));
         instance.put(3, new BaseInterval(30, 50));
@@ -221,7 +224,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemoveLast2() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(4, new BaseInterval(40, 60));
         instance.put(2, new BaseInterval(30, 50));
@@ -246,7 +249,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemoveLast3() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         for (int i = 0; i < 1000; i++) {
             instance.put(i, new BaseInterval(0, 10));
         }
@@ -274,7 +277,7 @@ public class IntervalMultimapTest {
     @Test
     public void testRemoveLast4() {
         System.out.println("remove");
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         // need stops
         // 0    10   20   30
         // |    |    |    | 
@@ -310,14 +313,14 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testRemoveReturn() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(70, 100));
         instance.put(3, new BaseInterval(45, 80));
        
-        int newNoConflicts;
+        long newNoConflicts;
         newNoConflicts = instance.remove(3);
-        assertEquals(3, newNoConflicts);
+        assertEquals(30, newNoConflicts);
     }
     
      /**
@@ -325,17 +328,17 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testRemoveReturn2() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 20));
         instance.put(2, new BaseInterval(10, 20));
         instance.put(3, new BaseInterval(10, 20));
        
-        int newNoConflicts;
+        long newNoConflicts;
         newNoConflicts = instance.remove(3);
-        assertEquals(1, newNoConflicts);
+        assertEquals(40, newNoConflicts);
         
         newNoConflicts = instance.remove(1);
-        assertEquals(2, newNoConflicts);
+        assertEquals(20, newNoConflicts);
     }
     
     
@@ -344,7 +347,7 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testValuesInInterval() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(70, 100));
         instance.put(3, new BaseInterval(45, 80));
@@ -365,19 +368,19 @@ public class IntervalMultimapTest {
         assertEquals(5, values.size());
         
         assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
-        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
+        assertArrayEquals(new Integer[]{1}, values.get(0).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
-        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
-        assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
+        assertArrayEquals(new Integer[]{3}, values.get(2).getValues().toArray());
         
         assertEquals(new BaseInterval<Integer>(70,80), values.get(3));
-        assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
+        assertArrayEquals(new Integer[]{2,3}, values.get(3).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(80,90), values.get(4));
-        assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
+        assertArrayEquals(new Integer[]{2}, values.get(4).getValues().toArray());
     }
     
     /**
@@ -385,7 +388,7 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testValuesInInterval2() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(70, 100));
         instance.put(3, new BaseInterval(45, 80));
@@ -407,22 +410,22 @@ public class IntervalMultimapTest {
         assertEquals(6, values.size());
         
         assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
-        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
+        assertArrayEquals(new Integer[]{1}, values.get(0).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
-        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
-        assertArrayEquals(new Integer[]{3}, values.get(2).values.toArray());
+        assertArrayEquals(new Integer[]{3}, values.get(2).getValues().toArray());
         
         assertEquals(new BaseInterval<Integer>(70,80), values.get(3));
-        assertArrayEquals(new Integer[]{2,3}, values.get(3).values.toArray());
+        assertArrayEquals(new Integer[]{2,3}, values.get(3).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(80,100), values.get(4));
-        assertArrayEquals(new Integer[]{2}, values.get(4).values.toArray());
+        assertArrayEquals(new Integer[]{2}, values.get(4).getValues().toArray());
         
         assertEquals(new BaseInterval<Integer>(100,130), values.get(5));
-        assertArrayEquals(new Integer[]{}, values.get(5).values.toArray());
+        assertArrayEquals(new Integer[]{}, values.get(5).getValues().toArray());
     }
     
     /**
@@ -430,7 +433,7 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testValuesInInterval3() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 50));
         instance.put(2, new BaseInterval(70, 100));
         instance.put(3, new BaseInterval(45, 50));
@@ -451,20 +454,20 @@ public class IntervalMultimapTest {
         assertEquals(5, values.size());
         
         assertEquals(new BaseInterval<Integer>(40,45), values.get(0));
-        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
+        assertArrayEquals(new Integer[]{1}, values.get(0).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(45,50), values.get(1));
-        assertArrayEquals(new Integer[]{1,3}, values.get(1).values.toArray());
+        assertArrayEquals(new Integer[]{1,3}, values.get(1).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(50,70), values.get(2));
-        assertArrayEquals(new Integer[]{}, values.get(2).values.toArray());
+        assertArrayEquals(new Integer[]{}, values.get(2).getValues().toArray());
         
         assertEquals(new BaseInterval<Integer>(70,100), values.get(3));
-        assertArrayEquals(new Integer[]{2}, values.get(3).values.toArray());
+        assertArrayEquals(new Integer[]{2}, values.get(3).getValues().toArray());
 
         
         assertEquals(new BaseInterval<Integer>(100,130), values.get(4));
-        assertArrayEquals(new Integer[]{}, values.get(4).values.toArray());
+        assertArrayEquals(new Integer[]{}, values.get(4).getValues().toArray());
     }
     
     /**
@@ -472,7 +475,7 @@ public class IntervalMultimapTest {
      */
     @Test
     public void testValuesIntervals1() {
-        IntervalMultimap<Integer,Integer> instance = new IntervalMultimap<>();
+        IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         instance.put(1, new BaseInterval(10, 20));
         instance.put(2, new BaseInterval(20, 30));
         instance.put(3, new BaseInterval(30, 40));
@@ -483,13 +486,13 @@ public class IntervalMultimapTest {
         assertEquals(3, values.size());
         
         assertEquals(new BaseInterval<Integer>(10,20), values.get(0));
-        assertArrayEquals(new Integer[]{1}, values.get(0).values.toArray());
+        assertArrayEquals(new Integer[]{1}, values.get(0).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(20,30), values.get(1));
-        assertArrayEquals(new Integer[]{2}, values.get(1).values.toArray());
+        assertArrayEquals(new Integer[]{2}, values.get(1).getValues().toArray());
 
         assertEquals(new BaseInterval<Integer>(30,40), values.get(2));
-        assertArrayEquals(new Integer[]{3,4}, values.get(2).values.toArray());
+        assertArrayEquals(new Integer[]{3,4}, values.get(2).getValues().toArray());
         
         
     }

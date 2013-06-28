@@ -40,7 +40,6 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         cern.colt.map.OpenIntDoubleHashMap occurrencesCosts = new OpenIntDoubleHashMap(solution.allocationsMultimap().size()*2);
         
         long costSum = 0;
-      
         // Sum cost for each occurrence. Walk throught all intervals chunks in map
         // and sum number of values in chunk to each value in chunk, which is occurrence
         for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : solution.allocationsMultimap().valuesIntervals()) {
@@ -49,23 +48,27 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
                 // add value of interval length multiplied by count of other occurrences filling that interval
                 long cost =  
                         (valuesInterval.getEnd() - valuesInterval.getStart()) *
-                        (valuesInterval.getValues().size() - 1);
+                        (valuesInterval.getValues().size() - 1)
+                        ;
+                
                 costSum += cost;
                 
                 occurrencesCosts.put(occurrence.getId(), oldSum + cost);
             }
         }
         
-        // add cost for smaller duration
+        long allocationCostWeight = costSum == 0 ? 1 : 0;
         
+        // compute total sum of costs, power cost to make exponential scale of cost
+        costSum = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
             double old = occurrencesCosts.get(occurrence.getId());
-            long durCost =  (long)(occurrence.getMaxDuration() - occurrence.getAllocation().getDuration());
-            // add one to each occurrence to ensure all have at least 1/n probabilty of selection
-            durCost += 1;
-            costSum += durCost ;
-            occurrencesCosts.put(occurrence.getId(), old + durCost);
+            double newCost = old * old * old + (allocationCostWeight * (occurrence.getAllocationCost() + 1));
+            
+            costSum += newCost;
+            occurrencesCosts.put(occurrence.getId(), newCost);
         }
+        
         
         // get random in sum
         long selection = RandomUtils.nextLong(random, costSum);
@@ -97,11 +100,13 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
                 return true;
             }
             
+            selectedOccurrenceId = i;
+            costSum += d;
+            
             if (costSum > selection) {
                 return false;
             }
-            selectedOccurrenceId = i;
-            costSum += d;
+            
             return true;
         }
     };

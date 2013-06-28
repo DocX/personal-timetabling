@@ -31,9 +31,14 @@ public class BestAllocationSelection implements AllocationSelection {
         AlignedOccurrenceAllocationsIterator allocations = 
                 new AlignedOccurrenceAllocationsIterator(forOccurrence, schedule.allocationsMultimap());
     
-        // cost function
-        MinDurationConflictAllocationCost cost = 
-                new MinDurationConflictAllocationCost(forOccurrence, schedule);
+        // cost function. use simpler ConflictSumCost when state is rapidly moving, and 
+        // more sofisticated minDurationConflictCost when state is long time tapped in local extrem 
+        Cost cost;
+        if (tapped(schedule)) {
+            cost = new MinDurationConflictAllocationCost(forOccurrence, schedule);
+        } else {
+            cost = new ConflictSumAllocationCost(forOccurrence, schedule);
+        }
         
         ArrayList<BaseInterval<Integer>> bestAllocations = new ArrayList<>();
         int bestDurationInBestCost = 0;
@@ -45,7 +50,7 @@ public class BestAllocationSelection implements AllocationSelection {
             
             int allocationDuration = (int)(allocation.getEnd() - allocation.getStart());
             
-            int allocationCost = cost.computeCostOfAllocation(allocation);
+            long allocationCost = cost.computeCostOfAllocation(allocation);
             
             if (allocationCost < bestCost || (allocationCost == bestCost && allocationDuration > bestDurationInBestCost)) {
                 bestCost = allocationCost;
@@ -60,6 +65,10 @@ public class BestAllocationSelection implements AllocationSelection {
         
         BaseInterval<Integer> choosen = bestAllocations.get(random.nextInt(bestAllocations.size()));
         return new OccurrenceAllocation(choosen);
+    }
+    
+    private boolean tapped(SolverState schedule) {
+        return schedule.getItearation() - schedule.getLastBestIteration() > schedule.allocationsMultimap().size() / 2;
     }
 
   

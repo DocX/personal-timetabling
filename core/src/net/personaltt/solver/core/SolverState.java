@@ -19,10 +19,10 @@ public interface SolverState extends SolverSolution, Comparable {
     public void init(Schedule schedule);
 
     /**
-     * Return true if solution is acceptable
+     * Enter next iteration. Return false solver should end
      * @return 
      */
-    public boolean terminationCondition();
+    public boolean iterate();
 
     /**
      * Returns current solutions allocation multimap
@@ -58,15 +58,32 @@ public interface SolverState extends SolverSolution, Comparable {
     public boolean updateAllocation(Occurrence toSolve, OccurrenceAllocation allocation);
     
     /**
-     * Returns object with cloned solution
+     * Return true if current solution is better than best solution.
      * @return 
      */
-    public SolverSolution cloneSolution();
+    public boolean isBetterThanBest();
     
     /**
-     * Return object with cost, but not need to clone solution
+     * Stores current solution as best
+     */
+    public void saveBestSolution();
+    
+    /**
+     * Returns iteration number of last best solution. If no best solution was stored until now, 
+     * current iteration number is returned;
      * @return 
      */
-    public SolverSolution cloneCost();
+    public int getLastBestIteration();
     
+    /**
+     * Return current iteration number;
+     * @return 
+     */
+    public int getItearation();
+    
+    /**
+     * Returns stored best solution
+     * @return 
+     */
+    public SolverSolution getBestSolution();
 }

@@ -158,6 +158,8 @@ public class Schedule {
     }
     
     
-    
+    public int numberOccurrences() {
+        return this.allocationMapping.size();
+    }
     
 }

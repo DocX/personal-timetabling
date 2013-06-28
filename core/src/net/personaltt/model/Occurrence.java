@@ -34,7 +34,25 @@ public class Occurrence {
      * Reference to assigned allocation
      */
     OccurrenceAllocation allocation;
-
+    
+    /**
+     * Preferred starting point
+     */
+    int preferredStart;
+    
+    /**
+     * Priority of perturbing value of this occurrence. 
+     * Greater value means higher priority of keeping unchanged.
+     */
+    int perturbationPriority = 0;
+    
+    /**
+     * 
+     * @param domain
+     * @param minDuration
+     * @param maxDuration
+     * @param id 
+     */
     public Occurrence(BaseIntervalsSet<Integer> domain, int minDuration, int maxDuration, int id) {
         this.domain = domain;
         this.minDuration = minDuration;
@@ -106,8 +124,11 @@ public class Occurrence {
      * @return 
      */
     @Override
-    protected Object clone() {
-        return new Occurrence(domain, minDuration, maxDuration, id);
+    public Object clone() {
+        Occurrence o = new Occurrence(domain, minDuration, maxDuration, id);
+        o.perturbationPriority = this.perturbationPriority;
+        o.preferredStart = this.preferredStart;
+        return o;
     }
 
     public OccurrenceAllocation getAllocation() {
@@ -118,6 +139,24 @@ public class Occurrence {
         this.allocation = allocation;
     }
     
+    public void setInitialAllocation(OccurrenceAllocation allocation) {
+        this.allocation = allocation;
+        this.preferredStart = allocation.start;
+    }
+
+    public int getPerturbationPriority() {
+        return perturbationPriority;
+    }
+
+    public int getPreferredStart() {
+        return preferredStart;
+    }
     
-    
+    /**
+     * Allocation cost is made primarly 
+     * @return 
+     */
+    public int getAllocationCost() {
+        return (allocation.duration - minDuration) * Math.abs(allocation.start - preferredStart) +  Math.abs(allocation.start - preferredStart);
+    }
 }

@@ -24,19 +24,18 @@ import net.personaltt.utils.BaseIntervalsSet;
  */
 public class Benchmark {
 
-    static int SOLVER_TIMEOUT = 30000;
+    static int SOLVER_TIMEOUT = 90000;
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         
-        //bench1();
-        bench2();
+        bench1();
+        //bench2();
         //bench3();
         //bench4();
         //bench5();
-
     }
     
     /**
@@ -57,7 +56,7 @@ public class Benchmark {
      * Initialy all occurrences fills entire domain.
      */
     private static void bench2() {
-        ProblemDefinition problem = SeqentialProblemInitialyFilled(10000);
+        ProblemDefinition problem = SeqentialProblemInitialyFilled(1000);
         //printProblem(problem.problemOccurrences);
         benchSolve(problem);
     }
@@ -196,10 +195,10 @@ public class Benchmark {
         
         // print solution
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : solved.getOccurrencesAllocations()) {
-            System.out.printf("%s\ta:%s\tdc:%s\n", 
+            System.out.printf("%s\ta:%s\tc:%s\n", 
                     entry.getKey().getId(), 
                     entry.getValue().toString(), //allocation
-                    entry.getKey().getMaxDuration() - entry.getValue().getDuration() // duration cost (left to max duration)
+                    entry.getKey().getAllocationCost()
                     );
             
         }

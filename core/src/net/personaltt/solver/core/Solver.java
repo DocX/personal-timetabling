@@ -50,6 +50,14 @@ public class Solver {
         this.allocationSelectionClassName = allocationSelectionClassName;
         this.occurrenceSelectionClassName = occurrenceSelectionClassName;
     }
+
+    /**
+     * Default solver
+     */
+    public Solver() {
+        this(new Random(), "net.personaltt.heuristics.RouletteOccurrenceSelection", "net.personaltt.heuristics.MainAllocationSelection");
+    }
+    
     
     /**
      * Solves given problem.
@@ -73,33 +81,22 @@ public class Solver {
             return null;
         }
         
-        // init solution
-        SolverSolution bestSolution = null;
+        // init solver state
         SolverState currentSolution = new SimpleSolverState();
         currentSolution.init(problem.initialSchedule);
         
         // Start timer
         long startTime = System.currentTimeMillis();
-        long iteration = 0;
 
-        // Stuck detection variables
-        long firstCostIteration = 0;
-        SolverSolution prevSolutionCost = null;
-        
         long stuckedThreshold = Math.max(problem.problemOccurrences.size() * stuckedThresholdCoef, 1000);
         
         // while we have time and is not termination condition met, improve solution 
-        while(!currentSolution.terminationCondition() && System.currentTimeMillis() - startTime < timeoutLimit) {
-            System.out.printf("Iteration %s, Cost %s:%s\n", iteration, currentSolution.constraintsCost(), currentSolution.optimalCost());
+        while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
+            System.out.printf("Iteration %s, Cost %s:%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
             
-            if (currentSolution.compareTo(prevSolutionCost) == 0) {
-                if ((iteration - firstCostIteration) > stuckedThreshold) {
-                    System.out.printf(" Detected stuck. Ending solver.\n");
-                    break;
-                }
-            } else {
-                prevSolutionCost = currentSolution.cloneCost();
-                firstCostIteration = iteration;
+            if ((currentSolution.getItearation() - currentSolution.getLastBestIteration()) > stuckedThreshold) {
+                System.out.printf(" Detected stuck. Ending solver.\n");
+                break;
             }
             
             // select variable - occurrence
@@ -114,16 +111,14 @@ public class Solver {
             System.out.printf(" Conflicting %s\n", conflicts);
             
             // store best solution
-            if (currentSolution.compareTo(bestSolution) > 0) {
-                bestSolution = currentSolution.cloneSolution();
+            if (currentSolution.isBetterThanBest()) {
+                currentSolution.saveBestSolution();
                 System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
             }
-            
-            iteration++;
         }
         
         // return best solution ever found
-        return bestSolution.getSchedule();
+        return currentSolution.getBestSolution().getSchedule();
     }
 
     private void printState(SolverState currentSolution) {

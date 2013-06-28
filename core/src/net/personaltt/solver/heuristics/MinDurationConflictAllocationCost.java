@@ -21,7 +21,7 @@ import net.personaltt.utils.intervalmultimap.IntervalMultimap;
  * duration are halved in cost.
  * @author docx
  */
-public class MinDurationConflictAllocationCost {
+public class MinDurationConflictAllocationCost implements Cost {
     
     /**
      * Allocating occurrence. It will not be computed to cost, as it is not allocated.
@@ -30,7 +30,7 @@ public class MinDurationConflictAllocationCost {
     
     SolverState solution;
 
-    public MinDurationConflictAllocationCost(Occurrence allocatingOccurrence, SolverState solution) {
+    public MinDurationConflictAllocationCost(Occurrence allocatingOccurrence, SolverState solution)  {
         this.allocatingOccurrence = allocatingOccurrence;
         this.solution = solution;
     }
@@ -44,10 +44,11 @@ public class MinDurationConflictAllocationCost {
      * @param edgesIterator iterator throught edges up to duration
      * @return 
      */
-    public int computeCostOfAllocation(BaseInterval<Integer> allocation) {
+    @Override
+    public long computeCostOfAllocation(BaseInterval<Integer> allocation) {
         
         int endPoint = allocation.getEnd();
-        int cost = 0;
+        long cost = 0;
         
         // get elementary intervals of given allocation
         Iterator<Map.Entry<Integer,IntervalMultimap.MultimapEdge<Occurrence>>> allocationElements =
