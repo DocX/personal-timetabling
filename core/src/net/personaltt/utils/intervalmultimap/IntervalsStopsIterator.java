@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.utils;
+package net.personaltt.utils.intervalmultimap;
 
 import java.util.Iterator;
 import java.util.Map.Entry;

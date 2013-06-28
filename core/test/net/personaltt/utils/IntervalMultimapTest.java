@@ -4,10 +4,11 @@
  */
 package net.personaltt.utils;
 
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.personaltt.problem.Occurrence;
+import net.personaltt.model.Occurrence;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

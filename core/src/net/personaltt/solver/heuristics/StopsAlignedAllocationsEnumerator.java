@@ -2,14 +2,14 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver.heuristics;
+package net.personaltt.solver.heuristics;
 
 import java.util.List;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.simplesolver.IntegerMetric;
+import net.personaltt.model.Occurrence;
+import net.personaltt.timedomain.IntegerMetric;
 import net.personaltt.utils.BaseInterval;
-import net.personaltt.utils.IntervalMultimap;
-import net.personaltt.utils.IntervalsAlignedToStopsIterator;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
+import net.personaltt.utils.intervalmultimap.IntervalAllocationsAlignedToStopsIterator;
 
 /**
  * Stops aligned allocations enumerator. Enumerates allocations, that
@@ -24,9 +24,9 @@ public class StopsAlignedAllocationsEnumerator {
     int minDuration, maxDuration;
     int intervalsUpperBound;
     
-    IntervalsAlignedToStopsIterator<Integer, Integer> stopsIterator;
+    IntervalAllocationsAlignedToStopsIterator<Integer, Integer> stopsIterator;
     int duration;
-    IntervalsAlignedToStopsIterator<Integer,Integer>.IntervalStop alignment;
+    IntervalAllocationsAlignedToStopsIterator<Integer,Integer>.IntervalStop alignment;
     int currentIntervalOfEnd;
     
     boolean nextIsSkipped = false;
@@ -37,7 +37,7 @@ public class StopsAlignedAllocationsEnumerator {
         this.elementaryIntervals = intervals;
         intervalsUpperBound = intervals.get(intervals.size() - 1).getEnd();
         
-        stopsIterator = new IntervalsAlignedToStopsIterator<>(minDuration, intervals, new IntegerMetric());
+        stopsIterator = new IntervalAllocationsAlignedToStopsIterator<>(minDuration, intervals, new IntegerMetric());
     }
     
     public class AlignedAllocation {

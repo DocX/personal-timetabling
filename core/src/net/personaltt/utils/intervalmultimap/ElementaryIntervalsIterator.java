@@ -2,26 +2,28 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.utils;
+package net.personaltt.utils.intervalmultimap;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.ValuedInterval;
 
 /**
  * Intervals from stops. Wrapper around stops iterator of intervals providing
  * iterations over intervals between stops.
  * @author docx
  */
-public class IntervalsFromStops<K extends Comparable, V> implements Iterator<ValuedInterval<K,V>> {
+public class ElementaryIntervalsIterator<K extends Comparable, V> implements Iterator<ValuedInterval<K,V>> {
 
 
     IntervalsStopsIterator<K,V> stopsIterator;
     Map.Entry<K,V> previous;
     Map.Entry<K,V> current;
 
-    public IntervalsFromStops(IntervalsStopsIterator<K,V> stopsIterator) {
+    public ElementaryIntervalsIterator(IntervalsStopsIterator<K,V> stopsIterator) {
         this.stopsIterator = stopsIterator;
         
         // get firt edge

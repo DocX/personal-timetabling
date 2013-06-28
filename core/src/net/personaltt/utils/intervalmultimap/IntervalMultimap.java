@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.utils;
+package net.personaltt.utils.intervalmultimap;
 
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -17,8 +17,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import net.personaltt.problem.Occurrence;
+import net.personaltt.model.Occurrence;
 import net.personaltt.timedomain.IntervalsSet;
+import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.ValuedInterval;
 
 /**
  * Interval multimap maps values to its intervals and provides searching
@@ -322,7 +324,7 @@ public class IntervalMultimap<K extends Comparable, V> {
         return new Iterable<ValuedInterval<K, List<V>>>() {
             @Override
             public Iterator<ValuedInterval<K, List<V>>> iterator() {
-                return new IntervalsFromStops(new MultimapSubsetStopsIterator(
+                return new ElementaryIntervalsIterator(new MultimapSubsetStopsIterator(
                         interval
                         ));
             }
@@ -349,7 +351,7 @@ public class IntervalMultimap<K extends Comparable, V> {
         return new Iterable<ValuedInterval<K, MultimapEdge<V>>>() {
             @Override
             public Iterator<ValuedInterval<K, MultimapEdge<V>>> iterator() {
-                return new IntervalsFromStops(new MultimapSubsetEdgeIterator(
+                return new ElementaryIntervalsIterator(new MultimapSubsetEdgeIterator(
                         interval
                         ));
             }
@@ -369,6 +371,13 @@ public class IntervalMultimap<K extends Comparable, V> {
         return edges.entrySet();
     }
     
+    /**
+     * Iterator over elementary intervals start points of given interval. elementary intervals
+     * starts are t_0, t_1, t_2 ..., t_n. They covers given interval so that
+     * [t_0, t_1) union [t_1, t_2) ... [t_n, interval_end) = interval.
+     * @param interval
+     * @return 
+     */
     public Iterator<Entry<K,MultimapEdge<V>>> edgesIteratorInInterval(BaseInterval<K> interval) {
         return new MultimapSubsetEdgeIterator(interval);
     }
@@ -393,7 +402,7 @@ public class IntervalMultimap<K extends Comparable, V> {
 
             @Override
             public Iterator<ValuedInterval<K, List<V>>> iterator() {
-                return new IntervalsFromStops<>(new StopsInValueInterval(value));
+                return new ElementaryIntervalsIterator<>(new StopsInValueInterval(value));
             }
         };
     }
@@ -410,7 +419,9 @@ public class IntervalMultimap<K extends Comparable, V> {
     /**
      * Multimap subsets stops iterator. Splits given interval to chunks by 
      * distinct values in multimap. Iterates over all stops strictly before interval
-     * end - last stop determine value of interval from it to given interval end
+     * end - last stop determine value of interval from it to given interval end.
+     * If map do not containt lower bound for given interval, it will serve 
+     * empty edge.
      */
     private class MultimapSubsetEdgeIterator implements IntervalsStopsIterator<K,MultimapEdge<V>> {
 
@@ -424,17 +435,17 @@ public class IntervalMultimap<K extends Comparable, V> {
             
             // set first step - it is always boundary start,
             // only determine if it is before edges map or inside
-            Entry<K, MultimapEdge<V>> floor = edges.floorEntry(boundary.start);
+            Entry<K, MultimapEdge<V>> floor = edges.floorEntry(boundary.getStart());
             if (floor == null) {
-                current = new AbstractMap.SimpleEntry<K, MultimapEdge<V>>(boundary.start, new MultimapEdge<V>());
+                current = new AbstractMap.SimpleEntry<K, MultimapEdge<V>>(boundary.getStart(), new MultimapEdge<V>());
             } else {
-                current = new AbstractMap.SimpleEntry<>(boundary.start, floor.getValue());
+                current = new AbstractMap.SimpleEntry<>(boundary.getStart(), floor.getValue());
             }
             
             // all stops is between first and boundary end.
             // if map contains key equal to boundary start, skip it (is already in current)
             // if map contains key eqaul to boundary end, also skip it
-            subsetIterator = edges.subMap(current.getKey(),false, boundary.end, false).entrySet().iterator();
+            subsetIterator = edges.subMap(current.getKey(),false, boundary.getEnd(), false).entrySet().iterator();
         }
         
         @Override
@@ -461,7 +472,7 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         public K upperBound() {
-            return boundary.end;
+            return boundary.getEnd();
         }
         
     }

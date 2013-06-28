@@ -1,4 +1,4 @@
-package net.personaltt.problem;
+package net.personaltt.model;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import net.personaltt.utils.BaseInterval;
-import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 
 /**
  * Schedule represents allocation of set of occurences

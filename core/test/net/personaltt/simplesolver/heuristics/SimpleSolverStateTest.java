@@ -4,10 +4,11 @@
  */
 package net.personaltt.simplesolver.heuristics;
 
+import net.personaltt.solver.heuristics.SimpleSolverState;
 import java.util.ArrayList;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.ProblemDefinition;
-import net.personaltt.problem.Schedule;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.ProblemDefinition;
+import net.personaltt.model.Schedule;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 import org.junit.Test;
@@ -45,12 +46,12 @@ public class SimpleSolverStateTest {
         SimpleSolverState solution = new SimpleSolverState();
         solution.init(problem.initialSchedule);
         
-        assertEquals(0,solution.cost());
+        assertEquals(0,solution.constraintsCost());
         
         // remove some
         solution.removeAllocationOf(o1);
         
-        assertEquals(0,solution.cost());
+        assertEquals(0,solution.constraintsCost());
         
         
     }
@@ -77,17 +78,17 @@ public class SimpleSolverStateTest {
         SimpleSolverState solution = new SimpleSolverState();
         solution.init(problem.initialSchedule);
         
-        assertEquals(4,solution.cost());
+        assertEquals(4,solution.constraintsCost());
         
         // remove some
         solution.removeAllocationOf(o2);
         
-        assertEquals(2,solution.cost());
+        assertEquals(2,solution.constraintsCost());
         
         // remove some
         solution.removeAllocationOf(o3);
         
-        assertEquals(0,solution.cost());
+        assertEquals(0,solution.constraintsCost());
         
     }
 }

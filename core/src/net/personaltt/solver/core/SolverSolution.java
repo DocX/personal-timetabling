@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver;
+package net.personaltt.solver.core;
 
-import net.personaltt.problem.Schedule;
+import net.personaltt.model.Schedule;
 
 /**
  * Solver solution
@@ -12,11 +12,16 @@ import net.personaltt.problem.Schedule;
  */
 public interface SolverSolution {
     /**
-     * Returns current cost
+     * Cost of solution againts optimal solution
      * @return 
      */
-    public long cost();
+    public long optimalCost();
     
+    /**
+     * Cost of not satisfied constraints
+     * @return 
+     */
+    public long constraintsCost();
     
     /**
      * Returns schedule of current solution.

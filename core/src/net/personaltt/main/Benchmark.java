@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeSet;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.OccurrenceAllocation;
-import net.personaltt.problem.ProblemDefinition;
-import net.personaltt.problem.Schedule;
-import net.personaltt.simplesolver.SimpleSolver;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.OccurrenceAllocation;
+import net.personaltt.model.ProblemDefinition;
+import net.personaltt.model.Schedule;
+import net.personaltt.solver.core.Solver;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 
@@ -34,8 +34,8 @@ public class Benchmark {
         //bench1();
         //bench2();
         //bench3();
-        bench4();
-        //bench5();
+        //bench4();
+        bench5();
 
     }
     
@@ -190,7 +190,7 @@ public class Benchmark {
        
         
         // solve
-        SimpleSolver solver = new SimpleSolver();
+        Solver solver = new Solver("net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
         solver.timeoutLimit = SOLVER_TIMEOUT;
         Schedule solved = solver.solve(problem); 
         

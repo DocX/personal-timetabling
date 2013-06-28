@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver.heuristics;
+package net.personaltt.solver.heuristics;
 
 import cern.colt.function.IntDoubleProcedure;
 import cern.colt.map.OpenIntDoubleHashMap;
@@ -10,20 +10,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.Schedule;
-import net.personaltt.simplesolver.OccurrenceSelection;
-import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.Schedule;
+import net.personaltt.solver.core.OccurrenceSelection;
+import net.personaltt.solver.core.SolverState;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 import net.personaltt.utils.RandomUtils;
 import net.personaltt.utils.ValuedInterval;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 
 /**
  * Roulette occurrence selection. Selects occurrence with larger cost with more probability
  * cost is sum of lengths shared with occurrence for each of other occurrences allocations
  * @author docx
  */
-public class RouletteSelection implements OccurrenceSelection {
+public class RouletteOccurrenceSelection implements OccurrenceSelection {
 
     Random random = new Random();   
     
@@ -34,16 +34,16 @@ public class RouletteSelection implements OccurrenceSelection {
      * @return 
      */    
     @Override
-    public Occurrence select(IntervalMultimap<Integer, Occurrence> schedule) {
+    public Occurrence select(SolverState solution) {
         
         // map of costs of occurrences
-        cern.colt.map.OpenIntDoubleHashMap occurrencesCosts = new OpenIntDoubleHashMap(schedule.size()*2);
+        cern.colt.map.OpenIntDoubleHashMap occurrencesCosts = new OpenIntDoubleHashMap(solution.allocationsMultimap().size()*2);
         
         long costSum = 0;
       
         // Sum cost for each occurrence. Walk throught all intervals chunks in map
         // and sum number of values in chunk to each value in chunk, which is occurrence
-        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : schedule.valuesIntervals()) {
+        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : solution.allocationsMultimap().valuesIntervals()) {
             for (Occurrence occurrence : valuesInterval.getValues()) {
                 double oldSum = occurrencesCosts.get(occurrence.getId());
                 // add value of interval length multiplied by count of other occurrences filling that interval
@@ -58,7 +58,7 @@ public class RouletteSelection implements OccurrenceSelection {
         
         // add cost for smaller duration
         
-        for (Occurrence occurrence : schedule.keys()) {
+        for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
             double old = occurrencesCosts.get(occurrence.getId());
             long durCost =  (long)(occurrence.getMaxDuration() - occurrence.getAllocation().getDuration());
             // add one to each occurrence to ensure all have at least 1/n probabilty of selection
@@ -74,7 +74,7 @@ public class RouletteSelection implements OccurrenceSelection {
         SelectionFunc select = new SelectionFunc(selection);
         occurrencesCosts.forEachPair(select);
         
-        for (Occurrence occurrence : schedule.keys()) {
+        for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
             if (occurrence.getId() == select.selectedOccurrenceId) {
                 return occurrence;
             }

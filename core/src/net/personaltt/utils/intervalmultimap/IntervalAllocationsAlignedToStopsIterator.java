@@ -2,13 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.utils;
+package net.personaltt.utils.intervalmultimap;
 
 import java.util.Iterator;
 import java.util.List;
-import net.personaltt.problem.Occurrence;
+import net.personaltt.model.Occurrence;
 import net.personaltt.utils.BaseInterval;
-import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
+import net.personaltt.utils.Metric;
 
 /**
  * Intervals aligned to stops iterator. Iterate over placements of interval 
@@ -17,7 +19,7 @@ import net.personaltt.utils.IntervalMultimap;
  * Iterates in ascending order.
  * @author docx
  */
-public class IntervalsAlignedToStopsIterator<K extends Comparable, M> implements Iterator<IntervalsAlignedToStopsIterator<K,M>.IntervalStop> {
+public class IntervalAllocationsAlignedToStopsIterator<K extends Comparable, M> implements Iterator<IntervalAllocationsAlignedToStopsIterator<K,M>.IntervalStop> {
         
         M allocationDuration;
         List<? extends BaseInterval<K>> values;
@@ -34,7 +36,7 @@ public class IntervalsAlignedToStopsIterator<K extends Comparable, M> implements
             public int startValuesIndex;
         }
         
-        public IntervalsAlignedToStopsIterator(M allocationDuration, List<? extends BaseInterval<K>> values, Metric<K,M> metric) {
+        public IntervalAllocationsAlignedToStopsIterator(M allocationDuration, List<? extends BaseInterval<K>> values, Metric<K,M> metric) {
             
             this.metric = metric;
             this.allocationDuration = allocationDuration;

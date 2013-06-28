@@ -1,4 +1,4 @@
-package net.personaltt.problem;
+package net.personaltt.model;
 
 import java.util.ArrayList;
 import java.util.List;

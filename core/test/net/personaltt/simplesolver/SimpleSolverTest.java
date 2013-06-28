@@ -4,15 +4,16 @@
  */
 package net.personaltt.simplesolver;
 
+import net.personaltt.solver.core.Solver;
 import java.util.Random;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.ProblemDefinition;
-import net.personaltt.problem.Schedule;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.ProblemDefinition;
+import net.personaltt.model.Schedule;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 import org.junit.Test;
@@ -29,7 +30,7 @@ public class SimpleSolverTest {
     }
 
     /**
-     * Test of solve method, of class SimpleSolver.
+     * Test of solve method, of class Solver.
      */
     @Test
     public void testSolve() {
@@ -50,7 +51,7 @@ public class SimpleSolverTest {
         
         
         // solve
-        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Solver solver = new Solver(new Random(20130601));
         Schedule solved = solver.solve(problem);
         
         // solved schedule should be equal to problem initial but not the same object
@@ -59,7 +60,7 @@ public class SimpleSolverTest {
     }
     
     /**
-     * Test of solve method, of class SimpleSolver. 
+     * Test of solve method, of class Solver. 
      * With conflicting problem
      */
     @Test
@@ -82,7 +83,7 @@ public class SimpleSolverTest {
         
         
         // solve
-        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Solver solver = new Solver(new Random(20130601));
         Schedule solved = solver.solve(problem);
         
         // solved schedule should be equal to problem initial but not the same object
@@ -93,7 +94,7 @@ public class SimpleSolverTest {
     }
     
     /**
-     * Test of solve method, of class SimpleSolver. 
+     * Test of solve method, of class Solver. 
      * With conflicting problem and contrained domain
      * with solution
      */
@@ -117,7 +118,7 @@ public class SimpleSolverTest {
         problem.addOccurrence(new Occurrence(domain, 5, 10, 3), new BaseInterval<>(15, 25));
         
         // solve
-        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Solver solver = new Solver(new Random(20130601));
         Schedule solved = solver.solve(problem);
         
         // solved schedule should be equal to problem initial but not the same object
@@ -128,7 +129,7 @@ public class SimpleSolverTest {
     }
     
     /**
-     * Test of solve method, of class SimpleSolver. 
+     * Test of solve method, of class Solver. 
      * With conflicting problem and contrained domain
      * with solution. Initial state has no free domain for any of 
      * occurrence
@@ -155,7 +156,7 @@ public class SimpleSolverTest {
         // solution is duration of all 5 and each on one of positions 10,15 and 20
         
         // solve
-        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Solver solver = new Solver(new Random(20130601));
         Schedule solved = solver.solve(problem);
         
         // solved schedule should be equal to problem initial but not the same object
@@ -166,7 +167,7 @@ public class SimpleSolverTest {
     }
     
     /**
-     * Test of solve method, of class SimpleSolver. 
+     * Test of solve method, of class Solver. 
      * With conflicting problem and contrained domain
      * with solution. Initial state has no free domain for any of 
      * occurrence
@@ -196,7 +197,7 @@ public class SimpleSolverTest {
         // solution is duration of all 5 and each on one of positions 10,15 and 20
         
         // solve
-        SimpleSolver solver = new SimpleSolver(new Random(20130601));
+        Solver solver = new Solver(new Random(20130601));
         Schedule solved = solver.solve(problem);
         
         // solved schedule should be equal to problem initial but not the same object

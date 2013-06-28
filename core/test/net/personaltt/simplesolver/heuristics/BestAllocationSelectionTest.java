@@ -4,11 +4,12 @@
  */
 package net.personaltt.simplesolver.heuristics;
 
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.OccurrenceAllocation;
+import net.personaltt.solver.heuristics.BestAllocationSelection;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
-import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import net.personaltt.problem.Occurrence;
+import net.personaltt.model.Occurrence;
 
 /**
  * Base intervals set generic class. Implements intervals set with set operations

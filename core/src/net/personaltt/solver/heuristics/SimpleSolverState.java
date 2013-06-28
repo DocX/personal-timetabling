@@ -2,16 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.personaltt.simplesolver.heuristics;
+package net.personaltt.solver.heuristics;
 
 import java.util.List;
 import java.util.Map;
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.OccurrenceAllocation;
-import net.personaltt.problem.Schedule;
-import net.personaltt.simplesolver.SolverSolution;
-import net.personaltt.simplesolver.SolverState;
-import net.personaltt.utils.IntervalMultimap;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.OccurrenceAllocation;
+import net.personaltt.model.Schedule;
+import net.personaltt.solver.core.SolverSolution;
+import net.personaltt.solver.core.SolverState;
+import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 
 /**
  * Simple solver solution. It uses intervals multimap as backing store of
@@ -27,6 +27,7 @@ public class SimpleSolverState implements SolverState {
     int conflictingOccurrences;
     
     long durationsSum;
+    
     long maxDurationsSum;
     
     @Override
@@ -55,9 +56,14 @@ public class SimpleSolverState implements SolverState {
     }
 
     @Override
-    public long cost() {
+    public long optimalCost() {
         //return conflictingOccurrences;
-        return (conflictingOccurrences * maxDurationsSum) + (maxDurationsSum - durationsSum);
+        return (maxDurationsSum - durationsSum);
+    }
+
+    @Override
+    public long constraintsCost() {
+       return conflictingOccurrences;
     }
 
     @Override
@@ -101,21 +107,77 @@ public class SimpleSolverState implements SolverState {
 
     @Override
     public SolverSolution cloneSolution() {
-        final long cost = this.cost();
+        final long optimalCost = this.optimalCost();
+        final long constraintCost = this.constraintsCost();
         final Schedule clonedSchedule = (Schedule)this.getSchedule().allocationsClone();
         
         return new SolverSolution() {
             
             @Override
-            public long cost() {
-                return cost;
+            public long optimalCost() {
+                return optimalCost;
             }
+
+            @Override
+            public long constraintsCost() {
+                return constraintCost;
+            }
+            
+            
 
             @Override
             public Schedule getSchedule() {
                 return clonedSchedule;
             }
         };
+    }
+
+    @Override
+    public SolverSolution cloneCost() {
+        final long optimalCost = this.optimalCost();
+        final long constraintCost = this.constraintsCost();
+        
+        return new SolverSolution() {
+            
+            @Override
+            public long optimalCost() {
+                return optimalCost;
+            }
+
+            @Override
+            public long constraintsCost() {
+                return constraintCost;
+            }
+
+            @Override
+            public Schedule getSchedule() {
+                return null;
+            }
+        };
+    }
+
+    /**
+     * Coparison of solution. Better is less constraint cost, then optimal cost. 
+     * If current is better, positive number is returned, if current is worse than given,
+     * negative number is returned. If both are equal, zero is returned.
+     * @param o
+     * @return 
+     */
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof SolverSolution) {
+            int constraintCostCmp = Long.compare(((SolverSolution)o).constraintsCost(), constraintsCost());
+            
+            return constraintCostCmp != 0 ? constraintCostCmp : Long.compare(((SolverSolution)o).optimalCost() , optimalCost());
+        }
+        
+        return 1;
+    }
+
+    @Override
+    public boolean updateAllocation(Occurrence toSolve, OccurrenceAllocation allocation) {
+        this.removeAllocationOf(toSolve);
+        return this.setAllocation(toSolve, allocation);
     }
     
     

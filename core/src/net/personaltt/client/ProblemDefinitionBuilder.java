@@ -4,8 +4,8 @@
  */
 package net.personaltt.client;
 
-import net.personaltt.problem.Occurrence;
-import net.personaltt.problem.ProblemDefinition;
+import net.personaltt.model.Occurrence;
+import net.personaltt.model.ProblemDefinition;
 import net.personaltt.timedomain.ConverterToInteger;
 import net.personaltt.timedomain.IIntervalsTimeDomain;
 import net.personaltt.utils.BaseInterval;

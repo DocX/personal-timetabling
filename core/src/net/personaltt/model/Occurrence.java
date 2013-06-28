@@ -1,4 +1,4 @@
-package net.personaltt.problem;
+package net.personaltt.model;
 
 import net.personaltt.utils.BaseIntervalsSet;
 
@@ -41,8 +41,6 @@ public class Occurrence {
         this.maxDuration = maxDuration;
         this.id = id;
     }
-
-    
 
     /**
      * Occurrences are equal iff their ids are equal

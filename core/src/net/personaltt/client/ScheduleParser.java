@@ -4,8 +4,8 @@
  */
 package net.personaltt.client;
 
-import net.personaltt.problem.OccurrenceAllocation;
-import net.personaltt.problem.Schedule;
+import net.personaltt.model.OccurrenceAllocation;
+import net.personaltt.model.Schedule;
 import net.personaltt.timedomain.ConverterFromInteger;
 import net.personaltt.utils.Converter;
 import org.joda.time.LocalDateTime;
