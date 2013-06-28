@@ -157,6 +157,6 @@ public class Occurrence {
      * @return 
      */
     public int getAllocationCost() {
-        return (allocation.duration - minDuration) * Math.abs(allocation.start - preferredStart) +  Math.abs(allocation.start - preferredStart);
+        return (maxDuration - allocation.duration) * Math.abs(allocation.start - preferredStart) +  Math.abs(allocation.start - preferredStart);
     }
 }
