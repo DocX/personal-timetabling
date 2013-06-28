@@ -32,10 +32,10 @@ public class Benchmark {
     public static void main(String[] args) {
         
         //bench1();
-        //bench2();
+        bench2();
         //bench3();
         //bench4();
-        bench5();
+        //bench5();
 
     }
     
@@ -57,8 +57,8 @@ public class Benchmark {
      * Initialy all occurrences fills entire domain.
      */
     private static void bench2() {
-        ProblemDefinition problem = SeqentialProblemInitialyFilled(1000);
-        printProblem(problem.problemOccurrences);
+        ProblemDefinition problem = SeqentialProblemInitialyFilled(10000);
+        //printProblem(problem.problemOccurrences);
         benchSolve(problem);
     }
     

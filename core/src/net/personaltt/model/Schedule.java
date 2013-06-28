@@ -146,7 +146,7 @@ public class Schedule {
      * @return 
      */
     public boolean hasConflict() {
-        IntervalMultimap<Integer, Occurrence> currentAllocationIntervals = 
+        IntervalMultimap<Occurrence> currentAllocationIntervals = 
                 new IntervalMultimap<>();
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : getOccurrencesAllocations()) {
             if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval()) > 0) {

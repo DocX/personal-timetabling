@@ -38,7 +38,7 @@ import net.personaltt.utils.ValuedInterval;
  * 
  * @author docx
  */
-public class IntervalMultimap<K extends Comparable, V> {
+public class IntervalMultimap<V> {
     
     public static class MultimapEdge<V> { 
         /**
@@ -110,33 +110,27 @@ public class IntervalMultimap<K extends Comparable, V> {
      * Sorted structure for keeping intervals edges and values on them.
      * Edges with empty list are ending edges.
      */
-    TreeMap<K, MultimapEdge<V>> edges;
+    TreeMap<Integer, MultimapEdge<V>> edges;
     
     /**
      * Lookup structure for keeping information about where interval
      * of some value starts.
      */
-    HashMap<V, K> startPoints;
+    HashMap<V, Integer> startPoints;
     
-    /**
-     * Overlapping values map. Map of values to list of other values that overlaps.
-     */
-    HashMap<V, Set<V>> overlappingValues;
-
     public IntervalMultimap() {
         edges = new TreeMap<>();
         startPoints = new HashMap<>();
-        overlappingValues = new HashMap<>();
     }
     
     
     /**
-     * Adds interval with given value. Retrun number of distinct values that was in 
-     * multimap before adding, that are now conflicting due to this addition
+     * Adds interval with given value. Return sum of conflicting length for added
+     * interval
      * @param value
      * @param interval 
      */
-    public int put(V value, BaseInterval<K> interval) {
+    public long put(V value, BaseInterval<Integer> interval) {
         // if adding value already exists in multiset, throw exception
         if (startPoints.containsKey(value)) {
             return 0;
@@ -150,37 +144,33 @@ public class IntervalMultimap<K extends Comparable, V> {
         // creates end edge stub (without this value) for interval, if not exists yet
         MultimapEdge<V> endEdge = addEdge(interval.getEnd());
         
+        long conflictingSum = 0;
+        List<V> prevElementValues = null;
+        int prevElementStart = 0;
+        
         // add value to all edges including start to excluding end
-        int newOverlappings = 0;
-        HashSet<V> overlappings = new HashSet<>(startEdge.values.size() * 2);
-        for(Entry<K,MultimapEdge<V>> edge : edges.subMap(interval.getStart(), interval.getEnd()).entrySet()) {
+        for(Entry<Integer,MultimapEdge<V>> edge : edges.subMap(interval.getStart(), interval.getEnd()).entrySet()) {
             
-            // add this to overlapping list of all values in edge
-            for (V v : edge.getValue().values) {
-                Set<V> vOverlappings = overlappingValues.get(v);
-                // if value has no overlapping now, add it as new conflict
-                if (vOverlappings.isEmpty()){
-                    newOverlappings += 1;
-                }                    
-                vOverlappings.add(value);
-                overlappings.add(v);
+            if (prevElementValues != null) {
+                // difference added with this new interval. for each interval before add once length, for new add length * number of previous
+                conflictingSum += (prevElementValues.size() -1) * (long)(edge.getKey() - prevElementStart) * 2l;
             }
             
             // add to all intermediate edges
             edge.getValue().values.add(value);
+            
+            prevElementStart = edge.getKey();
+            prevElementValues = edge.getValue().values;
         }
+        
+        // last elemen sum
+        conflictingSum += (prevElementValues.size() -1) * (interval.getEnd() - prevElementStart) * 2;
         
         // add to changing lists of first and last edge
         startEdge.addedValues.add(value);
         endEdge.removedValues.add(value);
         
-        overlappingValues.put(value, overlappings);
-        
-        if (overlappings.isEmpty() == false) {
-            // adds one also for current added, if is overlapping
-            newOverlappings += 1;
-        }
-        return newOverlappings;
+        return conflictingSum;
     }
     
     /**
@@ -189,8 +179,8 @@ public class IntervalMultimap<K extends Comparable, V> {
     * If edge in given key exists, does nothing
     * @param key 
     */
-    private MultimapEdge<V> addEdge(K key) {
-        Entry<K, MultimapEdge<V>> floorKey = edges.floorEntry(key);
+    private MultimapEdge<V> addEdge(Integer key) {
+        Entry<Integer, MultimapEdge<V>> floorKey = edges.floorEntry(key);
         if(floorKey == null || floorKey.getKey().compareTo(key) != 0) {
             // going to add new edge, but with what values?
             MultimapEdge<V> list;
@@ -213,30 +203,44 @@ public class IntervalMultimap<K extends Comparable, V> {
      * after removal with no conflict and before it with conflict.
      * @param value 
      */ 
-    public int remove(V value) {
+    public long remove(V value) {
         // get start ofgiven value
-        K start = startPoints.remove(value);
+        Integer start = startPoints.remove(value);
         
         // if non existing value is removed, return
         if (start == null) {
             return 0;
         }
         
+        long conflictingSum = 0;
+        List<V> prevElementValues;
+        int prevElementStart;
+        
         // go throug edges and remove value from all 
         // edges from start to first edge without this value
         // and remove edges that has now same values as previous
+        Iterator<Entry<Integer,MultimapEdge<V>>> it = edges.tailMap(start).entrySet().iterator();
+        Entry<Integer,MultimapEdge<V>> edge = it.next();
         
-        // remove it from added values list of start edge
-        edges.get(start).addedValues.remove(value);
+        edge.getValue().values.remove(value);
         
-        // if start edge now dont change anythink - added and removed list is empty
+        prevElementValues = edge.getValue().values;
+        prevElementStart = edge.getKey();
+        
+        // if start edge now dont change anything - added and removed list is empty
         // remove edge
-        if (edges.get(start).hasNoChange()) {
-            edges.remove(start);
-        }
+        edge.getValue().addedValues.remove(value);
+        if (edge.getValue().hasNoChange()) {
+            it.remove();
+        }       
         
-        for (Iterator<Entry<K,MultimapEdge<V>>> it = edges.tailMap(start).entrySet().iterator(); it.hasNext();) {
-            Entry<K,MultimapEdge<V>> edge = it.next();
+        while(it.hasNext()) {
+            edge = it.next();
+            
+            // compute conflicting sum difference that will be removed
+            conflictingSum += (prevElementValues.size()) * (long)(edge.getKey() - prevElementStart) * 2l;
+            prevElementValues = edge.getValue().values;
+            prevElementStart = edge.getKey();
             
             // until it is not edge that removes removing value, 
             // remove value from the list of values in the edge
@@ -259,23 +263,7 @@ public class IntervalMultimap<K extends Comparable, V> {
 
         }
         
-        // removes from overlappings for values that overlaps removing value
-        int newNonOverlapping = 0;
-        for (V v : overlappingValues.get(value)) {
-            Set<V> valueOverlappings = overlappingValues.get(v);
-            boolean contained = valueOverlappings.remove(value);
-            
-            if (contained && valueOverlappings.isEmpty()) {
-                newNonOverlapping += 1;
-            }
-        }
-        
-       
-        if (overlappingValues.remove(value).isEmpty() == false) {
-            // removes one also for removed, if was overlapping
-            newNonOverlapping += 1;
-        }
-        return newNonOverlapping;
+        return conflictingSum;
     }
     
     
@@ -288,16 +276,16 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param point
      * @return 
      */
-    public ValuedInterval<K,List<V>> valuesIntervalOfPoint(K point) {
-        Entry<K, MultimapEdge<V>> startEntry = edges.floorEntry(point);
-        K endEdge = edges.higherKey(point);
+    public ValuedInterval<Integer,List<V>> valuesIntervalOfPoint(Integer point) {
+        Entry<Integer, MultimapEdge<V>> startEntry = edges.floorEntry(point);
+        Integer endEdge = edges.higherKey(point);
         
         // if it lies before any interval, return null
         if (startEntry == null || endEdge == null) {
             return null;
         }
         
-        ValuedInterval<K,List<V>> vi = new ValuedInterval<>(
+        ValuedInterval<Integer,List<V>> vi = new ValuedInterval<>(
             new BaseInterval<>(startEntry.getKey(), endEdge),
             startEntry.getValue().values
                 );
@@ -313,7 +301,7 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param interval
      * @return 
      */
-    public Iterable<ValuedInterval<K,List<V>>> valuesInInterval(final BaseInterval<K> interval) {
+    public Iterable<ValuedInterval<Integer,List<V>>> valuesInInterval(final BaseInterval<Integer> interval) {
         // if edges are empty, no interval is there, so return abstract empty list
         if (edges.isEmpty()) {
             return Collections.emptyList();
@@ -321,9 +309,9 @@ public class IntervalMultimap<K extends Comparable, V> {
         
         // otherwise make stops iterator in edges boundary and wrap it in intervals
         // from stops iterator
-        return new Iterable<ValuedInterval<K, List<V>>>() {
+        return new Iterable<ValuedInterval<Integer, List<V>>>() {
             @Override
-            public Iterator<ValuedInterval<K, List<V>>> iterator() {
+            public Iterator<ValuedInterval<Integer, List<V>>> iterator() {
                 return new ElementaryIntervalsIterator(new MultimapSubsetStopsIterator(
                         interval
                         ));
@@ -340,7 +328,7 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param interval
      * @return 
      */
-    public Iterable<ValuedInterval<K,MultimapEdge<V>>> valuesChangesInInterval(final BaseInterval<K> interval) {
+    public Iterable<ValuedInterval<Integer,MultimapEdge<V>>> valuesChangesInInterval(final BaseInterval<Integer> interval) {
         // if edges are empty, no interval is there, so return abstract empty list
         if (edges.isEmpty()) {
             return Collections.emptyList();
@@ -348,9 +336,9 @@ public class IntervalMultimap<K extends Comparable, V> {
         
         // otherwise make stops iterator in edges boundary and wrap it in intervals
         // from stops iterator
-        return new Iterable<ValuedInterval<K, MultimapEdge<V>>>() {
+        return new Iterable<ValuedInterval<Integer, MultimapEdge<V>>>() {
             @Override
-            public Iterator<ValuedInterval<K, MultimapEdge<V>>> iterator() {
+            public Iterator<ValuedInterval<Integer, MultimapEdge<V>>> iterator() {
                 return new ElementaryIntervalsIterator(new MultimapSubsetEdgeIterator(
                         interval
                         ));
@@ -362,12 +350,12 @@ public class IntervalMultimap<K extends Comparable, V> {
      * Values intervals iterator. Iterates over intervals with list of values on it
      * @return 
      */
-    public Iterable<ValuedInterval<K, List<V>>> valuesIntervals() {
+    public Iterable<ValuedInterval<Integer, List<V>>> valuesIntervals() {
         return valuesInInterval(new BaseInterval<>(edges.firstKey(), edges.lastKey()));
     }
     
     
-    public Iterable<Entry<K,MultimapEdge<V>>> stopsInMap() {
+    public Iterable<Entry<Integer,MultimapEdge<V>>> stopsInMap() {
         return edges.entrySet();
     }
     
@@ -378,7 +366,7 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param interval
      * @return 
      */
-    public Iterator<Entry<K,MultimapEdge<V>>> edgesIteratorInInterval(BaseInterval<K> interval) {
+    public Iterator<Entry<Integer,MultimapEdge<V>>> edgesIteratorInInterval(BaseInterval<Integer> interval) {
         return new MultimapSubsetEdgeIterator(interval);
     }
     
@@ -397,11 +385,11 @@ public class IntervalMultimap<K extends Comparable, V> {
      * @param value
      * @return 
      */
-    public Iterable<ValuedInterval<K, List<V>>> intervalsIn(final V value) {
-        return new Iterable<ValuedInterval<K, List<V>>>() {
+    public Iterable<ValuedInterval<Integer, List<V>>> intervalsIn(final V value) {
+        return new Iterable<ValuedInterval<Integer, List<V>>>() {
 
             @Override
-            public Iterator<ValuedInterval<K, List<V>>> iterator() {
+            public Iterator<ValuedInterval<Integer, List<V>>> iterator() {
                 return new ElementaryIntervalsIterator<>(new StopsInValueInterval(value));
             }
         };
@@ -423,21 +411,21 @@ public class IntervalMultimap<K extends Comparable, V> {
      * If map do not containt lower bound for given interval, it will serve 
      * empty edge.
      */
-    private class MultimapSubsetEdgeIterator implements IntervalsStopsIterator<K,MultimapEdge<V>> {
+    private class MultimapSubsetEdgeIterator implements IntervalsStopsIterator<Integer,MultimapEdge<V>> {
 
-        BaseInterval<K> boundary;
-        Iterator<Entry<K,MultimapEdge<V>>> subsetIterator;
+        BaseInterval<Integer> boundary;
+        Iterator<Entry<Integer,MultimapEdge<V>>> subsetIterator;
         
-        Entry<K, MultimapEdge<V>> current;
+        Entry<Integer, MultimapEdge<V>> current;
 
-        public MultimapSubsetEdgeIterator(BaseInterval<K> boundary) {
+        public MultimapSubsetEdgeIterator(BaseInterval<Integer> boundary) {
             this.boundary = boundary;
             
             // set first step - it is always boundary start,
             // only determine if it is before edges map or inside
-            Entry<K, MultimapEdge<V>> floor = edges.floorEntry(boundary.getStart());
+            Entry<Integer, MultimapEdge<V>> floor = edges.floorEntry(boundary.getStart());
             if (floor == null) {
-                current = new AbstractMap.SimpleEntry<K, MultimapEdge<V>>(boundary.getStart(), new MultimapEdge<V>());
+                current = new AbstractMap.SimpleEntry<Integer, MultimapEdge<V>>(boundary.getStart(), new MultimapEdge<V>());
             } else {
                 current = new AbstractMap.SimpleEntry<>(boundary.getStart(), floor.getValue());
             }
@@ -454,8 +442,8 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         @Override
-        public Entry<K,MultimapEdge<V>> next() {
-            Entry<K, MultimapEdge<V>> ret = current;
+        public Entry<Integer,MultimapEdge<V>> next() {
+            Entry<Integer, MultimapEdge<V>> ret = current;
             
             if (subsetIterator.hasNext()) {
                 current = subsetIterator.next();
@@ -471,22 +459,22 @@ public class IntervalMultimap<K extends Comparable, V> {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
-        public K upperBound() {
+        public Integer upperBound() {
             return boundary.getEnd();
         }
         
     }
 
-    private class MultimapSubsetStopsIterator implements IntervalsStopsIterator<K,List<V>> {
+    private class MultimapSubsetStopsIterator implements IntervalsStopsIterator<Integer,List<V>> {
 
         MultimapSubsetEdgeIterator edgesIterator;
         
-        public MultimapSubsetStopsIterator(BaseInterval<K> boundary) {
+        public MultimapSubsetStopsIterator(BaseInterval<Integer> boundary) {
             edgesIterator = new MultimapSubsetEdgeIterator(boundary);
         }     
         
         @Override
-        public K upperBound() {
+        public Integer upperBound() {
             return edgesIterator.upperBound();
         }
 
@@ -496,8 +484,8 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         @Override
-        public Entry<K, List<V>> next() {
-            Entry<K,MultimapEdge<V>> next = edgesIterator.next();
+        public Entry<Integer, List<V>> next() {
+            Entry<Integer,MultimapEdge<V>> next = edgesIterator.next();
             return new AbstractMap.SimpleEntry<>(next.getKey(), next.getValue().values);
         }
 
@@ -508,16 +496,16 @@ public class IntervalMultimap<K extends Comparable, V> {
         
     }
     
-    private class StopsInValueInterval implements IntervalsStopsIterator<K,List<V>>  {
+    private class StopsInValueInterval implements IntervalsStopsIterator<Integer,List<V>>  {
         V value;
-        Iterator<Entry<K,MultimapEdge<V>>> subsetIterator;
+        Iterator<Entry<Integer,MultimapEdge<V>>> subsetIterator;
         
-        Entry<K, MultimapEdge<V>> current;
+        Entry<Integer, MultimapEdge<V>> current;
 
         public StopsInValueInterval(V value) {
             this.value = value;
             
-            K startPoint = startPoints.get(value);
+            Integer startPoint = startPoints.get(value);
             subsetIterator = edges.tailMap(startPoint, true).entrySet().iterator();
             current = subsetIterator.next();
         }
@@ -529,8 +517,8 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         @Override
-        public Entry<K, List<V>> next() {
-            Entry<K, List<V>> ret = new AbstractMap.SimpleEntry<K, List<V>>(current.getKey(), current.getValue().values);;;
+        public Entry<Integer, List<V>> next() {
+            Entry<Integer, List<V>> ret = new AbstractMap.SimpleEntry<Integer, List<V>>(current.getKey(), current.getValue().values);;;
             
             current = subsetIterator.next();
             return ret;
@@ -542,7 +530,7 @@ public class IntervalMultimap<K extends Comparable, V> {
         }
 
         @Override
-        public K upperBound() {
+        public Integer upperBound() {
             if (!current.getValue().removedValues.contains(value)) {
                 throw new UnsupportedOperationException("Stops iterator do not iterate to bound yet.");
             }

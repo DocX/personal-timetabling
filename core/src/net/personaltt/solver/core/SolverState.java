@@ -28,7 +28,7 @@ public interface SolverState extends SolverSolution, Comparable {
      * Returns current solutions allocation multimap
      * @return 
      */
-    public IntervalMultimap<Integer, Occurrence> allocationsMultimap();
+    public IntervalMultimap<Occurrence> allocationsMultimap();
 
     /**
      * Removes allocation of occurrence from solution and returns it 

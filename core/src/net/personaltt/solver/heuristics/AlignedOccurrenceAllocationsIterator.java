@@ -26,13 +26,13 @@ public class AlignedOccurrenceAllocationsIterator implements Iterator<BaseInterv
     
     Occurrence occurrence;
     
-    IntervalMultimap<Integer, Occurrence> schedule;
+    IntervalMultimap<Occurrence> schedule;
     
     ListIterator<BaseInterval<Integer>> occurrenceDomainIntervals;
     
     StopsAlignedAllocationsEnumerator allocationsEnum;
 
-    public AlignedOccurrenceAllocationsIterator(Occurrence occurrence, IntervalMultimap<Integer, Occurrence> schedule) {
+    public AlignedOccurrenceAllocationsIterator(Occurrence occurrence, IntervalMultimap<Occurrence> schedule) {
         this.occurrence = occurrence;
         this.schedule = schedule;
         

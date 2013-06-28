@@ -20,11 +20,11 @@ import net.personaltt.utils.intervalmultimap.IntervalMultimap;
  */
 public class SimpleSolverState implements SolverState {
 
-    IntervalMultimap<Integer, Occurrence> allocationMultimap;
+    IntervalMultimap<Occurrence> allocationMultimap;
     
     Schedule solutionSchedule;
     
-    int conflictingOccurrences;
+    long conflictingOccurrences;
     
     long durationsSum;
     
@@ -39,7 +39,7 @@ public class SimpleSolverState implements SolverState {
         maxDurationsSum = 0;
         
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : solutionSchedule.getOccurrencesAllocations()) {
-            int newConflicts = allocationMultimap.put(entry.getKey(), entry.getValue().toInterval());
+            long newConflicts = allocationMultimap.put(entry.getKey(), entry.getValue().toInterval());
             conflictingOccurrences += newConflicts;
             if (entry.getValue().getDuration() > entry.getKey().getMaxDuration()) {
                 throw new IllegalArgumentException("Duration cannot be greater than max duration");
@@ -67,13 +67,13 @@ public class SimpleSolverState implements SolverState {
     }
 
     @Override
-    public IntervalMultimap<Integer, Occurrence> allocationsMultimap() {
+    public IntervalMultimap<Occurrence> allocationsMultimap() {
         return allocationMultimap;
     }
 
     @Override
     public OccurrenceAllocation removeAllocationOf(Occurrence toSolve) {
-        int conflictsRemoved = allocationMultimap.remove(toSolve);
+        long conflictsRemoved = allocationMultimap.remove(toSolve);
         conflictingOccurrences -= conflictsRemoved;
         OccurrenceAllocation aloc = solutionSchedule.getAllocationOf(toSolve);
         
@@ -92,7 +92,7 @@ public class SimpleSolverState implements SolverState {
         
         solutionSchedule.getAllocationOf(toSolve).set(solvingAllocation);
 
-        int newConflicts = allocationMultimap.put(toSolve, solvingAllocation.toInterval());
+        long newConflicts = allocationMultimap.put(toSolve, solvingAllocation.toInterval());
         conflictingOccurrences += newConflicts;
 
         durationsSum += solvingAllocation.getDuration();
