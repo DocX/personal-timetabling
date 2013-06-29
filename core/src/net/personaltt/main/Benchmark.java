@@ -26,7 +26,7 @@ import net.personaltt.utils.BaseIntervalsSet;
  */
 public class Benchmark {
 
-    static int SOLVER_TIMEOUT = 90000;
+    static int SOLVER_TIMEOUT = 900000;
     
     /**
      * @param args the command line arguments
@@ -173,6 +173,7 @@ public class Benchmark {
         //run.solver.pause();
         run.start();
         if (System.console() != null) {
+            run.solver.pause();
         while(run.isAlive()) {
             String cmd = System.console().readLine();
             System.out.println(cmd);

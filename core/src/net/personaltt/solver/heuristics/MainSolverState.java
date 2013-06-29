@@ -206,7 +206,7 @@ public class MainSolverState implements SolverState {
 
     @Override
     public boolean iterate() {
-        if (/*optimalCost() == 0 &&*/ constraintsCost() == 0) {
+        if (optimalCost() == 0 && constraintsCost() == 0) {
             return false;
         }
         currentIteration++;

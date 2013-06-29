@@ -19,7 +19,7 @@ public class MainAllocationSelection implements AllocationSelection {
     
     RouletteAllocationSelection optimizingSelection;
     
-    double conflictCostWeightAccellerator = 1.1;
+    double conflictCostWeightAccellerator = 1.2;
     
     public MainAllocationSelection() {
         conflictingSelection = new BestAllocationSelection();
@@ -32,11 +32,8 @@ public class MainAllocationSelection implements AllocationSelection {
     public OccurrenceAllocation select(SolverState schedule, Occurrence forOccurrence) {
         
         if (schedule.constraintsCost() > 0) {
-            conflictCostWeight = Math.min(1.0, conflictCostWeight * conflictCostWeightAccellerator);
-            conflictingSelection.conflictCostWeight = conflictCostWeight;
             return conflictingSelection.select(schedule, forOccurrence);
         } else {
-            conflictCostWeight = 0.0001;
             return optimizingSelection.select(schedule, forOccurrence);
         }
     }

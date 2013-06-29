@@ -55,7 +55,7 @@ public class BestAllocationSelection implements AllocationSelection {
             
             long allocationCost = (long)(cost.computeCostOfAllocation(allocation) * conflictCostWeight);
             
-            if (allocationCost < bestConflictCost || (allocationCost == bestConflictCost && allocationOccurrenceCost > bestOccurrenceCost)) {
+            if (allocationCost < bestConflictCost || (allocationCost == bestConflictCost && allocationOccurrenceCost < bestOccurrenceCost)) {
                 bestConflictCost = allocationCost;
                 bestAllocations.clear();
                 bestOccurrenceCost = allocationOccurrenceCost;

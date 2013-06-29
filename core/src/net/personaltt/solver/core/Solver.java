@@ -24,7 +24,7 @@ public class Solver {
      * Coeficient of stucket threshold, multiplied with number of occurrences in
      * problem.
      */
-    public float stuckedThresholdCoef = 500f;
+    public float stuckedThresholdCoef = 1.5f;
     
     /**
      * Instance of random used in solver
@@ -91,11 +91,17 @@ public class Solver {
         // Start timer
         long startTime = System.currentTimeMillis();
 
-        long stuckedThreshold = Math.max((int)(problem.problemOccurrences.size() * stuckedThresholdCoef), 500);
+        long stuckedThreshold = Math.max((int)(problem.problemOccurrences.size() * stuckedThresholdCoef), 1000);
         
         // while we have time and is not termination condition met, improve solution 
         while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
             System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
+            
+            // store best solution
+            if (currentSolution.isBetterThanBest()) {
+                currentSolution.saveBestSolution();
+                System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
+            }
             
             if (pause) {
                 System.out.println("Paused");
@@ -116,20 +122,16 @@ public class Solver {
             
             // select variable - occurrence
             Occurrence toSolve = occurrenceSelection.select(currentSolution);
-            System.out.printf(" Selected occurrence %s at %s\n", toSolve, toSolve.getAllocation());
+            System.out.printf(" Selected occurrence %s at %s:%s\n", toSolve, toSolve.getAllocation(), toSolve.getAllocationCost());
             
             // select and save allocation of occurrence
             OccurrenceAllocation selectedAllocation = allocationSelection.select(currentSolution, toSolve);
-            System.out.printf(" Selected allocation: %s \n", selectedAllocation);
+            System.out.printf(" Selected allocation: %s:%s \n", selectedAllocation, toSolve.getAllocationCost(selectedAllocation));
             
             boolean conflicts = currentSolution.setAllocation(toSolve, selectedAllocation);
-            System.out.printf(" Conflicting %s, cost %s\n", conflicts, toSolve.getAllocationCost());
+            System.out.printf(" Conflicting %s\n", conflicts);
             
-            // store best solution
-            if (currentSolution.isBetterThanBest()) {
-                currentSolution.saveBestSolution();
-                System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
-            }
+           
         }
         
         // return best solution ever found
