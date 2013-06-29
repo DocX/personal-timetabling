@@ -1,5 +1,6 @@
 package net.personaltt.model;
 
+import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 
 /**
@@ -46,6 +47,12 @@ public class Occurrence {
      */
     int perturbationPriority = 0;
     
+    long domainLowerBound = 0;
+    
+    long domainUpperBound = 0;
+    
+    private long maximalPreferredStartDiff = 0;
+    
     /**
      * 
      * @param domain
@@ -58,8 +65,19 @@ public class Occurrence {
         this.minDuration = minDuration;
         this.maxDuration = maxDuration;
         this.id = id;
+        
+        // get domain bounds to compute maximal difference from preferredStart
+        initDomainBounds();
     }
 
+    private void initDomainBounds() {
+        if (domain == null) {
+            return;
+        }
+        domainLowerBound = domain.getLowerBound();
+        domainUpperBound = domain.getUpperBound();
+    }
+    
     /**
      * Occurrences are equal iff their ids are equal
      * @param obj
@@ -128,6 +146,7 @@ public class Occurrence {
         Occurrence o = new Occurrence(domain, minDuration, maxDuration, id);
         o.perturbationPriority = this.perturbationPriority;
         o.preferredStart = this.preferredStart;
+        o.maximalPreferredStartDiff = this.maximalPreferredStartDiff;
         return o;
     }
 
@@ -141,7 +160,12 @@ public class Occurrence {
     
     public void setInitialAllocation(OccurrenceAllocation allocation) {
         this.allocation = allocation;
-        this.preferredStart = allocation.start;
+        this.setPreferredStart(allocation.start);
+    }
+    
+    private void setPreferredStart(int start) {
+        this.preferredStart = start;
+        this.maximalPreferredStartDiff = Math.max(preferredStart - domainLowerBound, domainUpperBound - preferredStart);
     }
 
     public int getPerturbationPriority() {
@@ -156,7 +180,56 @@ public class Occurrence {
      * Allocation cost is made primarly 
      * @return 
      */
-    public int getAllocationCost() {
-        return (maxDuration - allocation.duration) * Math.abs(allocation.start - preferredStart) +  Math.abs(allocation.start - preferredStart);
+    public long getAllocationCost() {
+        if (allocation == null) {
+            return 0;
+        }
+        return getAllocationCost(allocation.start, allocation.duration);
+    }
+    
+    /**
+     * Cost of given allocation for this occurrence. 
+     * @param inAllocation
+     * @return 
+     */
+    public long getAllocationCost(OccurrenceAllocation inAllocation) {
+        if (inAllocation == null) {
+            return 0;
+        }
+        return getAllocationCost(inAllocation.start, inAllocation.duration);
+    }
+    
+    public long getAllocationCost(BaseInterval<Integer> allocationInterval) {
+        if (allocationInterval == null) {
+            return 0;
+        }
+        return getAllocationCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
+    }
+    
+    
+    public long getAllocationCost(int start, int duration) {
+        return (maxDuration - duration) * (maximalPreferredStartDiff) +  Math.abs(start - preferredStart);
+    }
+    
+    public long getDurationCost() {
+        if (allocation == null) {
+            return 0;
+        }
+        return getDurationCost(allocation.duration);
+    }
+       
+    public long getDurationCost(int duration) {
+        return maxDuration - duration;
+    }
+    
+    public long getPreferredStartCost() {
+        if (allocation == null) {
+            return 0;
+        }
+        return getPreferredStartCost(allocation.start);
+    }
+    
+    public long getPreferredStartCost(long start) {
+        return Math.abs(start - preferredStart); 
     }
 }

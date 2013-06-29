@@ -75,6 +75,22 @@ public class BaseIntervalsSet<T extends Comparable> {
             return null;
         }
     } 
+
+    /**
+     * Return start of first interval in set according to natural ordering of keys.
+     * @return 
+     */
+    public T getUpperBound() {
+        return setMap.lastKey();
+    }
+
+    /**
+     * Return end of last interval in set according to natural ordering of keys;
+     * @return 
+     */
+    public T getLowerBound() {
+        return setMap.firstKey();
+    }
     
    /**
      * Union merge operation
