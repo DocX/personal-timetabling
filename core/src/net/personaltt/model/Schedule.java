@@ -149,7 +149,7 @@ public class Schedule {
         IntervalMultimap<Occurrence> currentAllocationIntervals = 
                 new IntervalMultimap<>();
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : getOccurrencesAllocations()) {
-            if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval()) > 0) {
+            if (currentAllocationIntervals.put(entry.getKey(), entry.getValue().toInterval(), null) > 0) {
                 return true;
             }
         }
@@ -160,6 +160,14 @@ public class Schedule {
     
     public int numberOccurrences() {
         return this.allocationMapping.size();
+    }
+
+    public OccurrenceAllocation removeAllocation(Occurrence toSolve) {
+        return this.allocationMapping.remove(toSolve);
+    }
+
+    public void setAllocation(Occurrence toSolve, OccurrenceAllocation solvingAllocation) {
+        this.allocationMapping.put(toSolve, solvingAllocation);
     }
     
 }

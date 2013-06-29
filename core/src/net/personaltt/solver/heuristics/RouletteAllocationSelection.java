@@ -30,8 +30,8 @@ public class RouletteAllocationSelection implements AllocationSelection {
                 new AlignedOccurrenceAllocationsIterator(forOccurrence, schedule.allocationsMultimap());
     
         // cost function
-        MinDurationConflictAllocationCost cost = 
-                new MinDurationConflictAllocationCost(forOccurrence, schedule);
+        //MinDurationConflictAllocationCost cost = 
+        //        new MinDurationConflictAllocationCost(forOccurrence, schedule);
         
         // save allocations to list
         ArrayList<AllocationAndCost> allocationsList = new ArrayList<>();
@@ -39,7 +39,7 @@ public class RouletteAllocationSelection implements AllocationSelection {
         while(allocations.hasNext()) {
             BaseInterval<Integer> allocation = allocations.next();
             
-            long allocationCost = cost.computeCostOfAllocation(allocation);
+            long allocationCost = forOccurrence.getAllocationCost(allocation);
             
             allocationsList.add(new AllocationAndCost(allocation, 1d/(allocationCost+1)));
         }

@@ -24,6 +24,9 @@ import net.personaltt.utils.RandomUtils;
 public class BestAllocationSelection implements AllocationSelection {
 
     Random random = new Random();
+    
+    double conflictCostWeight = 1.0;
+    double valueCostWeight = 1.0;
 
     @Override
     public OccurrenceAllocation select(SolverState schedule, Occurrence forOccurrence) {
@@ -34,34 +37,36 @@ public class BestAllocationSelection implements AllocationSelection {
         // cost function. use simpler ConflictSumCost when state is rapidly moving, and 
         // more sofisticated minDurationConflictCost when state is long time tapped in local extrem 
         Cost cost;
-        if (tapped(schedule)) {
+        if (schedule.getUnassignedOccurrences().size() > 0 || tapped(schedule)) {
             cost = new MinDurationConflictAllocationCost(forOccurrence, schedule);
         } else {
             cost = new ConflictSumAllocationCost(forOccurrence, schedule);
         }
         
         ArrayList<BaseInterval<Integer>> bestAllocations = new ArrayList<>();
-        int bestDurationInBestCost = 0;
-        long bestCost = Long.MAX_VALUE;
+        long bestOccurrenceCost = 0;
+        long bestConflictCost = Long.MAX_VALUE;
         
         // iterate thgrouh all aligned allocations
         while(allocations.hasNext()) {
             BaseInterval<Integer> allocation = allocations.next();
             
-            int allocationDuration = (int)(allocation.getEnd() - allocation.getStart());
+            long allocationOccurrenceCost = (long)(forOccurrence.getAllocationCost(allocation) * valueCostWeight);
             
-            long allocationCost = cost.computeCostOfAllocation(allocation);
+            long allocationCost = (long)(cost.computeCostOfAllocation(allocation) * conflictCostWeight);
             
-            if (allocationCost < bestCost || (allocationCost == bestCost && allocationDuration > bestDurationInBestCost)) {
-                bestCost = allocationCost;
+            if (allocationCost < bestConflictCost || (allocationCost == bestConflictCost && allocationOccurrenceCost > bestOccurrenceCost)) {
+                bestConflictCost = allocationCost;
                 bestAllocations.clear();
-                bestDurationInBestCost = allocationDuration;
+                bestOccurrenceCost = allocationOccurrenceCost;
             }
             
-            if (allocationCost == bestCost && allocationDuration == bestDurationInBestCost) {
+            if (allocationCost == bestConflictCost && allocationOccurrenceCost == bestOccurrenceCost) {
                 bestAllocations.add(allocation);
             }
         }
+        
+        System.out.printf(" Found best %s:%s allocations: %s\n", bestConflictCost, bestOccurrenceCost, bestAllocations.size());
         
         BaseInterval<Integer> choosen = bestAllocations.get(random.nextInt(bestAllocations.size()));
         return new OccurrenceAllocation(choosen);

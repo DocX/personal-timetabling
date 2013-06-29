@@ -45,7 +45,13 @@ public class Occurrence {
      * Priority of perturbing value of this occurrence. 
      * Greater value means higher priority of keeping unchanged.
      */
-    int perturbationPriority = 0;
+    int preferredWeight = 0;
+    
+    long domainLowerBound = 0;
+    
+    long domainUpperBound = 0;
+    
+    private long maximalPreferredStartDiff = 0;
     
     long domainLowerBound = 0;
     
@@ -144,7 +150,7 @@ public class Occurrence {
     @Override
     public Object clone() {
         Occurrence o = new Occurrence(domain, minDuration, maxDuration, id);
-        o.perturbationPriority = this.perturbationPriority;
+        o.preferredWeight = this.preferredWeight;
         o.preferredStart = this.preferredStart;
         o.maximalPreferredStartDiff = this.maximalPreferredStartDiff;
         return o;
@@ -168,8 +174,8 @@ public class Occurrence {
         this.maximalPreferredStartDiff = Math.max(preferredStart - domainLowerBound, domainUpperBound - preferredStart);
     }
 
-    public int getPerturbationPriority() {
-        return perturbationPriority;
+    public int getPreferredWeight() {
+        return preferredWeight;
     }
 
     public int getPreferredStart() {

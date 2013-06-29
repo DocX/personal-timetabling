@@ -110,7 +110,7 @@ public class IntervalMultimapTest {
         assertEquals(60, newConflicts);
         
         newConflicts = instance.put(3, new BaseInterval(10, 30));
-        assertEquals(20+40, newConflicts);
+        assertEquals(60, newConflicts);
     }
     
     /**
@@ -128,7 +128,7 @@ public class IntervalMultimapTest {
         assertEquals(0, newConflicts);
         
         newConflicts = instance.put(3, new BaseInterval(45, 80));
-        assertEquals(10+20, newConflicts);
+        assertEquals(30, newConflicts);
     }
 
     /**

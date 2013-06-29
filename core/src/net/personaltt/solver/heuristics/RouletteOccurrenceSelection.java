@@ -6,6 +6,7 @@ package net.personaltt.solver.heuristics;
 
 import cern.colt.function.IntDoubleProcedure;
 import cern.colt.map.OpenIntDoubleHashMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
 
     Random random = new Random();   
     
+    double optimizationWhenConflictProb = 0.2;
+    
      /**
      * Gets occurrence to solve using heuristic from conflicting occurrences with
      * cost
@@ -35,80 +38,54 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
      */    
     @Override
     public Occurrence select(SolverState solution) {
-        
-        // map of costs of occurrences
-        cern.colt.map.OpenIntDoubleHashMap occurrencesCosts = new OpenIntDoubleHashMap(solution.allocationsMultimap().size()*2);
-        
-        long costSum = 0;
-        // Sum cost for each occurrence. Walk throught all intervals chunks in map
-        // and sum number of values in chunk to each value in chunk, which is occurrence
-        for (ValuedInterval<Integer, List<Occurrence>> valuesInterval : solution.allocationsMultimap().valuesIntervals()) {
-            for (Occurrence occurrence : valuesInterval.getValues()) {
-                double oldSum = occurrencesCosts.get(occurrence.getId());
-                // add value of interval length multiplied by count of other occurrences filling that interval
-                long cost =  
-                        (valuesInterval.getEnd() - valuesInterval.getStart()) *
-                        (valuesInterval.getValues().size() - 1)
-                        ;
-                
-                costSum += cost;
-                
-                occurrencesCosts.put(occurrence.getId(), oldSum + cost);
-            }
+        // select random unassigned
+        if (solution.getUnassignedOccurrences().size() > 0) {
+            return solution.getUnassignedOccurrences().get(random.nextInt(solution.getUnassignedOccurrences().size()));
         }
         
-        long allocationCostWeight = costSum == 0 ? 1 : 0;
+        // select more problematic occurrence with more probability
+        ConflictSumAllocationCost conflicting = new ConflictSumAllocationCost(null, solution);
+        long totalConflictCost = 0;
+        long totalAllocationCost = 0;
         
-        // compute total sum of costs, power cost to make exponential scale of cost
-        costSum = 0;
+        long[] occurrenceConflictCost = new long[solution.allocationsMultimap().size()];
+        int i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            double old = occurrencesCosts.get(occurrence.getId());
-            double newCost = old * old * old + (allocationCostWeight * (occurrence.getAllocationCost() + 1));
-            
-            costSum += newCost;
-            occurrencesCosts.put(occurrence.getId(), newCost);
+            occurrenceConflictCost[i] = conflicting.computeCostOfAllocation(occurrence.getAllocation().toInterval());
+            totalConflictCost += occurrenceConflictCost[i] ;
+            totalAllocationCost += occurrence.getAllocationCost();
+            i++;
         }
         
+        if (totalAllocationCost == 0 && totalConflictCost == 0) {
+            return null;
+        }
+        
+        boolean countAllocationCost = totalConflictCost == 0;
+        if (totalConflictCost > 0 && random.nextDouble() > optimizationWhenConflictProb) {
+            countAllocationCost = true;
+        }
         
         // get random in sum
-        long selection = RandomUtils.nextLong(random, costSum);
+        long totalCost = totalConflictCost + (countAllocationCost ? totalAllocationCost : 0);
+        long selection = RandomUtils.nextLong(random, totalCost);
         
         // go throught occurrences and first where sum is less than random
-        SelectionFunc select = new SelectionFunc(selection);
-        occurrencesCosts.forEachPair(select);
-        
+        totalCost = 0;
+        i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            if (occurrence.getId() == select.selectedOccurrenceId) {
+            long cost = occurrenceConflictCost[i] + (countAllocationCost ? occurrence.getAllocationCost() : 0);
+            if (cost == 0) {
+                continue;
+            }
+            totalCost += cost;
+            if (totalCost > selection) {
                 return occurrence;
             }
+            i++;
         }
         throw new IllegalStateException();
     }
     
-    private class SelectionFunc implements IntDoubleProcedure {
-        long costSum = 0;
-        int selectedOccurrenceId = 0;
-        long selection;
-
-        public SelectionFunc(long selection) {
-            this.selection = selection;
-        }
-
-        @Override
-        public boolean apply(int i, double d) {
-            if (d == 0) {
-                return true;
-            }
-            
-            selectedOccurrenceId = i;
-            costSum += d;
-            
-            if (costSum > selection) {
-                return false;
-            }
-            
-            return true;
-        }
-    };
     
 }
