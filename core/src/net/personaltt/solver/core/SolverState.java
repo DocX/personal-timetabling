@@ -4,6 +4,7 @@
  */
 package net.personaltt.solver.core;
 
+import java.util.List;
 import net.personaltt.model.Occurrence;
 import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.model.Schedule;
@@ -35,16 +36,16 @@ public interface SolverState extends SolverSolution, Comparable {
      * @param toSolve
      * @return 
      */
-    public OccurrenceAllocation removeAllocationOf(Occurrence toSolve);
+    public OccurrenceAllocation unassigneAllocation(Occurrence toSolve);
 
     /**
      * Set occurrence allocation. If occurrence has not allocated in solution, allocation is 
-     * created
+     * created, returing list of occurrences conflicting with adding allocation
      * @param toSolve
      * @param solvingAllocation
      * @return 
      */
-    public boolean setAllocation(Occurrence toSolve, OccurrenceAllocation solvingAllocation);
+    public List<Occurrence> assigneAllocation(Occurrence toSolve, OccurrenceAllocation solvingAllocation);
 
     /**
      * Updates allocation of occurrence. If occurrence is not allocated, allocates it.
@@ -55,7 +56,7 @@ public interface SolverState extends SolverSolution, Comparable {
      * @param allocation
      * @return 
      */
-    public boolean updateAllocation(Occurrence toSolve, OccurrenceAllocation allocation);
+    public boolean setAllocation(Occurrence toSolve, OccurrenceAllocation allocation);
     
     /**
      * Return true if current solution is better than best solution.
@@ -86,4 +87,10 @@ public interface SolverState extends SolverSolution, Comparable {
      * @return 
      */
     public SolverSolution getBestSolution();
+    
+    /**
+     * Return list of unassigned occurrences
+     * @return 
+     */
+    public List<Occurrence> getUnassignedOccurrences();
 }

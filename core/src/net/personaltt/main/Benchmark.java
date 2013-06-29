@@ -15,6 +15,8 @@ import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.model.ProblemDefinition;
 import net.personaltt.model.Schedule;
 import net.personaltt.solver.core.Solver;
+import net.personaltt.solver.core.SolverSolution;
+import net.personaltt.solver.core.SolverState;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 
@@ -31,10 +33,10 @@ public class Benchmark {
      */
     public static void main(String[] args) {
         
-        bench1();
+        //bench1();
         //bench2();
         //bench3();
-        //bench4();
+        bench4();
         //bench5();
     }
     
@@ -93,12 +95,21 @@ public class Benchmark {
         ProblemDefinition problem = generator.getProblem();
         
         // print optimal solutions
-        System.out.println("\nOptimal solution:");
+        System.out.println();
+        System.out.println("Optimal solution:");
         printProblem(generator.optimalSolution);
         
         // print initial problem
-        System.out.println("\nInitial problem:");
+        System.out.println("Initial problem:");
         printProblem(problem.problemOccurrences);
+        
+        // Print optimal cost sum
+        long optimalCostSumInInitial = 0;
+        for (int i = 0; i < problem.problemOccurrences.size(); i++) {
+            optimalCostSumInInitial += problem.problemOccurrences.get(i)
+                    .getAllocationCost(generator.optimalSolution.get(i).getAllocation());
+        }
+        System.out.printf("Optimal solution cost: %s\n", optimalCostSumInInitial);
         
         System.out.println();
         benchSolve(problem);
@@ -191,18 +202,22 @@ public class Benchmark {
         // solve
         Solver solver = new Solver("net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
         solver.timeoutLimit = SOLVER_TIMEOUT;
-        Schedule solved = solver.solve(problem); 
+        SolverState state = solver.solve(problem); 
+        SolverSolution best = state.getBestSolution();
         
         // print solution
-        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : solved.getOccurrencesAllocations()) {
-            System.out.printf("%s\ta:%s\tc:%s\n", 
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
+            entry.getKey().setAllocation(entry.getValue());
+            System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
                     entry.getKey().getId(), 
                     entry.getValue().toString(), //allocation
-                    entry.getKey().getAllocationCost()
+                    entry.getKey().getAllocationCost(),
+                    entry.getKey().getDurationCost(),
+                    entry.getKey().getPreferredStartCost()
                     );
             
         }
-        System.out.printf("Conflicting: %s", solved.hasConflict());
+        System.out.printf("Unassigned: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), state.getLastBestIteration());
     }
     
     

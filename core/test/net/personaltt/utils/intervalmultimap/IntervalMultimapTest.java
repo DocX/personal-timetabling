@@ -102,15 +102,15 @@ public class IntervalMultimapTest {
     public void testPutNewConflicts() {
         System.out.println("put");
         IntervalMultimap<Integer> instance = new IntervalMultimap<>();
-        long newConflicts;
-        newConflicts = instance.put(1, new BaseInterval(10, 50));
+        int newConflicts;
+        newConflicts = instance.put(1, new BaseInterval(10, 50)).size();
         assertEquals(0, newConflicts);
 
-        newConflicts = instance.put(2, new BaseInterval(20, 55));
-        assertEquals(60, newConflicts);
+        newConflicts = instance.put(2, new BaseInterval(20, 55)).size();
+        assertEquals(1, newConflicts);
         
-        newConflicts = instance.put(3, new BaseInterval(10, 30));
-        assertEquals(20+40, newConflicts);
+        newConflicts = instance.put(3, new BaseInterval(10, 30)).size();
+        assertEquals(2, newConflicts);
     }
     
     /**
@@ -121,14 +121,14 @@ public class IntervalMultimapTest {
         System.out.println("put");
         IntervalMultimap<Integer> instance = new IntervalMultimap<>();
         long newConflicts;
-        newConflicts = instance.put(1, new BaseInterval(10, 50));
+        newConflicts = instance.put(1, new BaseInterval(10, 50)).size();
         assertEquals(0, newConflicts);
 
-        newConflicts = instance.put(2, new BaseInterval(70, 100));
+        newConflicts = instance.put(2, new BaseInterval(70, 100)).size();
         assertEquals(0, newConflicts);
         
-        newConflicts = instance.put(3, new BaseInterval(45, 80));
-        assertEquals(10+20, newConflicts);
+        newConflicts = instance.put(3, new BaseInterval(45, 80)).size();
+        assertEquals(2, newConflicts);
     }
 
     /**

@@ -130,12 +130,7 @@ public class IntervalMultimap<V> {
      * @param value
      * @param interval 
      */
-    public long put(V value, BaseInterval<Integer> interval) {
-        // if adding value already exists in multiset, throw exception
-        if (startPoints.containsKey(value)) {
-            return 0;
-        }
-        
+    public List<V> put(V value, BaseInterval<Integer> interval) {       
         startPoints.put(value, interval.getStart());
         
         // creates first edge stub (without this value) for interval, if this edge do not exists yet
@@ -144,33 +139,24 @@ public class IntervalMultimap<V> {
         // creates end edge stub (without this value) for interval, if not exists yet
         MultimapEdge<V> endEdge = addEdge(interval.getEnd());
         
-        long conflictingSum = 0;
-        List<V> prevElementValues = null;
-        int prevElementStart = 0;
+        List<V> conflictingValues = new ArrayList<>(startEdge.values);
+        conflictingValues.removeAll(startEdge.addedValues);
         
         // add value to all edges including start to excluding end
         for(Entry<Integer,MultimapEdge<V>> edge : edges.subMap(interval.getStart(), interval.getEnd()).entrySet()) {
-            
-            if (prevElementValues != null) {
-                // difference added with this new interval. for each interval before add once length, for new add length * number of previous
-                conflictingSum += (prevElementValues.size() -1) * (long)(edge.getKey() - prevElementStart) * 2l;
-            }
+            // copy conflicting values
+            conflictingValues.addAll(edge.getValue().addedValues);
             
             // add to all intermediate edges
             edge.getValue().values.add(value);
-            
-            prevElementStart = edge.getKey();
-            prevElementValues = edge.getValue().values;
         }
         
-        // last elemen sum
-        conflictingSum += (prevElementValues.size() -1) * (interval.getEnd() - prevElementStart) * 2;
         
         // add to changing lists of first and last edge
         startEdge.addedValues.add(value);
         endEdge.removedValues.add(value);
         
-        return conflictingSum;
+        return conflictingValues;
     }
     
     /**
@@ -302,10 +288,7 @@ public class IntervalMultimap<V> {
      * @return 
      */
     public Iterable<ValuedInterval<Integer,List<V>>> valuesInInterval(final BaseInterval<Integer> interval) {
-        // if edges are empty, no interval is there, so return abstract empty list
-        if (edges.isEmpty()) {
-            return Collections.emptyList();
-        }
+        
         
         // otherwise make stops iterator in edges boundary and wrap it in intervals
         // from stops iterator
@@ -329,10 +312,7 @@ public class IntervalMultimap<V> {
      * @return 
      */
     public Iterable<ValuedInterval<Integer,MultimapEdge<V>>> valuesChangesInInterval(final BaseInterval<Integer> interval) {
-        // if edges are empty, no interval is there, so return abstract empty list
-        if (edges.isEmpty()) {
-            return Collections.emptyList();
-        }
+        
         
         // otherwise make stops iterator in edges boundary and wrap it in intervals
         // from stops iterator

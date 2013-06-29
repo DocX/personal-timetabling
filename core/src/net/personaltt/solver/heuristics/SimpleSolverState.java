@@ -4,6 +4,7 @@
  */
 package net.personaltt.solver.heuristics;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.personaltt.model.Occurrence;
@@ -24,49 +25,40 @@ public class SimpleSolverState implements SolverState {
     
     Schedule solutionSchedule;
     
-    long conflictingOccurrences;
-    
-    long durationsSum;
-    
-    long maxDurationsSum;
+    long assignedCost;
     
     SolverSolution bestSolution;
+    
     int bestIteration;
     
     int currentIteration;
     
+    List<Occurrence> unassignedOccurrences;
+    
     @Override
     public void init(Schedule schedule) {
         allocationMultimap = new IntervalMultimap<>();
-        solutionSchedule = (Schedule)schedule.deepClone();
-        conflictingOccurrences = 0;
-        durationsSum = 0;
-        maxDurationsSum = 0;
+        solutionSchedule = new Schedule();
+        unassignedOccurrences = new ArrayList<>(schedule.numberOccurrences());
+        assignedCost = 0;
+
         currentIteration = 0;
         bestSolution = null;
         bestIteration = 0;
         
-        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : solutionSchedule.getOccurrencesAllocations()) {
-            long newConflicts = allocationMultimap.put(entry.getKey(), entry.getValue().toInterval());
-            conflictingOccurrences += newConflicts;
-            if (entry.getValue().getDuration() > entry.getKey().getMaxDuration()) {
-                throw new IllegalArgumentException("Duration cannot be greater than max duration");
-            }
-            
-            durationsSum += entry.getValue().getDuration();
-            maxDurationsSum += entry.getKey().getMaxDuration();
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : schedule.getOccurrencesAllocations()) {
+            unassignedOccurrences.add((Occurrence)entry.getKey().clone());
         }
     }
 
     @Override
     public long optimalCost() {
-        //return conflictingOccurrences;
-        return (maxDurationsSum - durationsSum);
+        return assignedCost;
     }
 
     @Override
     public long constraintsCost() {
-       return conflictingOccurrences;
+       return unassignedOccurrences.size();
     }
 
     @Override
@@ -75,32 +67,48 @@ public class SimpleSolverState implements SolverState {
     }
 
     @Override
-    public OccurrenceAllocation removeAllocationOf(Occurrence toSolve) {
-        long conflictsRemoved = allocationMultimap.remove(toSolve);
-        conflictingOccurrences -= conflictsRemoved;
-        OccurrenceAllocation aloc = solutionSchedule.getAllocationOf(toSolve);
+    public OccurrenceAllocation unassigneAllocation(Occurrence toSolve) {
+        allocationMultimap.remove(toSolve);
         
-        // subtract removed allocation duration
-        durationsSum -= aloc.getDuration();
+        // subtract removed allocation cost
+        assignedCost -= toSolve.getAllocationCost();
+        toSolve.setAllocation(null);
         
-        return aloc;
+        unassignedOccurrences.add(toSolve);
+   
+        return solutionSchedule.removeAllocation(toSolve);
     }
 
     @Override
-    public boolean setAllocation(Occurrence toSolve, OccurrenceAllocation solvingAllocation) {
-        // debugging if, should not happen
-        if (toSolve.getMaxDuration() < solvingAllocation.getDuration()) {
-            throw new IllegalStateException("Allocation cannot be longer than max duration of occurrence");
+    public List<Occurrence> assigneAllocation(Occurrence toSolve, OccurrenceAllocation solvingAllocation) {       
+        unassignedOccurrences.remove(toSolve);
+        
+        solutionSchedule.setAllocation(toSolve, solvingAllocation);
+        toSolve.setAllocation(solvingAllocation);
+        
+        List<Occurrence> newConflicts = allocationMultimap.put(toSolve, solvingAllocation.toInterval());
+        assignedCost += toSolve.getAllocationCost();
+
+        return newConflicts;
+    }
+    
+    @Override
+    public boolean setAllocation(Occurrence toSolve, OccurrenceAllocation allocation) {
+        // update occurrence with allocation and unassigne conflicting occurrences
+        
+        if (toSolve.getAllocation() != null) {
+            // remove from multimap
+            allocationMultimap.remove(toSolve);
         }
         
-        solutionSchedule.getAllocationOf(toSolve).set(solvingAllocation);
-
-        long newConflicts = allocationMultimap.put(toSolve, solvingAllocation.toInterval());
-        conflictingOccurrences += newConflicts;
-
-        durationsSum += solvingAllocation.getDuration();
-
-        return newConflicts > 0;
+        List<Occurrence> newConflicting = assigneAllocation(toSolve, allocation);
+        if (newConflicting != null) {
+            for (Occurrence occurrence : newConflicting) {
+                unassigneAllocation(occurrence);
+            }
+        }
+        
+        return newConflicting != null && newConflicting.size() > 0;
     }
 
     @Override
@@ -152,15 +160,10 @@ public class SimpleSolverState implements SolverState {
         return 1;
     }
 
-    @Override
-    public boolean updateAllocation(Occurrence toSolve, OccurrenceAllocation allocation) {
-        this.removeAllocationOf(toSolve);
-        return this.setAllocation(toSolve, allocation);
-    }
 
     @Override
     public boolean iterate() {
-        if (durationsSum >= maxDurationsSum && conflictingOccurrences == 0) {
+        if (optimalCost() == 0 && constraintsCost() == 0) {
             return false;
         }
         currentIteration++;
@@ -192,7 +195,11 @@ public class SimpleSolverState implements SolverState {
     public SolverSolution getBestSolution() {
         return bestSolution;
     }
-    
-    
+
+    @Override
+    public List<Occurrence> getUnassignedOccurrences() {
+        return unassignedOccurrences;
+    }
+   
     
 }

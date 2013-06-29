@@ -24,7 +24,7 @@ public class Solver {
      * Coeficient of stucket threshold, multiplied with number of occurrences in
      * problem.
      */
-    public int stuckedThresholdCoef = 3;
+    public float stuckedThresholdCoef = 1.5f;
     
     /**
      * Instance of random used in solver
@@ -70,7 +70,7 @@ public class Solver {
      * @param problem
      * @return solution
      */
-    public Schedule solve(ProblemDefinition problem) {
+    public SolverState solve(ProblemDefinition problem) {
         OccurrenceSelection occurrenceSelection;
         AllocationSelection allocationSelection;
         try {
@@ -88,7 +88,7 @@ public class Solver {
         // Start timer
         long startTime = System.currentTimeMillis();
 
-        long stuckedThreshold = Math.max(problem.problemOccurrences.size() * stuckedThresholdCoef, 1000);
+        long stuckedThreshold = Math.max((int)(problem.problemOccurrences.size() * stuckedThresholdCoef), 500);
         
         // while we have time and is not termination condition met, improve solution 
         while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
@@ -105,10 +105,10 @@ public class Solver {
             
             // select and save allocation of occurrence
             OccurrenceAllocation selectedAllocation = allocationSelection.select(currentSolution, toSolve);
-            System.out.printf(" Selected allocation: %s\n", selectedAllocation);
+            System.out.printf(" Selected allocation: %s \n", selectedAllocation);
             
-            boolean conflicts = currentSolution.updateAllocation(toSolve, selectedAllocation);
-            System.out.printf(" Conflicting %s\n", conflicts);
+            boolean conflicts = currentSolution.setAllocation(toSolve, selectedAllocation);
+            System.out.printf(" Conflicting %s, cost %s\n", conflicts, toSolve.getAllocationCost());
             
             // store best solution
             if (currentSolution.isBetterThanBest()) {
@@ -118,7 +118,7 @@ public class Solver {
         }
         
         // return best solution ever found
-        return currentSolution.getBestSolution().getSchedule();
+        return currentSolution;
     }
 
     private void printState(SolverState currentSolution) {
