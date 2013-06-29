@@ -28,6 +28,8 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
 
     Random random = new Random();   
     
+    double optimizationWhenConflictProb = 0.2;
+    
      /**
      * Gets occurrence to solve using heuristic from conflicting occurrences with
      * cost
@@ -41,26 +43,46 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
             return solution.getUnassignedOccurrences().get(random.nextInt(solution.getUnassignedOccurrences().size()));
         }
         
-        // get costs sum
-        long totalCost = 0;
+        // select more problematic occurrence with more probability
+        ConflictSumAllocationCost conflicting = new ConflictSumAllocationCost(null, solution);
+        long totalConflictCost = 0;
+        long totalAllocationCost = 0;
+        
+        long[] occurrenceConflictCost = new long[solution.allocationsMultimap().size()];
+        int i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            totalCost += occurrence.getAllocationCost();
+            occurrenceConflictCost[i] = conflicting.computeCostOfAllocation(occurrence.getAllocation().toInterval());
+            totalConflictCost += occurrenceConflictCost[i] ;
+            totalAllocationCost += occurrence.getAllocationCost();
+            i++;
         }
         
-        if (totalCost == 0) {
+        if (totalAllocationCost == 0 && totalConflictCost == 0) {
             return null;
         }
-            
+        
+        boolean countAllocationCost = totalConflictCost == 0;
+        if (totalConflictCost > 0 && random.nextDouble() > optimizationWhenConflictProb) {
+            countAllocationCost = true;
+        }
+        
         // get random in sum
+        long totalCost = totalConflictCost + (countAllocationCost ? totalAllocationCost : 0);
         long selection = RandomUtils.nextLong(random, totalCost);
         
         // go throught occurrences and first where sum is less than random
         totalCost = 0;
+        i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            totalCost += occurrence.getAllocationCost();
+            long cost = occurrenceConflictCost[i] + (countAllocationCost ? occurrence.getAllocationCost() : 0);
+            if (cost == 0) {
+                continue;
+            }
+            totalCost += cost;
             if (totalCost > selection) {
                 return occurrence;
             }
+            i++;
         }
         throw new IllegalStateException();
     }

@@ -162,6 +162,84 @@ public class Benchmark {
         }
     }
     
+    private static void benchSolve(ProblemDefinition problem) {
+       
+        
+        // solve
+        Solver solver = new Solver("net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
+        solver.timeoutLimit = SOLVER_TIMEOUT;
+        
+        SolverThread run = new SolverThread(solver, problem);
+        //run.solver.pause();
+        run.start();
+        if (System.console() != null) {
+        while(run.isAlive()) {
+            String cmd = System.console().readLine();
+            System.out.println(cmd);
+            
+            switch(cmd) {
+                case "p":
+                    run.solver.pause();
+                    break;
+                case "s":
+                    System.out.println("Step");
+                    run.solver.step();
+                    break;
+                case "r":
+                    System.out.println("Printing state");
+                    run.solver.printState();
+                    break;
+                case "q":
+                    run.solver.timeoutLimit = 0;
+                    run.solver.step();
+                    break;
+            }
+        }
+        }
+        try {
+            run.join();
+        } catch(Exception e) {
+            
+        }
+        
+        SolverSolution best = run.state.getBestSolution();
+        
+        // print solution
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
+            entry.getKey().setAllocation(entry.getValue());
+            System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
+                    entry.getKey().getId(), 
+                    entry.getValue().toString(), //allocation
+                    entry.getKey().getAllocationCost(),
+                    entry.getKey().getDurationCost(),
+                    entry.getKey().getPreferredStartCost()
+                    );
+            
+        }
+        System.out.printf("Conflicting: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), run.state.getLastBestIteration());
+    }
+     
+    private static class SolverThread extends Thread {
+
+        public boolean paused = false;
+        
+        Solver solver;
+        ProblemDefinition problem;
+        SolverState state;
+
+        public SolverThread(Solver solver, ProblemDefinition problem) {
+            this.solver = solver;
+            this.problem = problem;
+        }
+        
+        
+        @Override
+        public void run() {
+            state = solver.solve(problem);
+        }
+        
+    } 
+    
     // simple problem
     // all occurrences will have same domain
     // length of domain is sum of minimal lengths of all occurrences
@@ -196,29 +274,7 @@ public class Benchmark {
         return problem;        
     }
 
-    private static void benchSolve(ProblemDefinition problem) {
-       
-        
-        // solve
-        Solver solver = new Solver("net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
-        solver.timeoutLimit = SOLVER_TIMEOUT;
-        SolverState state = solver.solve(problem); 
-        SolverSolution best = state.getBestSolution();
-        
-        // print solution
-        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
-            entry.getKey().setAllocation(entry.getValue());
-            System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
-                    entry.getKey().getId(), 
-                    entry.getValue().toString(), //allocation
-                    entry.getKey().getAllocationCost(),
-                    entry.getKey().getDurationCost(),
-                    entry.getKey().getPreferredStartCost()
-                    );
-            
-        }
-        System.out.printf("Unassigned: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), state.getLastBestIteration());
-    }
+   
     
     
     private static class RandomProblemGenerator {

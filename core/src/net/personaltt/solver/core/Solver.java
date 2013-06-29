@@ -1,6 +1,6 @@
 package net.personaltt.solver.core;
 
-import net.personaltt.solver.heuristics.SimpleSolverState;
+import net.personaltt.solver.heuristics.MainSolverState;
 import java.util.Map;
 import java.util.Random;
 import net.personaltt.model.Occurrence;
@@ -24,12 +24,16 @@ public class Solver {
      * Coeficient of stucket threshold, multiplied with number of occurrences in
      * problem.
      */
-    public float stuckedThresholdCoef = 1.5f;
+    public float stuckedThresholdCoef = 500f;
     
     /**
      * Instance of random used in solver
      */
     Random random;
+    
+    boolean pause;
+    
+    SolverState currentSolution;
     
     /**
      * Class name of occurrence selection used in neighbour selection
@@ -58,7 +62,6 @@ public class Solver {
         this(new Random(), "net.personaltt.heuristics.RouletteOccurrenceSelection", "net.personaltt.heuristics.MainAllocationSelection");
     }
     
-    
     /**
      * Solves given problem.
      * It uses standart neigbourh selection in two steps: selecting variable (occurrence)
@@ -82,7 +85,7 @@ public class Solver {
         }
         
         // init solver state
-        SolverState currentSolution = new SimpleSolverState();
+        currentSolution = new MainSolverState();
         currentSolution.init(problem.initialSchedule);
         
         // Start timer
@@ -92,7 +95,19 @@ public class Solver {
         
         // while we have time and is not termination condition met, improve solution 
         while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
-            System.out.printf("Iteration %s, Cost %s:%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
+            System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
+            
+            if (pause) {
+                System.out.println("Paused");
+                synchronized(this) {
+                    try {
+                        this.wait();
+                    } catch(Exception e) {
+                        
+                    }
+                }
+                startTime = System.currentTimeMillis();
+            }
             
             if ((currentSolution.getItearation() - currentSolution.getLastBestIteration()) > stuckedThreshold) {
                 System.out.printf(" Detected stuck. Ending solver.\n");
@@ -120,8 +135,18 @@ public class Solver {
         // return best solution ever found
         return currentSolution;
     }
+    
+    public void pause() {
+        this.pause = !this.pause;
+    }
+    
+    public void step() {
+        synchronized(this) {
+            this.notifyAll();
+        }
+    }
 
-    private void printState(SolverState currentSolution) {
+    public void printState() {
         System.out.printf("State:\n");
         for (Map.Entry<Integer, IntervalMultimap.MultimapEdge<Occurrence>> entry : currentSolution.allocationsMultimap().stopsInMap()) {
             System.out.printf("%s: %s\n", entry.getKey(), entry.getValue().getValues());

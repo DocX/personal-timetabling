@@ -123,6 +123,9 @@ public class IntervalMultimap<V> {
         startPoints = new HashMap<>();
     }
     
+    public long put(V value, BaseInterval<Integer> interval) {
+        return put(value, interval, null);
+    }
     
     /**
      * Adds interval with given value. Return sum of conflicting length for added
@@ -130,7 +133,7 @@ public class IntervalMultimap<V> {
      * @param value
      * @param interval 
      */
-    public List<V> put(V value, BaseInterval<Integer> interval) {       
+    public long put(V value, BaseInterval<Integer> interval, List<V> conflictingValues) {       
         startPoints.put(value, interval.getStart());
         
         // creates first edge stub (without this value) for interval, if this edge do not exists yet
@@ -139,24 +142,43 @@ public class IntervalMultimap<V> {
         // creates end edge stub (without this value) for interval, if not exists yet
         MultimapEdge<V> endEdge = addEdge(interval.getEnd());
         
-        List<V> conflictingValues = new ArrayList<>(startEdge.values);
-        conflictingValues.removeAll(startEdge.addedValues);
+        if (conflictingValues != null) {
+            conflictingValues.addAll(startEdge.values);
+            conflictingValues.removeAll(startEdge.addedValues);
+        }
+        
+        long newConflictSum = 0;
+        List<V> previousEdgeValues = null;
+        Integer previousEdge = 0;
         
         // add value to all edges including start to excluding end
         for(Entry<Integer,MultimapEdge<V>> edge : edges.subMap(interval.getStart(), interval.getEnd()).entrySet()) {
             // copy conflicting values
-            conflictingValues.addAll(edge.getValue().addedValues);
+            if (conflictingValues != null) {
+                conflictingValues.addAll(edge.getValue().addedValues);
+            }
             
             // add to all intermediate edges
             edge.getValue().values.add(value);
+            
+            // sum conflict from previous elementary interval
+            if (previousEdgeValues != null) {
+                newConflictSum += (previousEdgeValues.size() - 1) * (long)(edge.getKey() - previousEdge) * 2l;
+            }
+            
+            previousEdgeValues = edge.getValue().values;
+            previousEdge = edge.getKey();
         }
+        
+        // add sum for last elementaery interval
+        newConflictSum += (previousEdgeValues.size() - 1) * (long)(interval.getEnd() - previousEdge) * 2l;
         
         
         // add to changing lists of first and last edge
         startEdge.addedValues.add(value);
         endEdge.removedValues.add(value);
         
-        return conflictingValues;
+        return newConflictSum;
     }
     
     /**

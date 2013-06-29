@@ -52,7 +52,7 @@ public class ConflictSumAllocationCost implements Cost {
         }
         
         // remove amount countet for occurrence own
-        if (allocatingOccurrence.getAllocation() != null) {
+        if (allocatingOccurrence != null && allocatingOccurrence.getAllocation() != null) {
             cost -= Math.max(
                 0,
                 

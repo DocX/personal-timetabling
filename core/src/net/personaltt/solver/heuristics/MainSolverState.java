@@ -19,21 +19,54 @@ import net.personaltt.utils.intervalmultimap.IntervalMultimap;
  * allocations. Also keeps updated Schedule all time
  * @author docx
  */
-public class SimpleSolverState implements SolverState {
+public class MainSolverState implements SolverState {
 
+    /**
+     * map of allocated intervals. used for values enumeration and conflicts 
+     * determination
+     */
     IntervalMultimap<Occurrence> allocationMultimap;
     
+    /**
+     * current schedule. stores allocations for occurrences
+     */
     Schedule solutionSchedule;
-    
+
+    /**
+     * Copy of best solution found. 
+     */
+    SolverSolution bestSolution;
+
+    /**
+     * Iteration number when was beest solution in bestSolution found.
+     */
+    int bestIteration;
+        
+    /**
+     * Sum of current solution occurrences assignment costs 
+     */
     long assignedCost;
     
-    SolverSolution bestSolution;
+    /**
+     * Sum of current solution conflicting area
+     */
+    long conflictingCost;
     
-    int bestIteration;
-    
-    int currentIteration;
-    
+    /**
+     * List of unassigned occurrences
+     */
     List<Occurrence> unassignedOccurrences;
+
+    /**
+     * Switch of incomplete search. If true, occurrences can be unassigned when
+     * violating conflicting constraint
+     */
+    boolean incompleteSearch = false;
+    
+    /**
+     * Current iteration number.
+     */
+    int currentIteration;
     
     @Override
     public void init(Schedule schedule) {
@@ -41,13 +74,18 @@ public class SimpleSolverState implements SolverState {
         solutionSchedule = new Schedule();
         unassignedOccurrences = new ArrayList<>(schedule.numberOccurrences());
         assignedCost = 0;
+        conflictingCost = 0;
 
         currentIteration = 0;
         bestSolution = null;
         bestIteration = 0;
         
         for (Map.Entry<Occurrence, OccurrenceAllocation> entry : schedule.getOccurrencesAllocations()) {
-            unassignedOccurrences.add((Occurrence)entry.getKey().clone());
+            if (!incompleteSearch) {
+                assigneAllocation(entry.getKey(), new OccurrenceAllocation(entry.getValue().getStart(), entry.getValue().getDuration()));
+            } else {
+                unassignedOccurrences.add((Occurrence)entry.getKey().clone());
+            }
         }
     }
 
@@ -58,7 +96,7 @@ public class SimpleSolverState implements SolverState {
 
     @Override
     public long constraintsCost() {
-       return unassignedOccurrences.size();
+       return conflictingCost;
     }
 
     @Override
@@ -68,7 +106,8 @@ public class SimpleSolverState implements SolverState {
 
     @Override
     public OccurrenceAllocation unassigneAllocation(Occurrence toSolve) {
-        allocationMultimap.remove(toSolve);
+        // remove from intervals and subtract conflict value introduced by removing interval
+        conflictingCost -= allocationMultimap.remove(toSolve);
         
         // subtract removed allocation cost
         assignedCost -= toSolve.getAllocationCost();
@@ -86,7 +125,8 @@ public class SimpleSolverState implements SolverState {
         solutionSchedule.setAllocation(toSolve, solvingAllocation);
         toSolve.setAllocation(solvingAllocation);
         
-        List<Occurrence> newConflicts = allocationMultimap.put(toSolve, solvingAllocation.toInterval());
+        List<Occurrence> newConflicts = new ArrayList<>();
+        conflictingCost += allocationMultimap.put(toSolve, solvingAllocation.toInterval(), newConflicts);
         assignedCost += toSolve.getAllocationCost();
 
         return newConflicts;
@@ -98,13 +138,16 @@ public class SimpleSolverState implements SolverState {
         
         if (toSolve.getAllocation() != null) {
             // remove from multimap
-            allocationMultimap.remove(toSolve);
+            unassigneAllocation(toSolve);
         }
         
         List<Occurrence> newConflicting = assigneAllocation(toSolve, allocation);
-        if (newConflicting != null) {
-            for (Occurrence occurrence : newConflicting) {
-                unassigneAllocation(occurrence);
+        if (incompleteSearch) {
+           
+            if (newConflicting != null) {
+                for (Occurrence occurrence : newConflicting) {
+                    unassigneAllocation(occurrence);
+                }
             }
         }
         
@@ -163,7 +206,7 @@ public class SimpleSolverState implements SolverState {
 
     @Override
     public boolean iterate() {
-        if (optimalCost() == 0 && constraintsCost() == 0) {
+        if (/*optimalCost() == 0 &&*/ constraintsCost() == 0) {
             return false;
         }
         currentIteration++;
