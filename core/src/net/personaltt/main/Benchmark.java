@@ -88,7 +88,7 @@ public class Benchmark {
          * * occurrence id 643 has tendency fo stuck on 17
          * 
          */
-        generator.r = new Random(22108929);
+        //generator.r = new Random(22108929);
         
         
         generator.generateRandomProblem();

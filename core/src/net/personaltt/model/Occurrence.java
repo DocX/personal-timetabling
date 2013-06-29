@@ -53,12 +53,6 @@ public class Occurrence {
     
     private long maximalPreferredStartDiff = 0;
     
-    long domainLowerBound = 0;
-    
-    long domainUpperBound = 0;
-    
-    private long maximalPreferredStartDiff = 0;
-    
     /**
      * 
      * @param domain

@@ -51,7 +51,9 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         long[] occurrenceConflictCost = new long[solution.allocationsMultimap().size()];
         int i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
+            conflicting.allocatingOccurrence = occurrence;
             occurrenceConflictCost[i] = conflicting.computeCostOfAllocation(occurrence.getAllocation().toInterval());
+            
             totalConflictCost += occurrenceConflictCost[i] ;
             totalAllocationCost += occurrence.getAllocationCost();
             i++;
@@ -62,19 +64,29 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         }
         
         boolean countAllocationCost = totalConflictCost == 0;
-        if (totalConflictCost > 0 && random.nextDouble() > optimizationWhenConflictProb) {
+        if (totalConflictCost > 0 && random.nextDouble() < optimizationWhenConflictProb) {
             countAllocationCost = true;
         }
+        
+        
         
         // get random in sum
         long totalCost = totalConflictCost + (countAllocationCost ? totalAllocationCost : 0);
         long selection = RandomUtils.nextLong(random, totalCost);
+        
+        System.out.printf("Selection total conflict: %s, cost: %s, count cost: %s, selected: %s\n", 
+                totalConflictCost,
+                totalAllocationCost,
+                countAllocationCost,
+                selection
+                );
         
         // go throught occurrences and first where sum is less than random
         totalCost = 0;
         i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
             long cost = occurrenceConflictCost[i] + (countAllocationCost ? occurrence.getAllocationCost() : 0);
+            i++;
             if (cost == 0) {
                 continue;
             }
@@ -82,7 +94,7 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
             if (totalCost > selection) {
                 return occurrence;
             }
-            i++;
+            
         }
         throw new IllegalStateException();
     }

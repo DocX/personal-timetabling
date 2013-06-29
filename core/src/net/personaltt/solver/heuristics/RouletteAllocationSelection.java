@@ -58,6 +58,7 @@ public class RouletteAllocationSelection implements AllocationSelection {
         for (int i = 0; i < allocationsList.size(); i++) {
             valueSum += allocationsList.get(i).cost;
             if (valueSum > selection) {
+                
                 return new OccurrenceAllocation(allocationsList.get(i).allocation);
             }
         }
