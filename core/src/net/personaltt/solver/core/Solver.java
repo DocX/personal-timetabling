@@ -59,7 +59,7 @@ public class Solver {
      * Default solver
      */
     public Solver() {
-        this(new Random(), "net.personaltt.heuristics.RouletteOccurrenceSelection", "net.personaltt.heuristics.MainAllocationSelection");
+        this(new Random(), "net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
     }
     
     /**
@@ -87,6 +87,9 @@ public class Solver {
         // init solver state
         currentSolution = new MainSolverState();
         currentSolution.init(problem.initialSchedule);
+        
+        // initial is best found so far
+        currentSolution.saveBestSolution();
         
         // Start timer
         long startTime = System.currentTimeMillis();
@@ -155,7 +158,9 @@ public class Solver {
         }
     }
 
-
+    public SolverSolution currentBestSolution() {
+        return this.currentSolution.getBestSolution();
+    }
    
    
     

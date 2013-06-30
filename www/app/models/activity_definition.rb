@@ -18,7 +18,8 @@ class ActivityDefinition
   # occurence_min_duration: Sets minimal duration for each of created occurences
   # occurence_max_duration: Sets maximaln duration for each of created occurences
   # domain_template: TimeDomainStack object
-  attr_accessor :period, :domain_template, :period_start, :periods_count, :occurence_min_duration, :occurence_max_duration
+  attr_accessor :period, :domain_template, :period_start, :periods_count, :occurence_min_duration, 
+    :occurence_max_duration, :linked_period
   
   attr_reader :errors
   
@@ -30,8 +31,6 @@ class ActivityDefinition
       self.floating attributes
     end
   end
-
-
   
 
   # Creates activity definition from fixed signature of definition
@@ -141,6 +140,12 @@ class ActivityDefinition
     coder['domain_template'] = @domain_template
     coder['period_start'] = @period_start
     coder['periods_count'] = @periods_count
+    coder['occurence_max_duration'] = @occurence_max_duration
+    coder['occurence_min_duration'] = @occurence_min_duration
+    coder['linked_period'] = @linked_period
+    coder['linked'] = @linked
+
+    coder
   end
   
   def init_with coder
@@ -150,9 +155,16 @@ class ActivityDefinition
     @periods_count = coder['periods_count']
     @occurence_max_duration = coder['occurence_max_duration']
     @occurence_min_duration = coder['occurence_min_duration']
+    @linked_period = coder['linked_period'] || nil
+    @linked = coder['linked'] || false
+
     @errors = ActiveModel::Errors.new(self)
     
     self
+  end
+
+  def linked?
+    @linked
   end
 
 

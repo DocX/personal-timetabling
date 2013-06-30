@@ -28,6 +28,12 @@ public class BaseIntervalsSet<T extends Comparable> {
         setMap = new TreeMap<>();
     }
     
+    public static <K extends Comparable> BaseIntervalsSet<K> oneInterval(K start, K end) {
+        BaseIntervalsSet<K> set = new BaseIntervalsSet<>();
+        set.unionWith(start, end);
+        return set;
+    }
+    
     
     
     /**
@@ -76,6 +82,15 @@ public class BaseIntervalsSet<T extends Comparable> {
         }
     } 
 
+    public BaseInterval<T> getFirstInterval() {
+        if (this.setMap.isEmpty()) {
+            return null;
+        }
+        
+        T first = this.setMap.firstKey();
+        return new BaseInterval<>(first, this.setMap.higherKey(first));
+    }
+    
     /**
      * Return start of first interval in set according to natural ordering of keys.
      * @return 
@@ -159,6 +174,12 @@ public class BaseIntervalsSet<T extends Comparable> {
     public BaseIntervalsSet<T> getIntersectionWith(Iterator<Entry<T, Boolean>> intervalsEdgesIterator) {
         BaseIntervalsSet<T> result = new BaseIntervalsSet<>();
         result.setMap = this.getMerged(intervalsEdgesIterator, new IntersectMerge());
+        return result;
+    }
+    
+    public BaseIntervalsSet<T> getIntersectionWith(BaseIntervalsSet<T> set) {
+        BaseIntervalsSet<T> result = new BaseIntervalsSet<>();
+        result.setMap = this.getMerged(set.setMap.entrySet().iterator(), new IntersectMerge());
         return result;
     }
    
@@ -280,5 +301,9 @@ public class BaseIntervalsSet<T extends Comparable> {
         }
         
         return target;
+    }
+    
+    public boolean empty() {
+        return setMap.isEmpty();
     }
 }

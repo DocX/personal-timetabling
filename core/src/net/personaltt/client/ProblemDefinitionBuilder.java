@@ -4,11 +4,15 @@
  */
 package net.personaltt.client;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import net.personaltt.model.Occurrence;
 import net.personaltt.model.ProblemDefinition;
 import net.personaltt.timedomain.ConverterToInteger;
 import net.personaltt.timedomain.IIntervalsTimeDomain;
+import net.personaltt.timedomain.Interval;
 import net.personaltt.utils.BaseInterval;
+import net.personaltt.utils.BaseIntervalsSet;
 import org.joda.time.LocalDateTime;
 
 /**
@@ -52,6 +56,58 @@ public class ProblemDefinitionBuilder {
                 new ConverterToInteger().convert(start.plusSeconds(duration))
                 ));
     }
+    
+    /**
+     * Set initial start preferrence priority. When 2 occurrences tries to get one 
+     * allocation, occurrence with greater priority number should win.
+     * @param id
+     * @param priority 
+     */
+    public void setPriority(int id, int priority) {
+        
+    }
+    
+    /**
+     * Add ordering prefference of id_before should be before id_after
+     * @param id_before
+     * @param id_after 
+     */
+    public void addOrderPreferrence(int id_before, int id_after) {
+        // check for cycle
+    }
+    
+    /**
+     * Enum of supported linked periods. Each period means that the same
+     * value if that period is maintained for all occurrences in linked group.
+     */
+    public enum LinkedPeriods {
+        /**
+         * Same time in day. For example all at 14:30 anyday
+         */
+        TIME_IN_DAY,
+        /**
+         * Same hour in day and day in week. For example all at Thu 9:00
+         */
+        DAY_AND_TIME_IN_WEEK,
+        /**
+         * Same hour in day and date in month. For example all at 15th of month at 15:00
+         */
+        DAY_AND_TIME_IN_MONTH
+    }
+    
+    /**
+     * Set linked occurrences. Given periods, when occurrences are linked, 
+     * same differrence from start of period in which occurrence lay is
+     * enforced.
+     * One occurrence can be at least in one linked occurrences group.
+     * @param ids 
+     */
+    public void setLinkedOccurrences(int[] ids, LinkedPeriods period) {
+        //TODO
+        // check if ids is not in some linked group already
+        // convert period to list of start dates - for each occurrence in its domain boundaries
+        // 
+    }
 
     /**
      * Returns definition as is constructed so far.
@@ -59,6 +115,55 @@ public class ProblemDefinitionBuilder {
      */
     public ProblemDefinition getDefinition() {
         return definition;
+    }
+    
+    /**
+     * Crops actual occurrences's in builder domains to start from givin date.
+     * If resulting domain contains some interval smaller than min duration, 
+     * it removes it completely. If occurrence starts before resulting domain
+     * lower bound, it moves it to lower bound.
+     * @param from_date 
+     */
+    public void cropDomainsUntil(LocalDateTime toDate) {
+        int cropToDateNum = new ConverterToInteger().convert(toDate);
+        
+        ArrayList<Occurrence> emptyDomain = new ArrayList<>(); 
+        
+        for (Iterator<Occurrence> it = definition.problemOccurrences.iterator(); it.hasNext();) {
+            Occurrence occurrence = it.next();
+        
+            BaseIntervalsSet<Integer> cropping = new BaseIntervalsSet<>();
+            int domainUpper = occurrence.getDomain().getUpperBound();
+            
+            if (domainUpper <= cropToDateNum) {
+                // remove entire domain - intersect with empty domain
+            } else {
+                // remove fdrom date
+                cropping.unionWith(cropToDateNum, domainUpper);
+            }
+                        
+            occurrence.getDomain().intersectWith(cropping);
+            
+            // check first domain interval if is smaller than minimal duration
+            // only first could be cropped
+            BaseInterval<Integer> first = occurrence.getDomain().getFirstInterval();
+            if (first != null && first.getStart() == cropToDateNum && 
+                    (first.getEnd() - first.getStart()) < occurrence.getMinDuration()) {
+                // remove that interval
+                occurrence.getDomain().minus(BaseIntervalsSet.oneInterval(first.getStart(), first.getEnd()));
+            }
+            
+            // if domain is empty, remove occurrence
+            if (occurrence.getDomain().empty()) {
+               emptyDomain.add(occurrence);
+            }
+            
+            
+        }
+        
+        for (Occurrence occurrence : emptyDomain) {
+            definition.removeOccurrence(occurrence);
+        }
     }
     
 }

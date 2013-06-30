@@ -32,4 +32,12 @@ public interface IIntervalsTimeDomain {
      * @return 
      */
     Interval getBoundingInterval();
+    
+    /**
+     * Determine if two domains intersects. Domains need to be bounded to compute intersects,
+     * otherwise if one or both of them are unbounded, implementations must return true
+     * @param other
+     * @return 
+     */
+    boolean intersects(IIntervalsTimeDomain other);
 }

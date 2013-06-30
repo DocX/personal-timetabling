@@ -37,7 +37,7 @@ public class BestAllocationSelection implements AllocationSelection {
         // cost function. use simpler ConflictSumCost when state is rapidly moving, and 
         // more sofisticated minDurationConflictCost when state is long time tapped in local extrem 
         Cost cost;
-        if (schedule.getUnassignedOccurrences().size() > 0 || tapped(schedule)) {
+        if (schedule.constraintsCost() > 0 || tapped(schedule)) {
             cost = new MinDurationConflictAllocationCost(forOccurrence, schedule);
         } else {
             cost = new ConflictSumAllocationCost(forOccurrence, schedule);

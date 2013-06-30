@@ -232,4 +232,10 @@ public class Occurrence {
     public long getPreferredStartCost(long start) {
         return Math.abs(start - preferredStart); 
     }
+
+    public void setDomain(BaseIntervalsSet<Integer> domain) {
+        this.domain = domain;
+    }
+    
+    
 }

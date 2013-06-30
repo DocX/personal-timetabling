@@ -4,6 +4,10 @@
  */
 package net.personaltt.client;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import net.personaltt.model.Occurrence;
 import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.model.Schedule;
 import net.personaltt.timedomain.ConverterFromInteger;
@@ -32,10 +36,12 @@ public class ScheduleParser {
     public class Allocation {
         public LocalDateTime start;
         public int duration;
+        public int id;
 
-        public Allocation(LocalDateTime start, int duration) {
+        public Allocation(LocalDateTime start, int duration, int id) {
             this.start = start;
             this.duration = duration;
+            this.id = id;
         }
     }
     
@@ -46,9 +52,28 @@ public class ScheduleParser {
         } else {
             return new Allocation(
                     converter.convert(allocation.getStart()),
-                    allocation.getDuration()
+                    allocation.getDuration(),
+                    id
                     );
         }
+    }
+    
+    /**
+     * Returns list of schedule allocations with occurrences ids
+     * @return 
+     */
+    public List<Allocation> getAllocations() {
+        List<Allocation> allocations  = new ArrayList<>();
+        
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : schedule.getOccurrencesAllocations()) {
+            allocations.add(new Allocation(
+                    converter.convert(entry.getValue().getStart()),
+                    entry.getValue().getDuration(),
+                    entry.getKey().getId()
+                    ));
+        }
+        
+        return allocations;
     }
     
 }

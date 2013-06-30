@@ -1,10 +1,16 @@
 Webui::Application.routes.draw do
+  
+  get "solver/schedule_future"
+  get "solver/schedule_all"
+  get "solver/reschedule"
+  get "solver/check"
+  get "solver/cancel"
+
   root :to => "home#index"
 
   resources :activities do
     
     get 'list/:ids', :on => :collection, :action => :list
-    get 'solve', :on => :collection, :action => :solve
     
     resources :occurances
   end

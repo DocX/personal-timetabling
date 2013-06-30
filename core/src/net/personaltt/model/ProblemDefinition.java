@@ -35,5 +35,10 @@ public class ProblemDefinition {
         occurrence.setInitialAllocation(allocationInstance);;
         initialSchedule.allocationMapping.put(occurrence, allocationInstance);
     }
+
+    public void removeOccurrence(Occurrence occurrence) {
+        problemOccurrences.remove(occurrence);
+        initialSchedule.removeAllocation(occurrence);
+    }
     
 }

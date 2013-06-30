@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeSet;
+import net.personaltt.client.SolverClient;
 import net.personaltt.model.Occurrence;
 import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.model.ProblemDefinition;
@@ -38,6 +39,7 @@ public class Benchmark {
         //bench3();
         bench4();
         //bench5();
+        //testSolverClient();
     }
     
     /**
@@ -147,6 +149,23 @@ public class Benchmark {
         benchSolve(problem);
     }
     
+    
+    private static void testSolverClient() {
+        ProblemDefinition problem = SeqentialProblem(1000);
+       
+        SolverClient client = new SolverClient();
+        try{
+            client.solve(problem, SOLVER_TIMEOUT);
+
+            System.out.printf("Running %s, error %s\n", client.isRunning(), client.endedWithError());
+            client.join();
+            System.out.printf("Running after join %s, error %s\n", client.isRunning(), client.endedWithError());
+        
+        } catch(Exception e) {
+            System.out.println("Exception caught");
+        }
+        
+    }
     
     private static void printProblem(Iterable<Occurrence> problem) {
           // print optimal problem solutio

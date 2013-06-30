@@ -154,6 +154,11 @@ public class RepeatingIntervalDomain implements IIntervalsTimeDomain {
     public Interval getBoundingInterval() {
         return null;
     }
+
+    @Override
+    public boolean intersects(IIntervalsTimeDomain other) {
+        return IntervalsTimeDomainUtils.genericIntersects(this, other);
+    }
     
     
     

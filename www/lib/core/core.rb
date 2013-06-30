@@ -1,3 +1,6 @@
+require File.expand_path('../client.rb', __FILE__)
+require File.expand_path('../problem_definition.rb', __FILE__)
+
 module Webui
   module Core
     # load java classes to this module
@@ -12,6 +15,8 @@ module Webui
     PeriodMonths = Rjb::import 'org.joda.time.Months'
 
     module Utils
+      ArrayList = Rjb::import 'java.util.ArrayList'
+
       def Utils.from_localdatetime (ldt)
         DateTime.new ldt.getYear, ldt.getMonthOfYear, ldt.getDayOfMonth, ldt.getHourOfDay, ldt.getMinuteOfHour, ldt.getSecondOfMinute
       end
@@ -38,6 +43,15 @@ module Webui
           i += 1
         end     
         ary   
+      end
+
+      def Utils.ary_to_j_arraylist(array)
+        ja = ArrayList.new array.length
+        array.each do |a|
+          ja.add(a)
+        end
+
+        ja
       end
     end
 

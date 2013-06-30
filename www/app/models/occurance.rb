@@ -5,6 +5,10 @@ class Occurance < ActiveRecord::Base
   
   belongs_to :activity
   
+  def self.future 
+    where('start > ?', DateTime.now)
+  end
+
   before_save do |occurance|
     occurance.end = occurance.start + Rational(occurance.duration, 86400)
   end
@@ -16,4 +20,13 @@ class Occurance < ActiveRecord::Base
   def self.in_range(start_date, end_date)
     where('start < ? AND end > ?', end_date, start_date  )
   end
+
+  def ordered_after_this
+    return []
+  end
+
+  def ordered_after_this_ids
+    return []
+  end
+
 end

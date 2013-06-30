@@ -95,6 +95,11 @@ public class ActionStackDomain implements IIntervalsTimeDomain {
         
         return boundary;
     }    
+
+    @Override
+    public boolean intersects(IIntervalsTimeDomain other) {
+        return IntervalsTimeDomainUtils.genericIntersects(this, other);
+    }
     
     
     /* actions implementation */

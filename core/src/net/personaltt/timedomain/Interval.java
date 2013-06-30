@@ -92,5 +92,14 @@ public class Interval extends BaseInterval<LocalDateTime> implements IIntervalsT
     public Interval getBoundingInterval() {
         return this;
     }
+
+    @Override
+    public boolean intersects(IIntervalsTimeDomain other) {
+        if (other instanceof Interval) {
+            return this.intersects((Interval)other);
+        }
+        
+        return IntervalsTimeDomainUtils.genericIntersects(this, other);
+    }
     
 }

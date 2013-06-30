@@ -4,8 +4,6 @@
  */
 package net.personaltt.solver.heuristics;
 
-import cern.colt.function.IntDoubleProcedure;
-import cern.colt.map.OpenIntDoubleHashMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
