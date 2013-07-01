@@ -12,6 +12,7 @@ import net.personaltt.solver.core.AllocationSelection;
 import net.personaltt.solver.core.SolverState;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.RandomUtils;
+import net.sf.cpsolver.ifs.util.DataProperties;
 
 /**
  * Roulette allocations selection. Select allocation from
@@ -22,6 +23,11 @@ import net.personaltt.utils.RandomUtils;
 public class RouletteAllocationSelection implements AllocationSelection {
 
     Random random = new Random();
+
+    public RouletteAllocationSelection(DataProperties properties) {
+    }
+    
+    
     
     @Override
     public OccurrenceAllocation select(SolverState schedule, Occurrence forOccurrence) {
@@ -38,6 +44,9 @@ public class RouletteAllocationSelection implements AllocationSelection {
         
         while(allocations.hasNext()) {
             BaseInterval<Integer> allocation = allocations.next();
+            if (allocation.equals(forOccurrence.getAllocation().toInterval())) {
+                continue;
+            }
             
             long allocationCost = forOccurrence.getAllocationCost(allocation);
             

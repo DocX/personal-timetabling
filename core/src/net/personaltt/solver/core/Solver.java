@@ -8,6 +8,7 @@ import net.personaltt.model.OccurrenceAllocation;
 import net.personaltt.model.ProblemDefinition;
 import net.personaltt.model.Schedule;
 import net.personaltt.utils.intervalmultimap.IntervalMultimap;
+import net.sf.cpsolver.ifs.util.DataProperties;
 
 /**
  * Simple solver finds any feasible schedule for personal timetabling problem.
@@ -35,31 +36,25 @@ public class Solver {
     
     SolverState currentSolution;
     
-    /**
-     * Class name of occurrence selection used in neighbour selection
-     */
-    String occurrenceSelectionClassName;
-    
-    /**
-     * Class name of allocation of occurrence selection used in neghbour selection
-     */
-    String allocationSelectionClassName;
+    public DataProperties properties;
     
     public Solver(String occurrenceSelectionClassName, String allocationSelectionClassName) {
         this(new Random(), occurrenceSelectionClassName,allocationSelectionClassName);
     }
     
     public Solver(Random random, String occurrenceSelectionClassName, String allocationSelectionClassName) {
+        this();
         this.random = random;
-        this.allocationSelectionClassName = allocationSelectionClassName;
-        this.occurrenceSelectionClassName = occurrenceSelectionClassName;
+        properties.setProperty("solver.allocationSelectionClassName", allocationSelectionClassName);
+        properties.setProperty("solver.occurrenceSelectionClassName", occurrenceSelectionClassName);
     }
 
     /**
      * Default solver
      */
     public Solver() {
-        this(new Random(), "net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
+        this.random = new Random();
+        properties = new DataProperties();
     }
     
     /**
@@ -77,10 +72,14 @@ public class Solver {
         OccurrenceSelection occurrenceSelection;
         AllocationSelection allocationSelection;
         try {
-            occurrenceSelection = (OccurrenceSelection)Class.forName(occurrenceSelectionClassName).getConstructor().newInstance();
-            allocationSelection = (AllocationSelection)Class.forName(allocationSelectionClassName).getConstructor().newInstance();
+            occurrenceSelection = (OccurrenceSelection)Class.forName(
+                    properties.getProperty("solver.occurrenceSelectionClassName", "net.personaltt.solver.heuristics.RouletteOccurrenceSelection")
+                    ).getConstructor(DataProperties.class).newInstance(properties);
+            allocationSelection = (AllocationSelection)Class.forName(
+                    properties.getProperty("solver.allocationSelectionClassName", "net.personaltt.solver.heuristics.MainAllocationSelection")
+                    ).getConstructor(DataProperties.class).newInstance(properties);
         } catch(Exception e) {
-            System.out.print("Cannot instantiate selections objects");
+            System.out.println("Cannot instantiate selections objects");
             return null;
         }
         
@@ -99,6 +98,8 @@ public class Solver {
         // while we have time and is not termination condition met, improve solution 
         while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
             System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
+            
+            //printState();
             
             // store best solution
             if (currentSolution.isBetterThanBest()) {
@@ -129,6 +130,10 @@ public class Solver {
             
             // select and save allocation of occurrence
             OccurrenceAllocation selectedAllocation = allocationSelection.select(currentSolution, toSolve);
+            if (selectedAllocation == null ) {
+                System.out.printf("No allocation selected, skipping to next iteration");
+                continue;
+            }
             System.out.printf(" Selected allocation: %s:%s \n", selectedAllocation, toSolve.getAllocationCost(selectedAllocation));
             
             boolean conflicts = currentSolution.setAllocation(toSolve, selectedAllocation);

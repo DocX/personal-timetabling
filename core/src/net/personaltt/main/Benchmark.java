@@ -5,6 +5,7 @@
 package net.personaltt.main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import net.personaltt.solver.core.SolverSolution;
 import net.personaltt.solver.core.SolverState;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
+import net.sf.cpsolver.ifs.util.DataProperties;
 
 /**
  *
@@ -29,28 +31,65 @@ public class Benchmark {
 
     static int SOLVER_TIMEOUT = 900000;
     
+    static DataProperties solverProperties = new DataProperties();
+    
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         
+        ProblemDefinition problem;
+        
+        problem =
         //bench1();
         //bench2();
         //bench3();
         bench4();
         //bench5();
         //testSolverClient();
+        
+        solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
+        solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
+        benchSolve(problem);
+
+        // benchmark stay min conflict
+        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
+        
+        // benchmark probBestIgnoringSelWhenNoConflict
+        //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
     }
+    
+    public static void benchmarkProp(ProblemDefinition problem, String prop, double min, double max, double step) {
+        
+        Map<String, String> results = new HashMap<>();
+        
+        for (double stay = min; stay <= max; stay+= step) {
+            for (int i = 0; i < 3; i++) {
+                solverProperties.setProperty(prop, String.valueOf(stay));
+                
+                SolverState state = benchSolve(problem);
+                results.put(
+                        String.format("stay:%s, i:%s", stay, i), 
+                        String.format("best c:%s:%s, i:%s", state.getBestSolution().constraintsCost(), state.getBestSolution().optimalCost(), state.getLastBestIteration())
+                       );
+            }
+        }
+        
+        System.out.println();
+        System.out.print(results);
+    }
+    
+    
     
     /**
      * Simple problem bench. All occurrences have shared one domain
      * that is long exactly as sum of minimal durations. Initialy all
      * occurrences are placed on the start of domain with minimal duration.
      */
-    private static void bench1() {
+    private static ProblemDefinition bench1() {
         ProblemDefinition problem = SeqentialProblem(1000);
         printProblem(problem.problemOccurrences);
-        benchSolve(problem);
+        return problem;
     }
     
     /**
@@ -59,20 +98,20 @@ public class Benchmark {
      * only when all are minimal duration long.
      * Initialy all occurrences fills entire domain.
      */
-    private static void bench2() {
+    private static ProblemDefinition bench2() {
         ProblemDefinition problem = SeqentialProblemInitialyFilled(1000);
         //printProblem(problem.problemOccurrences);
-        benchSolve(problem);
+        return (problem);
     }
     
     /**
      * Random problem. Random problem with given number of occurrences in given
      * time horizont. It may be overconstrained - no not-conflicting solution exists.
      */
-    private static void bench3() {
+    private static ProblemDefinition bench3() {
         ProblemDefinition problem = (new RandomProblemGenerator(24*60*60, 100, 0f)).generateRandomProblem();
         printProblem(problem.problemOccurrences);
-        benchSolve(problem);
+        return (problem);
     }
     
     /**
@@ -80,7 +119,7 @@ public class Benchmark {
      * valid solution. That solution is also the best one in terms of max duration.
      * So this bench can be compared to determined optimum. 
      */
-    private static void bench4() {
+    private static ProblemDefinition bench4() {
         SolvableProblemGenerator generator = new SolvableProblemGenerator(24*60*60, 1000);
         /*
          * seed 22108929:
@@ -90,7 +129,7 @@ public class Benchmark {
          * * occurrence id 643 has tendency fo stuck on 17
          * 
          */
-        //generator.r = new Random(22108929);
+        generator.r = new Random(22108929);
         
         
         generator.generateRandomProblem();
@@ -114,14 +153,14 @@ public class Benchmark {
         System.out.printf("Optimal solution cost: %s\n", optimalCostSumInInitial);
         
         System.out.println();
-        benchSolve(problem);
+        return (problem);
     }
     
     /**
      * Stuck test bench. Problem where to obtain lower cost from
      * initial must be placed conflicting allocation.
      */
-    private static void bench5() {
+    private static ProblemDefinition bench5() {
         ProblemDefinition problem = new ProblemDefinition();
         
         BaseIntervalsSet<Integer> domain1 = new BaseIntervalsSet<>();
@@ -146,7 +185,7 @@ public class Benchmark {
         printProblem(problem.problemOccurrences);
         
         System.out.println();
-        benchSolve(problem);
+        return (problem);
     }
     
     
@@ -181,12 +220,13 @@ public class Benchmark {
         }
     }
     
-    private static void benchSolve(ProblemDefinition problem) {
+    private static SolverState benchSolve(ProblemDefinition problem) {
        
         
         // solve
-        Solver solver = new Solver("net.personaltt.solver.heuristics.RouletteOccurrenceSelection", "net.personaltt.solver.heuristics.MainAllocationSelection");
+        Solver solver = new Solver();
         solver.timeoutLimit = SOLVER_TIMEOUT;
+        solver.properties = solverProperties;
         
         SolverThread run = new SolverThread(solver, problem);
         //run.solver.pause();
@@ -237,6 +277,8 @@ public class Benchmark {
             
         }
         System.out.printf("Conflicting: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), run.state.getLastBestIteration());
+        
+        return run.state;
     }
      
     private static class SolverThread extends Thread {

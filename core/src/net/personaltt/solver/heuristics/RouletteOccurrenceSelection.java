@@ -16,6 +16,7 @@ import net.personaltt.solver.core.SolverState;
 import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 import net.personaltt.utils.RandomUtils;
 import net.personaltt.utils.ValuedInterval;
+import net.sf.cpsolver.ifs.util.DataProperties;
 
 /**
  * Roulette occurrence selection. Selects occurrence with larger cost with more probability
@@ -26,7 +27,12 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
 
     Random random = new Random();   
     
-    double optimizationWhenConflictProb = 0.2;
+    double optimizationWhenConflictProb;
+
+    public RouletteOccurrenceSelection(DataProperties properties) {
+        optimizationWhenConflictProb = 
+                properties.getPropertyDouble("rouletteOccurrenceSelection.optimizationWhenConflictProb", 0.2);
+    }
     
      /**
      * Gets occurrence to solve using heuristic from conflicting occurrences with
