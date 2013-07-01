@@ -11,7 +11,9 @@ var $ = require('jquery'),
     FloatingActivityStub = require('models/floating_activity_stub'),
     ActivityOccurance = require('models/activity_occurance'),
     PanelBase = require('components/panel_base'),
-    ActivityRepeatingForm = require('components/activity_repeating_form');
+    ActivityRepeatingForm = require('components/activity_repeating_form'),
+    DomainStackForm = require('components/domain_stack_form'),
+    SimpleDomainForm = require('components/simple_domain_form');
     
 return PanelBase.extend({
 
@@ -25,28 +27,13 @@ return PanelBase.extend({
 			"<input type='text' name='range_to' class='datetime fill-width' />" +
 			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
 
-
-			"<label>In times</label>" +
-			"<div class='time_def form-inline'>" +
-				"<label><input type='checkbox' name='time_morning' value='add' >Morning 8 - 11</label> "+
-				"<label><input type='checkbox' name='time_noon' value='add' >Noon 11 - 13</label> "+
-				"<label><input type='checkbox' name='time_afternoon' value='add' >Afternoon 13 - 16</label> "+
-				"<label><input type='checkbox' name='time_evening' value='add' >Evening 16 - 20</label> "+
-				"<label><input type='checkbox' name='time_lateevening' value='add' >Late evening 20 - 24</label> "+
-				"<label><input type='checkbox' name='time_night' value='add' >Night 0 - 8</label>"+
+			"<legend><strong>Time domain</strong></legend>" +
+			"<a href='#' data-role='complex-domain-switch'>Switch to complex editor</a>" +
+			"<div class='domain-form-container'>" +
+				"<div class='domain-form'></div>" +
 			"</div>" +
 
-			"<label>Weekdays</label>" +
-			"<div class='weekdays_def form-inline'>" +
-				"<label><input type='checkbox' name='weekday_1' value='add' >Mon</label> "+
-				"<label><input type='checkbox' name='weekday_2' value='add' >Tue</label> "+
-				"<label><input type='checkbox' name='weekday_3' value='add' >Wed</label> "+
-				"<label><input type='checkbox' name='weekday_4' value='add' >Thu</label> "+
-				"<label><input type='checkbox' name='weekday_5' value='add' >Fri</label> "+
-				"<label><input type='checkbox' name='weekday_6' value='add' >Sat</label> "+
-				"<label><input type='checkbox' name='weekday_7' value='add' >Sun</label> "+
-			"</div>"+
-
+			"<legend><strong>Repeating</strong></legend>" +
 			"<div class='repeat-form-controls'></div>" +
 
 		"</div>",
@@ -59,6 +46,7 @@ return PanelBase.extend({
 		'change [name=duration_max]': 'set_duration_max',
 		'click [name^=weekday_]': 'set_weekdays',
 		'click [name^=time_]': 'set_hours',
+		'click a[data-role=complex-domain-switch]': 'switch_to_complex_domain_editor',
 	},
 
 	initialize: function() {
@@ -134,11 +122,20 @@ return PanelBase.extend({
 			el: this.$el.find('.repeat-form-controls')
 		});
 
-		this.listenTo(this.repeating_form, 'changed', this.update_repeating_to_model);
+		this.listenTo(this.repeating_form, 'change', this.update_repeating_to_model);
 		this.activity.on('change:repeating', this.update_repeating_from_model, this);
 
 		this.set_repeat_period_unit();
 		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);	
+
+		// domain form
+		this.domain_form = new SimpleDomainForm({
+			el: this.$el.find('.domain-form')
+		});
+		//this.listenTo(this.domain_form.model, 'changed', this.set_domain);
+		this.listenTo(this.domain_form.model, 'change', this.set_domain);
+		this.set_domain();
+
 	},
 
 	update_from_model: function(m) {
@@ -148,18 +145,6 @@ return PanelBase.extend({
 		this.$to_input.datetimepicker('setDate', moment.asLocal(definition.to).toDate());
 		this.$duration_min_input.val(definition.duration_min / this.duration_unit );
 		this.$duration_max_input.val(m.get('duration')  / this.duration_unit )
-
-		var activity_days = this.activity.get('weekdays');
-		this.$el.find('input[name^=weekday_]').prop('checked', false);
-		for (var i = activity_days.length - 1; i >= 0; i--) {
-			this.$el.find('[name=weekday_'+activity_days[i]+']').prop('checked', true);
-		};
-
-		var activity_times = this.activity.get('hours');
-		this.$el.find('input[name^=time_]').prop('checked', false);
-		for (var i = activity_times.length - 1; i >= 0; i--) {
-			this.$el.find('[name=time_'+activity_times[i]+']').prop('checked', true);
-		};
 
 		// refresh ranges intervals
 		this.refresh_ranges_view();
@@ -172,28 +157,6 @@ return PanelBase.extend({
 	set_duration_max: function(){
 		this.activity.set('duration_max', this.$duration_max_input.val() * this.duration_unit);
 		this.activity.first_occurance().set('duration', this.$duration_max_input.val() * this.duration_unit);
-	},
-
-	set_hours: function() {
-		var selected = [];
-		this.$el.find('[name^=time_]').each(function() {
-			if ($(this).prop('checked') == true) {
-				selected.push($(this).attr('name').substr(5));
-			}
-		});
-
-		this.activity.set('hours', selected);
-	},
-
-	set_weekdays: function() {
-		var selected = [];
-		this.$el.find('[name^=weekday_]').each(function() {
-			if ($(this).prop('checked') == true) {
-				selected.push($(this).attr('name').substr(8));
-			}
-		});
-
-		this.activity.set('weekdays', selected);
 	},
 
 	set_repeat_period_unit: function() {
@@ -235,6 +198,34 @@ return PanelBase.extend({
 		this.remove_intervals_view();
 
 		PanelBase.prototype.remove.apply(this); 
+	},
+
+	set_domain: function() {
+		// set domain from domain form to activity model
+		this.activity.set('domain_template', 
+			{type: 'stack', data: { actions: this.domain_form.model.get('domain_stack') } }
+			);
+		//this.activity.trigger('change:domain_template');
+	},
+
+	switch_to_complex_domain_editor: function() {
+		var domain = this.domain_form.model;
+
+		this.domain_form.remove();
+
+		this.$el.find('.domain-form-container').append("<div class='domain-form'></div>");
+		this.domain_form = new DomainStackForm({
+			el: this.$el.find('.domain-form')
+		});
+
+		// set domain from simple
+		this.domain_form.model = domain;
+		this.domain_form.load_from_model();
+
+		// hide switch
+		this.$el.find('a[data-role=complex-domain-switch]').hide();
+
+		this.listenTo(this.domain_form.model, 'change', this.set_domain);
 	}
 	
 });

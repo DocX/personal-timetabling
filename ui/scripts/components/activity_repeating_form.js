@@ -34,9 +34,9 @@ return Backbone.View.extend({
 	events: {
 		'change input[name=repeating]': 'toggle_repeat',
 		'change input[name=repeat-until-unit]': function() { this.toggle_repeat_until() },
-		'change input[name=repeat-each]': 'trigger_changed',
-		'change input[name=repeat-until-repeats]': 'trigger_changed',
-		'change input[name=repeat-until-date]': 'trigger_changed',
+		'change input[name=repeat-each]': 'trigger_change',
+		'change input[name=repeat-until-repeats]': 'trigger_change',
+		'change input[name=repeat-until-date]': 'trigger_change',
 	},
 
 	initialize: function() {
@@ -70,7 +70,7 @@ return Backbone.View.extend({
 		this.$el.find('[name=repeat-until-repeats]').toggle(repeat_until_unit == 'repeats');
 		this.$el.find('[name=repeat-until-date]').toggle(repeat_until_unit == 'date');
 
-		this.trigger_changed();
+		this.trigger_change();
 	},
 
 	get_repeating_def: function() {
@@ -91,8 +91,8 @@ return Backbone.View.extend({
 		return repeating_def;
 	},
 
-	trigger_changed: function() {
-		this.trigger('changed');
+	trigger_change: function() {
+		this.trigger('change');
 	},
 
 	toggle_repeat:function(){
@@ -100,7 +100,7 @@ return Backbone.View.extend({
 
 		this.$el.find('.repeating-controls').toggle(repeating == 'repeat');
 
-		this.trigger_changed();
+		this.trigger_change();
 	},
 
 	update_from: function(repeating) {

@@ -93,7 +93,7 @@ return PanelBase.extend({
 			el: this.$el.find('.repeat-form-controls')
 		});
 
-		this.listenTo(this.repeating_form, 'changed', this.update_repeating_to_model);
+		this.listenTo(this.repeating_form, 'change', this.update_repeating_to_model);
 
 		this.set_repeat_period_unit();
 		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);

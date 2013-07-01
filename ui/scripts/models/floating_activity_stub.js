@@ -29,12 +29,8 @@ var FloatingActivityStub = FixedActivityStub.extend({
 			range_duration: 86400 * 7,
 			duration_min: 3600,
 			duration_max:3600,
-			// set of day hours
-			hours: ['morning', 'noon', 'afternoon'],
-			// set of weekdays
-			weekdays: [1,2,3,4,5],
-			// if set, use stored domain as domain template
-			domain_template_id: null,
+			// hash containing domain template definition
+			domain_template: {},
 		}
 	},
 
@@ -43,8 +39,7 @@ var FloatingActivityStub = FixedActivityStub.extend({
 		FixedActivityStub.prototype.initialize.apply(this);
 		this.on('change:range_duration', this.set_repeating, this);
 		this.on('change:duration_max', this.set_repeating, this);
-		this.on('change:hours', this.set_domain, this);
-		this.on('change:weekdays', this.set_domain, this);
+		this.on('change:domain_template', this.set_definition, this);
 	},
 
 	// updates definition Hash from stub values
@@ -55,6 +50,8 @@ var FloatingActivityStub = FixedActivityStub.extend({
 
 		this.attributes.definition.duration_min = this.attributes.duration_min;
 		this.attributes.definition.duration_max = this.first_occurance().get('duration');
+
+		this.attributes.definition.domain_template = this.attributes.domain_template; 
 	},
 
 	// returns array of intervals for each period occurence of its range (to-from + period offset)
@@ -73,61 +70,7 @@ var FloatingActivityStub = FixedActivityStub.extend({
 		};
 
 		return intervals;
-	},
-
-	// returns domain definition for predefined values of hours and weekdays
-	set_domain: function() {
-		// parse hours and weekdays sets to domain template definition
-		if (this.attributes.domain_template_id) {
-			this.attributes.definition.domain_template = {type: 'database', data: {id: this.attributes.domain_template_id}};
-			return;
-		} else {
-
-			// create weekdays
-			var weekdays_actions = [];
-			for (var i = this.attributes.weekdays.length - 1; i >= 0; i--) {
-				weekdays_actions.push({action: 'add', domain: this.domain_templates_weekdays[this.attributes.weekdays[i]]});
-			};
-
-			// create times in day
-			var time_actions = [];
-			for (var i = this.attributes.hours.length - 1; i >= 0; i--) {
-				time_actions.push({action: 'add', domain: this.domain_templates_daytime[this.attributes.hours[i]]});
-			};
-
-			this.attributes.definition.domain_template = {type: 'stack', data:{actions : [
-				{action: 'mask', domain: {type: 'stack', data:{actions:time_actions}} },
-				{action: 'add', domain: {type: 'stack', data:{actions:weekdays_actions}}}
-				]}};
-		}
-
-	},
-
-	domain_templates_weekdays: {
-		//monday
-		1: {type: 'boundless', data: {from: '2013-05-06T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		//tuesday
-		2: {type: 'boundless', data: {from: '2013-05-07T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		//wednesday
-		3: {type: 'boundless', data: {from: '2013-05-08T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		// thursday
-		4: {type: 'boundless', data: {from: '2013-05-09T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		// friday
-		5: {type: 'boundless', data: {from: '2013-05-10T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		// saturday
-		6: {type: 'boundless', data: {from: '2013-05-11T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-		// sunday
-		7: {type: 'boundless', data: {from: '2013-05-12T00:00:00Z', duration: {duration: 1, unit: 'day'}, period: {duration: 1, unit:'week'}}},
-	},
-
-	domain_templates_daytime: {
-		'morning'  	  : {type: 'boundless', data: {from: '2013-05-06T08:00:00Z', duration: {duration: 3, unit: 'hour'}, period:{duration:1, unit:'day'}}},
-		'noon'        : {type: 'boundless', data: {from: '2013-05-06T11:00:00Z', duration: {duration: 2, unit: 'hour'}, period:{duration:1, unit:'day'}}}, 
-		'afternoon'    : {type: 'boundless', data: {from: '2013-05-06T13:00:00Z', duration: {duration: 3, unit: 'hour'}, period:{duration:1, unit:'day'}}},
-		'evening'     : {type: 'boundless', data: {from: '2013-05-06T16:00:00Z', duration: {duration: 4, unit: 'hour'}, period:{duration:1, unit:'day'}}},
-		'lateevening' : {type: 'boundless', data: {from: '2013-05-06T20:00:00Z', duration: {duration: 4, unit: 'hour'}, period:{duration:1, unit:'day'}}},
-		'night'       : {type: 'boundless', data: {from: '2013-05-06T00:00:00Z', duration: {duration: 8, unit: 'hour'}, period:{duration:1, unit:'day'}}},
-	},
+	},	
 
 });
 
