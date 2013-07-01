@@ -18,7 +18,7 @@ return PanelBase.extend({
 	template: 
 		"<div>" +
 			"<label>How long activity do you want to allocate</label>" +
-			"<input type='number' min='1' name='duration_middle' class='input-small' /> ± <input type='number' min='0' name='duration_interval' class='input-small'/> minutes" +
+			"At least <input type='number' min='1' name='duration_min' class='input-mini' /> optimal <input type='number' min='0' name='duration_max' class='input-mini'/> min" +
 			"<label>In range from</label>" +
 			"<input type='text' name='range_from' class='datetime fill-width' />" +
 			"<label>to deadlinee</label>" +
@@ -55,8 +55,8 @@ return PanelBase.extend({
 	duration_unit: 60,
 
 	events: {
-		'change [name=duration_interval]': 'set_duration_interval',
-		'change [name=duration_middle]': 'set_duration_middle',
+		'change [name=duration_min]': 'set_duration_min',
+		'change [name=duration_max]': 'set_duration_max',
 		'click [name^=weekday_]': 'set_weekdays',
 		'click [name^=time_]': 'set_hours',
 	},
@@ -68,8 +68,8 @@ return PanelBase.extend({
 
 		this.$from_input = this.$el.find('[name=range_from]');
 		this.$to_input = this.$el.find('[name=range_to]');
-		this.$duration_middle_input = this.$el.find('[name=duration_middle]');
-		this.$duration_interval_input = this.$el.find('[name=duration_interval]');
+		this.$duration_min_input = this.$el.find('[name=duration_min]');
+		this.$duration_max_input = this.$el.find('[name=duration_max]');
 
 		this.$from_input.datetimepicker({ 
 			onClose: _.bind(function(dateText, inst) {
@@ -146,8 +146,8 @@ return PanelBase.extend({
 
 		this.$from_input.datetimepicker('setDate', moment.asLocal(definition.from).toDate());
 		this.$to_input.datetimepicker('setDate', moment.asLocal(definition.to).toDate());
-		this.$duration_middle_input.val(m.get('duration') / this.duration_unit );
-		this.$duration_interval_input.val(this.activity.get('duration_interval') / this.duration_unit )
+		this.$duration_min_input.val(definition.duration_min / this.duration_unit );
+		this.$duration_max_input.val(m.get('duration')  / this.duration_unit )
 
 		var activity_days = this.activity.get('weekdays');
 		this.$el.find('input[name^=weekday_]').prop('checked', false);
@@ -165,12 +165,13 @@ return PanelBase.extend({
 		this.refresh_ranges_view();
 	},
 
-	set_duration_interval: function() {
-		this.activity.set('duration_interval', this.$duration_interval_input.val() * this.duration_unit);
+	set_duration_min: function() {
+		this.activity.set('duration_min', this.$duration_min_input.val() * this.duration_unit);
 	},
 
-	set_duration_middle: function(){
-		this.activity.first_occurance().set('duration', this.$duration_middle_input.val() * this.duration_unit);
+	set_duration_max: function(){
+		this.activity.set('duration_max', this.$duration_max_input.val() * this.duration_unit);
+		this.activity.first_occurance().set('duration', this.$duration_max_input.val() * this.duration_unit);
 	},
 
 	set_hours: function() {

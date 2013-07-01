@@ -19,16 +19,16 @@ var FloatingActivityStub = FixedActivityStub.extend({
 				type: 'floating',
 				from: null,
 				to: null,
-				duration_min: 1,
-				duration_max: 1,
+				duration_min: 3600,
+				duration_max: 3600,
 				domain_template: {}
 			},
 			// stub repeating
 			repeating: false,
 			// duration of domain range. is added to start when moving with first occurance
 			range_duration: 86400 * 7,
-			// +- interval for occurences duration. is subtracted from and added to first occurence duration when moved
-			duration_interval: 0,
+			duration_min: 3600,
+			duration_max:3600,
 			// set of day hours
 			hours: ['morning', 'noon', 'afternoon'],
 			// set of weekdays
@@ -42,7 +42,7 @@ var FloatingActivityStub = FixedActivityStub.extend({
 	initialize: function() {
 		FixedActivityStub.prototype.initialize.apply(this);
 		this.on('change:range_duration', this.set_repeating, this);
-		this.on('change:duration_interval', this.set_repeating, this);
+		this.on('change:duration_max', this.set_repeating, this);
 		this.on('change:hours', this.set_domain, this);
 		this.on('change:weekdays', this.set_domain, this);
 	},
@@ -53,8 +53,8 @@ var FloatingActivityStub = FixedActivityStub.extend({
 		this.attributes.definition.from = this.first_occurance().get('start');
 		this.attributes.definition.to = this.attributes.definition.from.clone().add(this.attributes.range_duration, 's');
 
-		this.attributes.definition.duration_min = this.first_occurance().get('duration') - this.attributes.duration_interval;
-		this.attributes.definition.duration_max = this.first_occurance().get('duration') + this.attributes.duration_interval;
+		this.attributes.definition.duration_min = this.attributes.duration_min;
+		this.attributes.definition.duration_max = this.first_occurance().get('duration');
 	},
 
 	// returns array of intervals for each period occurence of its range (to-from + period offset)
