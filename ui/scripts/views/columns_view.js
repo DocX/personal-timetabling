@@ -60,6 +60,13 @@ return Backbone.View.extend({
           drag: _.bind(this.on_drag, this, this.$container),
           stop: _.bind(this.on_drag, this, this.$container)
         });   
+
+        this.$container.kinetic_draggable({
+          axis: this.axis,
+          drag: _.bind(this.on_drag, this, this.$bar_container),
+          stop: _.bind(this.on_drag, this, this.$bar_container),
+          scrollbar_container: this.$container_window
+        });
     },
     
     move_left: function() {

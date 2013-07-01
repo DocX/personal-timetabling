@@ -29,6 +29,11 @@ $.widget("pt.kinetic_draggable", $.ui.mouse, {
         y: event.pageY
       };
 
+      if(this.options.scrollbar_container != undefined) {
+        this.click.scroll_left = this.options.scrollbar_container.scrollLeft();
+        this.click.scroll_top = this.options.scrollbar_container.scrollTop();
+      }
+
       //console.log("mouse reset", this.offset, this.click);
    },
 
@@ -53,6 +58,18 @@ $.widget("pt.kinetic_draggable", $.ui.mouse, {
       } else {
         ui.position = {left: this.offset.left , top: this.offset.top + y_delta};
         this.element.css({"top":ui.position.top+"px"});        
+      }
+
+      // set scrollbar in perpendicular axis
+      if (this.options.scrollbar_container != undefined) {
+        var scrollbar_delta = this.options.axis == 'y' ? x_delta : y_delta;
+        if (this.options.axis == 'y') {
+          console.log ("set scrollLeft = ", this.click.scroll_left - scrollbar_delta);
+          this.options.scrollbar_container.scrollLeft(this.click.scroll_left - scrollbar_delta);
+        } else {
+          console.log ("set scrollTop = ", this.click.scroll_top - scrollbar_delta);
+          this.options.scrollbar_container.scrollTop(this.click.scroll_top - scrollbar_delta);
+        }
       }
 
       this._trigger("drag", event, ui);
