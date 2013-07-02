@@ -14,7 +14,7 @@ class DomainTemplate < ActiveRecord::Base
   validates :domain, :presence => true
 
   before_save :store_referenced_ids
-  before_destroy :check_references
+  before_destroy :no_references?
 
   def domain_attributes
     self.domain.to_hash
@@ -32,15 +32,27 @@ class DomainTemplate < ActiveRecord::Base
   end
 
   def store_referenced_ids
+    return true unless self.domain_changed?
+
     # get referenced ids
-    ids = self.get_referenced_ids
+    was_ids = self.domain_was.nil? ? [] : self.domain_was.referenced_domain_templates_ids
+    now_ids = get_referenced_ids
 
     # make diff of before safe and after safe ids
     # and store that diff to counter
+
+    removed_ids = was_ids.select {|id| not now_ids.include? id }
+    same_ids = was_ids.select {|id| now_ids.include? id}
+    new_ids = now_ids.select {|id| not was_ids.include? id} 
    
+    # count referenced templates
+    DomainTemplate.where('id IN (?)', removed_ids).update_all('reference_count = reference_count - 1')
+    DomainTemplate.where('id IN (?)', new_ids).update_all('reference_count = reference_count + 1')
+
+    return true
   end
 
-  def check_references
-    true
+  def no_references?
+    self.reference_count == 0
   end
 end
