@@ -1,10 +1,9 @@
-class ActivitiesController < ApplicationController
+class Api::ActivitiesController < ApplicationController
   
   def index
     @activities = Activity.includes(:occurances).all
     respond_to do |format|
-      format.json { render :json => @activities,  :methods => [:occurance_ids]
-      format.html { render :index }    
+      format.json { render :json => @activities,  :methods => [:occurance_ids] 
     }
       
     end
@@ -36,7 +35,6 @@ class ActivitiesController < ApplicationController
 
     @activity = Activity.new params.except(:action, :controller, :occurances)
     
-
     if definition
       @activity.occurances = ActivityDefinition.from_typed(definition).create_occurences @activity
     else 
@@ -45,16 +43,13 @@ class ActivitiesController < ApplicationController
       end
     end
 
-
     if @activity.save
       respond_to do |format|
         format.json { render :json => @activity }
-        format.html { redirect_to :action => :index}
       end
     else 
       respond_to do |format|
         format.json { render :json => {:error => @activity.errors}, :status => :bad_request}
-        format.html { render 'new' }
       end
     end
     

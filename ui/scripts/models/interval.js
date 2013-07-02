@@ -14,9 +14,10 @@ return Backbone.Model.extend({
 	},
 
 	parse: function(data) {
+		// mapping to bounded interval rb model
 		return {
-			start: moment.utc(data.start),
-			end: moment.utc(data.end)
+			start: moment.utc(data.data.from),
+			end: moment.utc(data.data.to)
 		};
 	},
 

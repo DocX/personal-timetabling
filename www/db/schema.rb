@@ -11,29 +11,34 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130509180914) do
+ActiveRecord::Schema.define(:version => 20130702185719) do
 
   create_table "activities", :force => true do |t|
-    t.string   "name",        :null => false
-    t.text     "description"
-    t.text     "data"
-    t.datetime "created_at",  :null => false
-    t.datetime "updated_at",  :null => false
+    t.string   "name",       :null => false
+    t.text     "definition"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
   create_table "domain_templates", :force => true do |t|
-    t.string "name"
-    t.text   "domain_data"
+    t.string  "name"
+    t.text    "domain"
+    t.integer "reference_count", :default => 0, :null => false
   end
 
-  create_table "occurances", :force => true do |t|
-    t.datetime "start",             :null => false
-    t.integer  "duration",          :null => false
+  create_table "events", :force => true do |t|
+    t.datetime "start",                                :null => false
+    t.integer  "duration",                             :null => false
+    t.datetime "end",                                  :null => false
     t.integer  "activity_id"
-    t.datetime "end"
-    t.text     "domain_definition"
-    t.integer  "min_duration"
-    t.integer  "max_duration"
+    t.integer  "min_duration",                         :null => false
+    t.integer  "max_duration",                         :null => false
+    t.integer  "tz_offset",             :default => 0, :null => false
+    t.string   "name",                                 :null => false
+    t.text     "domain"
+    t.text     "ordered_events_before"
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
   end
 
 end

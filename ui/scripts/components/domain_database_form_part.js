@@ -44,6 +44,7 @@ return Backbone.View.extend({
 	},
 
 	update_to_model: function() {
+		this.model.type = 'domain_template';
 		this.model.data.id = this.$databases_select.find(':selected').attr('value');
 		this.trigger('change');
 	}

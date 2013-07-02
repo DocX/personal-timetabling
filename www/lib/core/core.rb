@@ -1,7 +1,7 @@
 require File.expand_path('../client.rb', __FILE__)
 require File.expand_path('../problem_definition.rb', __FILE__)
 
-module Webui
+module PersonalTimetablingAPI
   module Core
     # load java classes to this module
     
@@ -29,7 +29,7 @@ module Webui
       def Utils.period_intervals start, duration, count 
         j_intervals = RepeatingIntervalDomain.periodsIntervals to_localdatetime(start), duration.to_j, count
 
-        j_list_to_ary(j_intervals) {|i| BoundedInterval.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
+        j_list_to_ary(j_intervals) {|i| TimeDomains::BoundedTimeDomain.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
       end
 
       def Utils.j_list_to_ary (j_list, &block)
@@ -66,7 +66,7 @@ module Webui
         intervalsset = javainstance.getIntervalsIn BoundedIntervalDomain.new(from_ldt, to_ldt)
         java_intervals = intervalsset.getIntervals
         
-        Utils.j_list_to_ary(java_intervals) {|i| BoundedInterval.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
+        Utils.j_list_to_ary(java_intervals) {|i| TimeDomains::BoundedTimeDomain.create( Utils.from_localdatetime(i.getStart), Utils.from_localdatetime(i.getEnd)) }
       end
 
       # Connection to isBounded method in IIntervalsTimeDomain iterface in java implementaton
@@ -108,13 +108,13 @@ module Webui
     module DurationMixin
       def to_j
         case self.unit
-        when Duration::HOUR
+        when TimeDomains::Duration::HOUR
           return PeriodHours.hours self.duration
-        when Duration::DAY
+        when TimeDomains::Duration::DAY
           return PeriodDays.days self.duration
-        when Duration::WEEK
+        when TimeDomains::Duration::WEEK
           return PeriodDays.days (7 * self.duration)
-        when Duration::MONTH
+        when TimeDomains::Duration::MONTH
           return PeriodMonths.months self.duration
         end
       end
@@ -128,7 +128,7 @@ module Webui
           j_duration *= 7
         end
         unit_name = Duration::units[j_unit] + 's';
-        duration_j_class = "Webui::Core::Period#{unit_name}".constantize
+        duration_j_class = "PersonalTimetablingAPI::Core::Period#{unit_name}".constantize
         (duration_j_class.send("#{unit_name.downcase}Between", Utils.to_localdatetime(start_date), Utils.to_localdatetime(end_date)).send("get#{unit_name.capitalize}") / Float(j_duration)).floor
       end
     end
@@ -149,7 +149,7 @@ module Webui
         start = Utils.from_localdatetime( Utils.to_localdatetime(self.start).plus j_duration )
         enddate = Utils.from_localdatetime( Utils.to_localdatetime(self.end).plus j_duration )
 
-        BoundedInterval.create start, enddate
+        TimeDomains::BoundedTimeDomain.create start, enddate
       end
     end
 

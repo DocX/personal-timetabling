@@ -1,4 +1,4 @@
-class SolverController < ApplicationController
+class Api::SolverController < ApplicationController
   
   @@user_solvers = {}
 
@@ -20,9 +20,9 @@ class SolverController < ApplicationController
     # select all future occurrences
     occurrences_to_schedule = Occurance.all
 
-    problem_builder = Webui::ProblemDefinition.global_reschedule_problem occurrences_to_schedule
+    problem_builder = PersonalTimetablingAPI::ProblemDefinition.global_reschedule_problem occurrences_to_schedule
   
-    solver_id = Webui::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
+    solver_id = PersonalTimetablingAPI::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
     @@user_solvers[current_user_id] = solver_id
 
     respond_new
@@ -46,10 +46,10 @@ class SolverController < ApplicationController
     # select all future occurrences
     occurrences_to_schedule = Occurance.future
 
-    problem_builder = Webui::ProblemDefinition.global_reschedule_problem occurrences_to_schedule
-    Webui::ProblemDefinition.crop_until(problem_builder, DataTime.now)
+    problem_builder = PersonalTimetablingAPI::ProblemDefinition.global_reschedule_problem occurrences_to_schedule
+    PersonalTimetablingAPI::ProblemDefinition.crop_until(problem_builder, DataTime.now)
 
-    solver_id = Webui::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
+    solver_id = PersonalTimetablingAPI::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
     @@user_solvers[current_user_id] = solver_id
 
     respond_new
@@ -78,11 +78,11 @@ class SolverController < ApplicationController
       modes[m[:id]] = m[:mode].to_sym
     end
 
-    problem_definition = Webui::ProblemDefinition.transitive_priortiy_problem occurrences, future_occurrences, modes
-    Webui::ProblemDefinition.crop_until(problem_builder, DataTime.now)
+    problem_definition = PersonalTimetablingAPI::ProblemDefinition.transitive_priortiy_problem occurrences, future_occurrences, modes
+    PersonalTimetablingAPI::ProblemDefinition.crop_until(problem_builder, DataTime.now)
     
     # create and run solver in new thread, timeout 60s
-    solver_id = Webui::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
+    solver_id = PersonalTimetablingAPI::SolverClient.run_solver(problem_builder.getDefinition,SOLVER_TIMEOUT, {:user_id => current_user_id})
     @@user_solvers[current_user_id] = solver_id
 
     respond_new
@@ -116,7 +116,7 @@ class SolverController < ApplicationController
   # :state => :done
   def cancel
 	  unless @@user_solvers[current_user_id].nil? 
-      Webui::SolverClient.delete(@@user_solvers[current_user_id])
+      PersonalTimetablingAPI::SolverClient.delete(@@user_solvers[current_user_id])
       @@user_solvers.delete current_user_id
     end
 
@@ -174,10 +174,10 @@ class SolverController < ApplicationController
     end
 
     solver_id = @@user_solvers[current_user_id]
-    if Webui::SolverClient.is_done(solver_id)
+    if PersonalTimetablingAPI::SolverClient.is_done(solver_id)
       # save state
       save_best
-      Webui::SolverClient.delete(solver_id)
+      PersonalTimetablingAPI::SolverClient.delete(solver_id)
       @@user_solvers.delete current_user_id
 
       return true
@@ -190,7 +190,7 @@ class SolverController < ApplicationController
       return false
     end
 
-  	solving = Webui::SolverClient.set_best_solution(@@user_solvers[current_user_id]) {|id, start, duration|
+  	solving = PersonalTimetablingAPI::SolverClient.set_best_solution(@@user_solvers[current_user_id]) {|id, start, duration|
       Occurance.update(id, :start => start, :duration => duration)
     }
 

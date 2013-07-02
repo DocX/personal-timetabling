@@ -1,8 +1,9 @@
 # Boundless interval repeating describes refernce interval and repeating characteristics. It actually shrinks
 # the infinity timeline into repeating circle and all describes one circle sector of it.
 
-class BoundlessIntervalRepeating < TimeDomain
-  include Webui::Core::BoundlessIntervalRepeatingMixin
+module TimeDomains
+class BoundlessTimeDomain < BaseTimeDomain
+  include PersonalTimetablingAPI::Core::BoundlessIntervalRepeatingMixin
   
   # reference start is absolute datetime defining start of the circle
   # duration is definition of circle sector size
@@ -11,8 +12,6 @@ class BoundlessIntervalRepeating < TimeDomain
   
   def self.from_attributes(attributes)
     interval = self.new
-
-    attributes = attributes.symbolize_keys
 
     if attributes[:from].is_a? String 
       interval.reference_start = DateTime.iso8601 attributes[:from]
@@ -37,5 +36,17 @@ class BoundlessIntervalRepeating < TimeDomain
     @duration = coder['duration']
     @period = coder['period']
   end
+
+  def to_hash
+    {
+      :type => 'boundless',
+      :data => {
+        :duration => self.duration.to_hash,
+        :period => self.period.to_hash
+      }
+    }
+  end
+
+end
 
 end

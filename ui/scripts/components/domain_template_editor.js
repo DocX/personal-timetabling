@@ -42,14 +42,12 @@ return PanelBase.extend({
 
 		// initial stack domain
 		this.model = new DomainTemplate();
-		this.domain_model = {
-			type: 'stack',
-			data: {actions:[]}
-		}
+		this.model.set('domain_attributes', {type: 'stack', data: { actions: [] } });
+	
 
 		this.domain_form = new NestedDomainForm({
 			el: this.$el.find('.domain_stack_form'),
-			model: this.domain_model
+			model: this.model.get('domain_attributes')
 		});
 
 		this.listenTo(this.domain_form, 'change', this.refresh_preview);
@@ -67,11 +65,12 @@ return PanelBase.extend({
 	preview_xhr: null,
 
 	refresh_preview: function() {
-		this.model.set('domain_stack', this.domain_model.data.actions);
+		//this.model.set('data', this.domain_model.data);
 
-		console.log("refresh_preview domain");
-		if (!this.model.get('domain_stack'))
+		
+		if (!this.model.get('domain_attributes'))
 			return true;
+		console.log("refresh_preview domain");
 
       	// gets display date range
       	var range = this.options.calendar_view.showing_dates();
@@ -92,30 +91,10 @@ return PanelBase.extend({
 		);
 	},
 
-	save: function() {
-		var domain_template = {};
-		domain_template.name = this.$el.find('[name=domain_name]').val();
+	save: function() {	
+		this.model.set('name', this.$el.find('[name=domain_name]').val());
 
-		if (domain_template.name == '')
-			return false;
-
-		domain_template.domain_stack_attributes = this.model.get('domain_stack');
-
-		$.ajax({
-      		url:'/domain_templates',
-      		type:'post',
-      		dataType:'json',
-      		data: JSON.stringify({'domain_template': domain_template}),
-      		contentType: "application/json; charset=utf-8",
-      		success: _.bind(function(intervals) {
-      			alert('saving ok');
-      			this.remove();
-      		}, this),
-      		error: function() {
-      			alert('saving error');
-      		}
-      	});
-
+		this.model.save();
 	},
 
 	remove: function() {

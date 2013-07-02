@@ -1,11 +1,12 @@
 # Duration describes amount of time in respect to common gregorian calendar units of time - Month, Week, Days and Hours.
 # Month unit is considered to be non fixed in count of seconds and rather that it describes addition of "month number" in the date. 
 
+module TimeDomains
 class Duration
   include ActiveModel::Validations
   include ActiveModel::Conversion
   extend ActiveModel::Naming
-  include Webui::Core::DurationMixin
+  include PersonalTimetablingAPI::Core::DurationMixin
 
   MONTH = 4
   WEEK = 3
@@ -83,4 +84,12 @@ class Duration
   def to_s
     @duration.to_s + ' ' + Duration.units[@unit.to_i]
   end
+
+  def to_hash
+    {
+      :duration => self.duration,
+      :unit => Duration.units[self.unit.to_i].downcase
+    }
+  end
+end
 end

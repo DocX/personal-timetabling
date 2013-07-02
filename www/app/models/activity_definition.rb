@@ -172,7 +172,7 @@ class ActivityDefinition
   def create_occurences for_activity
     counter = 0
     occurences = []
-    period_intervals = Webui::Core::Utils.period_intervals @period_start, @period, @periods_count
+    period_intervals = PersonalTimetablingAPI::Core::Utils.period_intervals @period_start, @period, @periods_count
 
     while counter < @periods_count
       # get period interval

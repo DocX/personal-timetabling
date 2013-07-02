@@ -9,7 +9,7 @@ if defined?(Bundler)
   # Bundler.require(:default, :assets, Rails.env)
 end
 
-module Webui
+module PersonalTimetablingAPI
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
@@ -54,7 +54,7 @@ module Webui
     config.active_record.whitelist_attributes = true
 
     # Enable the asset pipeline
-    config.assets.enabled = true
+    config.assets.enabled = false
 
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
@@ -69,9 +69,7 @@ module Webui
     # Reload cached/serialized classes before every request (in development
     # mode) or on startup (in production mode)
     config.to_prepare do
-        Dir[ File.expand_path(Rails.root.join("app/models/*.rb")) ].each do |file|
-            require_dependency file
-        end
+       Dir.glob(Rails.root.join("app/models/**/*.rb")).each { |f| require_dependency f }
     end
         
   end

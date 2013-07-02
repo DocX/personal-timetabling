@@ -67,7 +67,7 @@ return Backbone.View.extend({
 
 	open_form: function(domain) {
 		if (this.domain_form != null) {
-			this.domain_form.update_to_model();
+			//this.domain_form.update_to_model();
 			this.domain_form.remove();
 		}
 
@@ -89,7 +89,7 @@ return Backbone.View.extend({
 				return new DomainBoundlessFormPart({el: el, model: domain});
 			case 'bounded':
 				return new DomainBoundedFormPart({el:el, model: domain});
-			case 'database':
+			case 'domain_template':
 				return new DomainDatabaseFormPart({el: el, model: domain, db_domains: this.domains_collection});
 		}
 	}, 
@@ -108,7 +108,8 @@ return Backbone.View.extend({
 		if (this.domains_stack.length <= 1) {
 			return false;
 		}
-
+		
+		this.domain_form.update_to_model();
 		this.domains_stack.splice(-1,1);
 		this.open_form(this.domains_stack[this.domains_stack.length-1]);
 	},

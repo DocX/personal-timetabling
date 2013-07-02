@@ -41,7 +41,7 @@ return Backbone.View.extend({
 				"<a class='btn' data-role='new_create' data-type='stack'>Nested stack</a>" +
 				"<a class='btn' data-role='new_create' data-type='bounded'>Bounded interval</a>" + 
 				"<a class='btn' data-role='new_create' data-type='boundless'>Boundless interval</a>" +
-				"<a class='btn' data-role='new_create' data-type='database'>Saved domian template</a>" +
+				"<a class='btn' data-role='new_create' data-type='domain_template'>Saved domian template</a>" +
 			"</div>" +			
 		"</div>",
 

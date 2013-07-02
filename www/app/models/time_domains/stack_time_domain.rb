@@ -4,8 +4,9 @@
 #
 # First item in stack is at the top (applying on the next item's domain)
 
-class TimeDomainStack < TimeDomain
-  include Webui::Core::TimeDomainStackMixin
+module TimeDomains
+class StackTimeDomain < BaseTimeDomain
+  include PersonalTimetablingAPI::Core::TimeDomainStackMixin
   
   class Action
     ADD = 1
@@ -16,7 +17,7 @@ class TimeDomainStack < TimeDomain
     
     def initialize(action, domain) 
       throw 'Unsupported action' if not [ADD, REMOVE, MASK].include? action
-      throw 'Action can be defined only with TimeDomain object, %s given'%domain.class.name unless domain.is_a? TimeDomain
+      throw 'Action can be defined only with TimeDomain object, %s given'%domain.class.name unless domain.is_a? BaseTimeDomain
       
       @action = action
       @time_domain = domain
@@ -24,8 +25,9 @@ class TimeDomainStack < TimeDomain
     
     # parse from form attributes
     def self.from_attributes attributes
-      action = {'add' => ADD, 'remove' => REMOVE, 'mask' => MASK}[attributes['action']]
-      domain = TimeDomain.from_attributes attributes['domain']
+
+      action = {'add' => ADD, 'remove' => REMOVE, 'mask' => MASK}[attributes[:action]]
+      domain = BaseTimeDomain.from_attributes attributes[:domain]
       
       self.new action, domain
     end
@@ -66,8 +68,8 @@ class TimeDomainStack < TimeDomain
     @actions_stack.unshift action
   end
   
-  def self.from_attributes attrs
-    actions = attrs['actions'].map {|v| Action.from_attributes v}
+  def self.from_attributes attrs    
+    actions = attrs[:actions].map {|v| Action.from_attributes v}
     
     domain = self.new 
     domain.actions_stack = actions
@@ -81,4 +83,27 @@ class TimeDomainStack < TimeDomain
   def init_with coder
     self.actions_stack = coder['actions_stack'] || []
   end
+
+  def to_hash
+    actions_hash = []
+    @actions_stack.each do |a|
+      actions_hash << {:action => a.human_action.downcase, :domain => a.time_domain.to_hash }
+    end
+
+    {
+      :type => 'stack',
+      :data => {
+        :actions => actions_hash
+      }
+    }
+  end
+
+  def referenced_domain_templates_ids
+    references = []
+    @actions_stack.each do |a|
+      references += a.time_domain.referenced_domain_templates_ids
+    end
+    references
+  end
+end
 end

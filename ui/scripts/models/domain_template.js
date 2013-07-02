@@ -12,8 +12,10 @@ return DomainTemplate = Backbone.Model.extend({
 	defaults: {
 		name: '',
 		id: null,
-		domain_stack: {},
+		domain_attributes: ''
 	},
+
+	url: '/domain_templates',
 
 	initialize: function() {
 		if (this.get('id')) {
@@ -34,7 +36,7 @@ return DomainTemplate = Backbone.Model.extend({
 	DomainTemplateIntervals: Backbone.Collection.extend({
 
 		initialize: function(models, options) {
-			this.url = '/domain_templates/' + options.domain_template_id + '/';
+			this.url = '/domain_templates/' + options.domain_template_id + '/domain_intervals/';
 		},
 
 		model: Interval,
@@ -52,12 +54,12 @@ return DomainTemplate = Backbone.Model.extend({
 			this.domain_template_model = options.domain_template_model;
 		},
 
-		url: '/domain_templates/preview',
+		url: '/domain_templates/domain_intervals',
 
 		model: Interval,
 
 		fetchInRange: function(start, end) {
-			if (!('0' in this.domain_template_model.get('domain_stack'))) {
+			if (! this.domain_template_model.get('domain_attributes')) {
 				return false;
 			}
 
@@ -65,7 +67,7 @@ return DomainTemplate = Backbone.Model.extend({
 				data: JSON.stringify({
 					from:start.toJSON(), 
 					to:end.toJSON(), 
-					domain_stack: this.domain_template_model.get('domain_stack')
+					domain_template: this.domain_template_model.toJSON()
 				}), 
 				type: "POST",
 				processData: false,

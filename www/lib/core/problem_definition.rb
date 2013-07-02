@@ -1,4 +1,4 @@
-module Webui
+module PersonalTimetablingAPI
   module ProblemDefinition
 
   	# load java classes
@@ -50,7 +50,7 @@ module Webui
     end
 
     def self.crop_until(builder, until_time) 
-      builder.cropDomainsUntil Webui::Core::Utils.to_localdatetime(until_time)
+      builder.cropDomainsUntil PersonalTimetablingAPI::Core::Utils.to_localdatetime(until_time)
     end
 
      protected
@@ -59,7 +59,7 @@ module Webui
     # given in occurrencfes_all, that closure contains occurrences_seed.
     def self.intersects_transitive_closure(occurrences_seed, occurrences_all)
       # make list of domains and mapping of indexes to occurrence ids
-      domains = Webui::Core::Utils::ArrayList.new occurrences_all.size
+      domains = PersonalTimetablingAPI::Core::Utils::ArrayList.new occurrences_all.size
       indexes_to_id = []
       id_to_index = {}
 
@@ -69,13 +69,13 @@ module Webui
         id_to_index[o.id] = indexes_to_id.length-1
       end
 
-      seeds_indexes = Webui::Core::Utils::ArrayList.new occurrences_seed.size
+      seeds_indexes = PersonalTimetablingAPI::Core::Utils::ArrayList.new occurrences_seed.size
       occurrences_seed.each {|o| seeds_indexes.add id_to_index[o.id] }
 
       # call java transtive closure method
       closure_indexes = IntervalsTimeDomainUtils.computeIntersectsTransitiveClosure domains, seeds_indexes
 
-      closure_occurrenes = Webui::Core::Utils::j_list_to_ary(closure_indexes) do |j| 
+      closure_occurrenes = PersonalTimetablingAPI::Core::Utils::j_list_to_ary(closure_indexes) do |j| 
         occurrences_all.find {|o| o.id == indexes_to_id[j.intValue()] }
       end
 
@@ -90,7 +90,7 @@ module Webui
         # add occurrence from closure definition
         definition_builder.addOccurrence( 
           o.id, 
-          Webui::Core::Utils.to_localdatetime(o.start), 
+          PersonalTimetablingAPI::Core::Utils.to_localdatetime(o.start), 
           o.duration, 
           o.min_duration, 
           o.max_duration,

@@ -1,4 +1,4 @@
-module Webui
+module PersonalTimetablingAPI
   module SolverClient
 
   	# load java classes
@@ -59,11 +59,11 @@ module Webui
       solver = @@solvers[solver_id].solver
   		schedule_parser = ScheduleParser.new solver.getCurrentBest
 
-      allocations = Webui::Core::Utils::j_list_to_ary(schedule_parser.getAllocations) {|a| a}
+      allocations = PersonalTimetablingAPI::Core::Utils::j_list_to_ary(schedule_parser.getAllocations) {|a| a}
 
       allocations.each do |allocation|
   			unless allocation.nil?
-          set_allocation.call(allocation.id, Webui::Core::Utils.from_localdatetime(allocation.start), allocation.duration)
+          set_allocation.call(allocation.id, PersonalTimetablingAPI::Core::Utils.from_localdatetime(allocation.start), allocation.duration)
   			end
   		end
 

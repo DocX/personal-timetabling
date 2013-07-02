@@ -1,4 +1,4 @@
-class OccurancesController < ApplicationController
+class Api::EventsController < ApplicationController
 
   def index
     @occurances = Occurance.where(:activity_id => params[:activity_id])
