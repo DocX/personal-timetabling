@@ -12,7 +12,7 @@ var $ = require('jquery'),
     ActivityOccurance = require('models/activity_occurance'),
     PanelBase = require('components/panel_base'),
     ActivityRepeatingForm = require('components/activity_repeating_form'),
-    DomainStackForm = require('components/domain_stack_form'),
+    NestedDomainForm = require('components/nested_domain_form'),
     SimpleDomainForm = require('components/simple_domain_form');
     
 return PanelBase.extend({
@@ -133,7 +133,7 @@ return PanelBase.extend({
 			el: this.$el.find('.domain-form')
 		});
 		//this.listenTo(this.domain_form.model, 'changed', this.set_domain);
-		this.listenTo(this.domain_form.model, 'change', this.set_domain);
+		this.listenTo(this.domain_form, 'change', this.set_domain);
 		this.set_domain();
 
 	},
@@ -202,9 +202,7 @@ return PanelBase.extend({
 
 	set_domain: function() {
 		// set domain from domain form to activity model
-		this.activity.set('domain_template', 
-			{type: 'stack', data: { actions: this.domain_form.model.get('domain_stack') } }
-			);
+		this.activity.set('domain_template', this.domain_form.model );
 		//this.activity.trigger('change:domain_template');
 	},
 
@@ -214,18 +212,16 @@ return PanelBase.extend({
 		this.domain_form.remove();
 
 		this.$el.find('.domain-form-container').append("<div class='domain-form'></div>");
-		this.domain_form = new DomainStackForm({
-			el: this.$el.find('.domain-form')
+		this.domain_form = new NestedDomainForm({
+			el: this.$el.find('.domain-form'),
+			// TODO fix, nested form do not accepts model
+			model: domain
 		});
-
-		// set domain from simple
-		this.domain_form.model = domain;
-		this.domain_form.load_from_model();
 
 		// hide switch
 		this.$el.find('a[data-role=complex-domain-switch]').hide();
 
-		this.listenTo(this.domain_form.model, 'change', this.set_domain);
+		this.listenTo(this.domain_form, 'change', this.set_domain);
 	}
 	
 });

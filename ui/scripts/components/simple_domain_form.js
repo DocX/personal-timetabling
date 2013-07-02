@@ -79,7 +79,7 @@ return Backbone.View.extend({
 	initialize: function() {
 		this.$el.html(this.template);
 
-		this.model = new DomainTemplate();
+		this.model = {type: 'stack', data:{actions:{}}};
 
 		// find elements
 		this.$day_checkboxes = {};
@@ -129,12 +129,12 @@ return Backbone.View.extend({
 			day_actions.push({action: 'add', domain: this.domain_templates_weekdays[ weekdays[i] ]});
 		};
 
-		this.model.set('domain_stack', [
+		this.model.data.actions = [
 			{action: 'mask', domain: {type:'stack', data:{actions: time_actions }}},
 			{action: 'add', domain: {type:'stack', data:{actions: day_actions }}},
-			] ); 
-		// somewhen set do not fire change, so ensure about it
-		this.model.trigger('change');
+			]; 
+		
+		this.trigger('change');
 	},
 
 	get_selected_hours: function() {

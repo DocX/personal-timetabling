@@ -11,7 +11,7 @@ var $ = require('jquery'),
     PanelBase = require('components/panel_base'),
     DomainTemplate = require('models/domain_template'),
     DomainTemplatesCollection = require('models/domain_templates_collection'),
-    DomainStackForm = require('components/domain_stack_form');
+    NestedDomainForm = require('components/nested_domain_form');
     
 return PanelBase.extend({
 
@@ -40,13 +40,19 @@ return PanelBase.extend({
 
 		this.listenTo(this.options.calendar_view, 'columns_updated', this.refresh_preview);
 
-		this.domain_form = new DomainStackForm({
-			el: this.$el.find('.domain_stack_form')
+		// initial stack domain
+		this.model = new DomainTemplate();
+		this.domain_model = {
+			type: 'stack',
+			data: {actions:[]}
+		}
+
+		this.domain_form = new NestedDomainForm({
+			el: this.$el.find('.domain_stack_form'),
+			model: this.domain_model
 		});
 
-		this.model = this.domain_form.model;
-
-		this.listenTo(this.model, 'change', this.refresh_preview);
+		this.listenTo(this.domain_form, 'change', this.refresh_preview);
 	},
 
 	remove_preview_intervals_display: function() {
@@ -61,6 +67,8 @@ return PanelBase.extend({
 	preview_xhr: null,
 
 	refresh_preview: function() {
+		this.model.set('domain_stack', this.domain_model.data.actions);
+
 		console.log("refresh_preview domain");
 		if (!this.model.get('domain_stack'))
 			return true;
@@ -70,6 +78,9 @@ return PanelBase.extend({
 
 		this.preview_xhr && this.preview_xhr.abort();
       	this.preview_xhr = this.model.fetchIntervals(range.start, range.end);
+      	if (this.preview_xhr == false) {
+      		return;
+      	}
 
       	this.preview_xhr.success(_.bind(function() {
 			this.remove_preview_intervals_display();
