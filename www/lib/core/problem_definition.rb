@@ -63,8 +63,9 @@ module PersonalTimetablingAPI
       indexes_to_id = []
       id_to_index = {}
 
+      # add domains to data for finding transitive closure 
       occurrences_all.each do |o|
-        domains.add o.domain_definition.to_j
+        domains.add o.scheduling_domain.to_j
         indexes_to_id << o.id
         id_to_index[o.id] = indexes_to_id.length-1
       end
@@ -94,11 +95,11 @@ module PersonalTimetablingAPI
           o.duration, 
           o.min_duration, 
           o.max_duration,
-          o.domain_definition.to_j
+          o.scheduling_domain.to_j
         )
 
         # prepare linked groups
-        if (o.activity.activity_definition.linked?)
+        if (not o.activity.nil? and o.activity.definition.linked?)
           linked_groups[o.activity.id] ||= {:activity => o.activity, :occurrences => []}
           linked_groups[o.activity.id][:occurrences] << o
         end
@@ -111,7 +112,7 @@ module PersonalTimetablingAPI
 
       # add linked groups
       linked_groups.each do |aid, g|
-        case g[:activity].activity_definition.linked_period
+        case g[:activity].link_comparator
         when :time_in_day
           linked_period = ProblemDefinitionBuilderLinkedPeriods.TIME_IN_DAY
         when :day_and_time_in_week

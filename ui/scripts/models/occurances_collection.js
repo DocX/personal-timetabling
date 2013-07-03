@@ -8,12 +8,12 @@ var Backbone = require('backbone'),
 
 return Backbone.Collection.extend({
 
-  url: '/occurances/in_range',
+  url: '/events/in_period',
   
   model: ActivityOccurance,
   
   fetchRange: function(start, end) {
-    return this.fetch({remove: false, data: {start: start.toJSON(), end: end.toJSON()}});
+    return this.fetch({remove: false, data: {from: start.toJSON(), to: end.toJSON()}});
   },
   
   inRange: function(start, end) {

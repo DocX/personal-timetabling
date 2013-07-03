@@ -57,8 +57,8 @@ var FloatingActivityStub = FixedActivityStub.extend({
 	// returns array of intervals for each period occurence of its range (to-from + period offset)
 	get_ranges_intervals: function() {
 		var intervals = [];
-		for (var i = this.attributes.occurances.models.length - 1; i >= 0; i--) {
-			var model_start = this.attributes.occurances.models[i].get('start');
+		for (var i = this.get('events').models.length - 1; i >= 0; i--) {
+			var model_start = this.get('events').models[i].get('start');
 
 			intervals.push(
 				new Interval({

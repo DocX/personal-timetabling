@@ -79,7 +79,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
 
     for (var i = this.unmapped_activities.length - 1; i >= 0; i--) {
       var class_name = this.unmapped_activities[i].class_name;
-      this.unmapped_activities[i].activity.get('occurances').each(
+      this.unmapped_activities[i].activity.get('events').each(
         function(occurance) { if (occurance.inRange(range.start, range.end)) { this.add_raw_occurance_box(occurance, class_name) } },
          this);
     };

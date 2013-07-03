@@ -13,21 +13,10 @@ var Activity = Backbone.RelationalModel.extend({
   
   defaults: {
     name: "",
-    description: "",
     definition: null,
+    link_events: false,
+    link_comparator: null
   },
-
-  getOccurancesInRange: function(start, end, callback) {
-    var suc = _.bind(function() {
-      //TODO really gen only occurances in given range
-      callback(this.get('occurances'));
-    }, this);
-
-    var req = this.fetchRelated('occurances', {success: suc});
-    if (req.length == 0) {
-      suc();
-    }
-  }
 
 }, {
   // Alias for creating activity with definition containing domain with one fixed interval

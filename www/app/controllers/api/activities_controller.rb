@@ -1,61 +1,45 @@
 class Api::ActivitiesController < ApplicationController
   
   def index
-    @activities = Activity.includes(:occurances).all
+    @activities = Activity.all
     respond_to do |format|
-      format.json { render :json => @activities,  :methods => [:occurance_ids] 
-    }
-      
+      format.json { render :json => @activities, :only=>[:name, :id], :methods => [:event_ids] }
     end
   end
   
   def show
-    @activity = Activity.includes(:occurances).find params[:id]
+    if params[:event_id] 
+      params[:id] = (Event.find params[:event_id]).activity_id
+    end
+
+    @activity = Activity.find params[:id]
     respond_to do |format|
-      format.json { render :json => @activity, :exclude => [:domain_definition]}
+      format.json { render :json => @activity, :exclude=> [:definition, :events], :methods=>[:event_ids]}
     end
   end
   
   def update
-    @activity = Activity.find params[:id]
-    filtered_params = params.reject {|k,v| not ['name', 'description'].include? k}
-    @activity.update_attributes filtered_params
-    respond_to do |format|
-      format.json { render :json => @activity}
-    end
-  end
-  
-  def new
-    @activity = Activity.new
+    raise 'not implemented yet'
   end
   
   def create
-
-    definition = params.delete :definition
-
-    @activity = Activity.new params.except(:action, :controller, :occurances)
-    
-    if definition
-      @activity.occurances = ActivityDefinition.from_typed(definition).create_occurences @activity
-    else 
-      if params[:occurances] then
-        @activity.update_attributes( {:occurances => params[:occurances]} )
-      end
-    end
+    @activity = Activity.new params[:activity]
+    @activity.definition_attributes = params[:definition]  if params[:definition]
 
     if @activity.save
       respond_to do |format|
-        format.json { render :json => @activity }
+        format.json { render :json => @activity, :methods => [:event_ids] }
       end
     else 
-      respond_to do |format|
-        format.json { render :json => {:error => @activity.errors}, :status => :bad_request}
-      end
+      Rails.logger.debug 'acitivity not saved'
+      Rails.logger.debug @activity.events.inspect
+      respond_error_status :bad_request
     end
     
   end
   
   def destroy
+    raise 'not implemented yet'
   end
   
   def list
@@ -63,7 +47,7 @@ class Api::ActivitiesController < ApplicationController
     @activities = Activity.where(:id => ids)
 
     respond_to do |format|
-      format.json { render :json => @activities}
+      format.json { render :json => @activities, :only=>[:name, :id], :methods => [:events_ids] }
     end    
   end
   

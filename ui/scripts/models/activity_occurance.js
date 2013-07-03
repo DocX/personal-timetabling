@@ -9,6 +9,7 @@ var Backbone = require('backbone'),
     Interval = require('models/interval'),
     moment = require('moment');
 
+// AKA Event
 var ActivityOccurance = Backbone.RelationalModel.extend({
   
   relations: [
@@ -18,15 +19,14 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
       relatedModel: Activity,
       collectionType: Activity.ActivityRelationalCollection,
       reverseRelation: {
-        key: 'occurances',
+        key: 'events',
         type: Backbone.HasMany
       },
       keySource: 'activity_id',
       parse: true,
       autoFetch: {
         success: function(model) {
-          console.log('occurance fetchreleated done for activity id', model.id);
-          model.get('occurances').each(function(o) {o.collection.trigger('related:activity:fetch')});
+          model.get('events').each(function(o) {o.collection.trigger('related:activity:fetch')});
         }
       }
     }
@@ -118,11 +118,11 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     return this.domain_intervals.isFeasible(start, duration) && this.validDuration(duration);
   },
   
-  urlRoot: '/occurances', 
+  urlRoot: '/events', 
 },{
   OccuranceDomainCollection: Backbone.Collection.extend({
 
-    url: '/occurances/<%= occurance_id %>/domain',
+    url: '/events/<%= occurance_id %>/domain_intervals',
 
     initialize: function(models, options) {
       this.url = _.template(this.url, {occurance_id: options.id});
@@ -132,7 +132,7 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     model: Interval,
     
     fetchRange: function(start, end) {
-      var xhr = this.fetch({data: {start: start.toJSON(), end: end.toJSON()}});
+      var xhr = this.fetch({data: {from: start.toJSON(), to: end.toJSON()}});
       xhr.success(_.bind(function() {this.fetched = true;}, this));
       return xhr;
     },
@@ -149,7 +149,7 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   OccurancesRalationCollection: Backbone.Collection.extend({
 
     url: function(relatedModels) {
-      return '/occurances/list/'+_.pluck(relatedModels,'id').join(';')
+      return '/events/list/'+_.pluck(relatedModels,'id').join(';')
     },
 
   })

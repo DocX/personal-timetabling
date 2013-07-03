@@ -29,7 +29,7 @@ PersonalTimetablingAPI::Application.routes.draw do
       # list of events with given, comma separated, ids
       get '/list/:ids', to: 'events#list'
       # list of events that intersects given period
-      get '/in_period/:from$:to', to: 'events#in_period'
+      get '/in_period(/:from$:to)', to: 'events#in_period'
       # new event
       post '/', to: 'events#create'
 
@@ -41,9 +41,12 @@ PersonalTimetablingAPI::Application.routes.draw do
       # destroy single event 
       delete '/:id', to: 'events#destroy'
       # get intervals of domain in given period
-      get '/:id/domain_intervals/:from$:to', to: 'events#domain_intervals'
+      get '/:id/domain_intervals(/:from$:to)', to: 'events#domain_intervals'
       # get activity object of event with given :id
       get '/:event_id/activity', to: 'activity#show'
+
+      # reset to initial allocation. id can be "all" for reset all events
+      post '/:id/reset', to: 'events#reset'     
     end
 
     # activities resources
@@ -55,7 +58,7 @@ PersonalTimetablingAPI::Application.routes.draw do
 
       get '/:id', to: 'activities#show'
       put '/:id', to: 'activities#update' 
-      get '/:activity_id/events', to: 'events#of_activity'
+      get '/:activity_id/events', to: 'events#index'
       delete '/:id', to: 'activities#destroy'
     end
 

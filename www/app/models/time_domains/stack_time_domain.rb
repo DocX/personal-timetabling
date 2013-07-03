@@ -68,6 +68,15 @@ class StackTimeDomain < BaseTimeDomain
     @actions_stack.unshift action
   end
   
+  # create stack domain eqaul to given domain masked with given mask domain
+  def self.create_masked(mask, domain)
+    stack = StackTimeDomain.new
+    stack.unshift(Action.new Action::ADD, domain)
+    stack.unshift(Action.new Action::MASK, mask)
+
+    return stack;
+  end
+
   def self.from_attributes attrs    
     actions = attrs[:actions].map {|v| Action.from_attributes v}
     

@@ -10,7 +10,9 @@ class CreateEvents < ActiveRecord::Migration
 	    t.integer  "tz_offset",             :default => 0, :null => false
 	    t.string   "name",                  :null => false
 	    t.text     "domain"
-	    t.text     "ordered_events_before"
+	    t.text     "events_after"
+	    t.datetime "schedule_since",		:null => false
+	    t.datetime "schedule_deadline",		:null => false
 
 	    t.datetime "created_at", :null => false
 	    t.datetime "updated_at", :null => false

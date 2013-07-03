@@ -37,7 +37,7 @@ var FixedActivityStub = Activity.extend({
 		// create first fixed occurance
 
 		var first_occurance = new ActivityOccurance({min_duration: 60, max_duration:-1});
-		this.get('occurances').add(first_occurance);
+		this.get('events').add(first_occurance);
 
 		first_occurance.on('change', this.set_repeating, this);
 
@@ -47,7 +47,7 @@ var FixedActivityStub = Activity.extend({
 
 	// retrives first occurance model instnace which acts as reference for fixed activity
 	first_occurance: function() {
-		return this.attributes.occurances.models[0];
+		return this.get('events').models[0];
 	},
 
 	// when repeating value is changed, setup repeated occurances
@@ -55,8 +55,9 @@ var FixedActivityStub = Activity.extend({
 
 		// remove all repeated occurances
 		if (this.attributes.repeating == false) {
-			for (var i = this.attributes.occurances.length - 1; i >= 1; i--) {
-				this.attributes.occurances.remove(this.attributes.occurances.at(i));
+			var events = this.get('events');
+			for (var i = events.length - 1; i >= 1; i--) {
+				events.remove(events.at(i));
 			};
 		}
 		else {
@@ -71,7 +72,7 @@ var FixedActivityStub = Activity.extend({
 			// go thgrou count and update existing, add new or delete remaining
 
 			var repeating_occurance;
-			var occurances = this.attributes.occurances;
+			var occurances = this.get('events');
 			var first_occurance = this.first_occurance();
 			var plus_one_if_last = (occurances.models.length > 1) ? +1 : 0 ;
 
@@ -148,7 +149,7 @@ var FixedActivityStub = Activity.extend({
 
 
 	last_moved: function() {
-		var from_first = this.attributes.occurances.last().get('start').diff(
+		var from_first = this.get('events').last().get('start').diff(
 			this.first_occurance().get('start'), 
 			this.attributes.repeating.period_unit, true);
 

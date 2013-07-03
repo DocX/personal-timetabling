@@ -1,30 +1,27 @@
 class Activity < ActiveRecord::Base
-  # Regular: true/false = all occurences if repeating is enabled will be linked by period 
-  #   and period_start to maintain their offset from each period start
-
-
-  attr_accessible :description, :name, :occurances#, :regular
+  attr_accessible :name, :link_events, :link_comparator, :definition_attributes
     
-  has_many :occurances
+  has_many :events
+  serialize :definition, ActivityDefinition::BaseActivityDefinition
 
   validates :name, :presence => true
+  validates_associated :definition
   
-  validates_associated :activity_definition
-  
-  after_initialize do |a|
-    Rails.logger.debug "after_initialize a.data = #{a.data.inspect}"
-    
-    a.data = {} unless a.data.is_a? Hash
-    
-    a.data[:definition] = ActivityDefinition.new if a.data[:definition].nil?
+  after_initialize do |a|   
+  	a.link_comparator = a.link_comparator && a.link_comparator.to_sym
   end
-   
-  def activity_definition
-    self.data[:definition]
+
+  def definition_attributes
+  	self.definition && self.definition.to_attributes
   end
-  
-  def activity_definition=(definition)
-    self.data = {} if data.nil?
-    self.data[:definition] = definition
+
+  # set definition and create events
+  def definition_attributes=(definition_attributes)
+  	self.definition = ActivityDefinition::BaseActivityDefinition.from_attributes definition_attributes
+  	self.create_events_from_definition
+  end
+
+  def create_events_from_definition
+  	self.events << self.definition.create_events(self)
   end
 end
