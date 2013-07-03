@@ -15,10 +15,12 @@ var $ = require('jquery'),
     moment = require('moment'),
     momentAddons = require('lib/moment.addons'),
     DomainTemplate = require('models/domain_template'),
-    DomainTemplatesCollection = require('models/domain_templates_collection');
+    DomainTemplatesCollection = require('models/domain_templates_collection'),
+    DomainBoundedFormPart = require('components/domain_template_forms/domain_bounded_form_part'),
+    DomainBoundlessFormPart = require('components/domain_template_forms/domain_boundless_form_part');
     
 
-return Backbone.View.extend({
+var DomainStackFormPart = Backbone.View.extend({
 
 	template:
 		"<div class='domain-display'>" +
@@ -31,10 +33,10 @@ return Backbone.View.extend({
 		"<div class='item-screen'>" +
 			"<p><strong>New action</strong> <a href='#' class='' data-role='add_action_cancel_btn'>Cancel</a></p>" +
 			"<label>Operation</label>" +
-			"<div class='btn-group'>" +
-				"<label class=''><input type='radio' name='add_action_type' value='add' > Union</label>" +
-				"<label class=''><input type='radio' name='add_action_type' value='remove' > Remove</label>" +
-				"<label class=''><input type='radio' name='add_action_type' value='mask'  > Mask</label>" +
+			"<div class='btn-group form-inline'>" +
+				"<label class=''><input type='radio' name='add_action_type' value='add' > <i class='icon-plus'></i> Union</label> " +
+				"<label class=''><input type='radio' name='add_action_type' value='remove' > <i class='icon-minus'></i> Remove</label> " +
+				"<label class=''><input type='radio' name='add_action_type' value='mask'  > <i class='icon-filter'></i> Mask</label>" +
 			"</div>" +
 			"<label>Definition</label>" +
 			"<ul class='nav-pills nav nav-stacked'>" +
@@ -47,14 +49,16 @@ return Backbone.View.extend({
 
 	
 	domain_stack_item_template: 
-		'<li class="sortable-item btn disabled" style="display:block;">' +
-			'<div class="btn-group">' +
-				'<a class="btn handle"><i class="icon-resize-vertical"></i></a>' +
-				'<a class="btn" data-domain-item-btn="action"><i class="icon-minus"></i></a>' +
-				'<a class="btn" data-domain-item-btn="edit"><i class="icon-pencil"></i></a>' +
-				'<a class="btn" data-domain-item-btn="remove"><i class="icon-trash"></i></a>' +
-			'</div>' +
-			'<p class="" data-domain-item="title" style="margin:0; margin-top:0.5em"></p>' +
+		'<li class="sortable-item" style="display:block; position:relative;">' +
+			'<div class=" btn disabled" style="display:block">' +
+				'<div class="btn-group" style="text-align:left">' +
+					'<a class="btn handle"><i class="icon-resize-vertical"></i></a>' +
+					'<a class="btn" data-domain-item-btn="edit"><i class="icon-pencil"></i></a>' +
+					'<a class="btn" data-domain-item-btn="remove"><i class="icon-trash"></i></a>' +
+				'</div>' +
+				'<p class="" data-domain-item="title" style="margin:0; margin-top:0.5em"></p>' +
+			"</div>" +
+			'<a class="btn" data-domain-item-btn="action" style="display:block"><i class="icon-minus"></i></a>' +
 		'</li>',
 
 	action_icons: {
@@ -92,6 +96,11 @@ return Backbone.View.extend({
 		}).disableSelection();
 
 		this.$el.find('a[data-role=new_create]').click(_.partial(function(that) { return that.create_new(this); }, this));
+
+		// initialize model
+		this.model.data = $.extend({
+			actions: []
+		}, this.model.data);
 
 		this.load_from_model();
 	},
@@ -168,37 +177,36 @@ return Backbone.View.extend({
 			return false;
 
 
-		var sortable_list_item = $(this.domain_stack_item_template);
-		sortable_list_item.data('action', action);
-		sortable_list_item.find('[data-domain-item-btn=action] i').attr('class', this.action_icons[action.action]);
-
-      	this.$stack_list.find('.first').after(sortable_list_item);
 
       	//hide adding and show domain
       	this.$addaction_box.hide();
       	this.$domain_box.show();
 
-      	this.update_to_model();
 
       	// signal to open subdomain form
-      	this.trigger('opennested', action.domain);
+      	this.trigger('opennested', action.domain, action);
 
       	return false;
 	},
 
-	action_label: function(action) {
-		var title = '';
-		if (action.domain.type == 'boundless') {
-			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action.domain.data);
-		} else if(action.domain.type == 'bounded') {
-			title = _.template('<%= from.format("lll") %> - <br><%= to.format("lll") %>', {from: moment(action.domain.data.from), to: moment(action.domain.data.to) });
-		} else if(action.domain.type == 'stack') {
-			title = '* Nested stack *';
-		} else {
-			title = this.options.db_domains.get(action.domain.data.id).get('name');
-		}
+	from_nested_save: function(data) {
+		this.add_to_stack(data);
+		this.load_from_model();
+	},
 
-		return title;
+	add_to_stack: function(action){
+		var sortable_list_item = $(this.domain_stack_item_template);
+		sortable_list_item.data('action', action);
+		sortable_list_item.find('[data-domain-item-btn=action] i').attr('class', this.action_icons[action.action]);
+
+      	this.$stack_list.find('.first').after(sortable_list_item);	
+
+      	this.update_to_model();	
+	},
+
+	action_label: function(action) {
+		return DomainStackFormPart.other_domain_label(
+			action.domain, this.options.db_domains, true);
 	},
 
 	removeStackItem: function(e) {
@@ -234,6 +242,48 @@ return Backbone.View.extend({
       	this.trigger('opennested', editing_item.data('action').domain);
 	},
 
+}, {
+
+	domain_label: function(domain, db_domains) {
+		var strings = [];
+		var prev = '';
+		for (var i = domain.data.actions.length - 1; i >= 0; i--) {
+			var a = domain.data.actions[i];
+			var domain_label = DomainStackFormPart.other_domain_label(a.domain,db_domains, false);
+
+			strings.push(prev + ' ' + domain_label);
+			prev = {add:'+', remove:'-', mask:'>'}[a.action];
+		};
+
+		return strings.join(' ');
+	},
+
+	other_domain_label: function(domain, db_domains, nest) {
+		var domain_label;
+		switch(domain.type) {
+			case 'stack':
+				if (nest) {
+					domain_label = DomainStackFormPart.domain_label(domain,db_domains);
+				} else {
+					domain_label = '*nested stack*';
+				}
+				
+				break;
+			case 'bounded':
+				domain_label = DomainBoundedFormPart.domain_label(domain);
+				break;
+			case 'boundless':
+				domain_label = DomainBoundlessFormPart.domain_label(domain);
+				break;
+			case 'database':
+				domain_label = db_domains.get(domain.data.id).get('name');
+				break;
+		}
+
+		return domain_label;
+	}
 });
+
+return DomainStackFormPart;
 
 });

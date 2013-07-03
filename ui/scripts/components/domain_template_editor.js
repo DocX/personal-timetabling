@@ -17,10 +17,10 @@ return PanelBase.extend({
 
 	template: 
 		"<div id='domain_box'>" +
-			"<p><strong>New domain template</strong> <a class='btn' data-role='cancel_btn'>Cancel</a></p>" +
+			"<p><strong>New domain template</strong> <a class='' style='float:right' data-role='cancel_btn'>Cancel</a></p>" +
 
 			"<label>Name</label>" +
-			"<input name='domain_name' type='text'/>" +
+			"<input name='domain_name' type='text' class='fill-width' />" +
 			"<label>Intervals actions:</label>" +
 			"<div class='domain_stack_form'></div>" +
 			"<div>" +

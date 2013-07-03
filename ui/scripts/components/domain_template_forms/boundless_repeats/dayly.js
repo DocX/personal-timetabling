@@ -24,16 +24,25 @@ return BaseForm.extend({
 		"</div>" +
 
 		"<legend>Interval</legend>" +
-		"<label>Start hour</label>" +
-		"<input name='dayly_start_hour' type='number' min='0' max='23' />" +
-		"<label>End hour</label>" +
-		"<input name='dayly_end_hour' type='number' min='1' max='24' />",
+		"<label>Day hour</label>" +
+		"<div data-role='hour-slider'/>" +
+		"<p data-role='hour-values'></p>",
 
 
 	initialize: function() {
 		this.$el.append(this.template);
 		this.$el_not_every = this.$el.find('[data-role=not-every-one]');
 		this.setup_pickers();
+		this.$hour_slider = this.$el.find('[data-role=hour-slider]');
+		this.$hour_slider.slider({
+			range: true,
+		      min: 0,
+		      max: 24,
+		      values: [ 0, 24 ],
+		      slide: _.bind(this.slide, this)
+		});
+
+		this.slide(null, {values:[0,24]});
 	},
 
 	set_period_number: function(number) {
@@ -44,9 +53,16 @@ return BaseForm.extend({
 		}
 	},
 
+	slide: function(e, ui) {
+		this.$el.find('[data-role=hour-values]').text(ui.values[0] + ':00 - ' + ui.values[1] + ':00');
+	},
+
 	load_from_model: function() {
-		this.$el.find('[name=dayly_start_hour]').val(moment.utc(this.model.data.from).hour());
-		this.$el.find('[name=dayly_end_hour]').val( moment.utc(this.model.data.from).hour() + this.model.data.duration.duration);
+
+		this.$hour_slider.slider('values', [
+				moment.utc(this.model.data.from).hour(),
+				moment.utc(this.model.data.from).hour() + this.model.data.duration.duration
+			])
 
 		if (this.model.data.from) {
 			// strip time part of from time
@@ -57,8 +73,9 @@ return BaseForm.extend({
 	},
 
 	update_to_model: function() {
-		var start_hour = this.$el.find('[name=dayly_start_hour]').val();
-		var end_hour = this.$el.find('[name=dayly_end_hour]').val();
+		var values = this.$hour_slider.slider('values');
+		var start_hour = values[0];
+		var end_hour = values[1];
 
 		var from = moment.utc(this.get_datetime('[name=dayly_first]')).startOf('day');
 		from.add(Number(start_hour), 'h');
@@ -67,5 +84,17 @@ return BaseForm.extend({
 		this.model.data.duration.duration = end_hour - start_hour;
 		this.model.data.duration.unit = 'hour';
 	},
+}, {
+	domain_label: function(domain) {
+		var fromh = moment.utc(domain.data.from).hour();
+		var toh = moment.utc(domain.data.from).hour() + domain.data.duration.duration;
+		var label = fromh + '-' + toh + 'h';
+
+		if (domain.data.period.duration > 1) {
+			label += ' every ' + domain.data.period.duration + ' day';
+		}
+
+		return label;
+	}
 });
 });

@@ -9,7 +9,7 @@ class Api::DomainTemplatesController < ApplicationController
   end
   
   def create
-    @domain_template = DomainTemplate.new params[:domain_template]
+    @domain_template = DomainTemplate.new params
     if @domain_template.save
       respond_to do |format|
         format.json {render :json => @domain_template, :only => [:name, :id, :domain_attributes]}

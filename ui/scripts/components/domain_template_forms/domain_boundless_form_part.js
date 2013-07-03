@@ -105,7 +105,26 @@ return Backbone.View.extend({
 		this.interval_form.update_to_model();
 
 		this.trigger('change');
-	}
+	},
 
+	from_nested_save: function() {}
+
+}, {
+
+	domain_label: function(domain) {
+		var string = '';
+		switch(domain.data.period.unit) {
+			case 'day':
+				string = DaylyRepeatForm.domain_label(domain);
+				break;
+			case 'week':
+				string = WeeklyRepeatForm.domain_label(domain);
+				break;
+			case 'month':
+				string = MonthlyRepeatForm.domain_label(domain);
+				break;
+		}
+		return string;
+	}
 })
 });

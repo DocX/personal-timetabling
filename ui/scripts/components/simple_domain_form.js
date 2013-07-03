@@ -80,7 +80,7 @@ return Backbone.View.extend({
 	initialize: function() {
 		this.$el.html(this.template);
 
-		this.model = {type: 'stack', data:{actions:{}}};
+		this.model = {type: 'stack', data:{actions:[]}};
 
 		// find elements
 		this.$day_checkboxes = {};

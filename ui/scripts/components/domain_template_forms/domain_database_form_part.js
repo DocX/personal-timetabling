@@ -47,7 +47,9 @@ return Backbone.View.extend({
 		this.model.type = 'domain_template';
 		this.model.data.id = this.$databases_select.find(':selected').attr('value');
 		this.trigger('change');
-	}
+	},
+
+	from_nested_save: function() {}
 
 })
 });

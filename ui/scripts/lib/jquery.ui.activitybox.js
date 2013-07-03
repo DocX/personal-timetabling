@@ -21,9 +21,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     
     this.occurance = this.options.occurance;
       
-    if (this.options.occurance.get("activity")) {
-      this.element.find('[data-source=name]').text(this.options.occurance.get("activity").get("name")); 
-    }
+    this.element.find('[data-source=name]').text(this.options.occurance.get("name")); 
     var start_date = this.options.occurance.get("start").format(this.activity_date_format);
     var end_date =  this.options.occurance.get("end").format(this.activity_date_format);
     
@@ -62,7 +60,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
 
     box.tooltip({
       title: 
-      activity && activity.get("name") +
+      this.options.occurance.get('name') +
       '<br>' +
       start_date + 
       ' - ' +
@@ -102,7 +100,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     $box.find('[data-source=end]').text();
     
     $box.attr('data-original-title',
-      (occurance.get("activity") && occurance.get("activity").get("name") + '<br>' || '' )+
+      occurance.get("name") +'<br>' +
       start_date + 
       ' - ' +
       end_date

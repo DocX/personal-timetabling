@@ -63,5 +63,19 @@ return BaseForm.extend({
 		this.model.data.duration.duration = 1;
 		this.model.data.duration.unit = 'day';
 	},
+}, {
+	domain_label: function(domain) {
+		var from_mdate = moment.utc(domain.data.from).date();
+		var label = from_mdate + '. ';
+
+		if (domain.data.period.duration > 1) {
+			label += 'every ' + domain.data.period.duration + ' month';
+		} else {
+			label += 'each month'
+		}
+
+		return label;
+	}
+
 });
 });

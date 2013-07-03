@@ -23,10 +23,10 @@ class Api::ActivitiesController < ApplicationController
   end
   
   def create
-    @activity = Activity.new params[:activity]
-    @activity.definition_attributes = params[:definition]  if params[:definition]
-
+    @activity = Activity.new params
+    
     if @activity.save
+      @activity.definition_attributes = params[:definition]  if params[:definition]
       respond_to do |format|
         format.json { render :json => @activity, :methods => [:event_ids] }
       end

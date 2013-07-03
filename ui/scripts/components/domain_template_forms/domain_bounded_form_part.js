@@ -49,7 +49,13 @@ return Backbone.View.extend({
 			to: moment.asUtc(this.$el.find('input[name=bounded_to]').datetimepicker('getDate')).toJSON(),
 		});
 		this.trigger('change');
-	}
+	},
 
+	from_nested_save: function() {}
+
+}, {
+	domain_label: function(domain) {
+		return _.template('<%= from.format("lll") %> - <%= to.format("lll") %>', {from: moment(domain.data.from), to: moment(domain.data.to) });
+	}
 })
 });

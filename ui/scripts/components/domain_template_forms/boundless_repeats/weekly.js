@@ -99,5 +99,25 @@ return BaseForm.extend({
 		this.model.data.duration.duration = days;
 		this.model.data.duration.unit = 'day';
 	},
+},{
+	domain_label: function(domain) {
+		var from_day = moment.utc(domain.data.from).format('ddd');
+
+		if (domain.data.duration.duration == 5) {
+			from_day = 'weekdays'
+		} else if (domain.data.duration.duration == 2) {
+			from_day = 'weekends'
+		}
+
+		var label;
+		if (domain.data.period.duration > 1) {
+			label = from_day + ' every ' + domain.data.period.duration + ' weeks';
+		} else {
+			label = from_day;
+		}
+
+		return label;
+	}
+
 });
 });

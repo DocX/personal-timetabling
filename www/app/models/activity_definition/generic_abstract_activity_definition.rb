@@ -99,7 +99,7 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
       event = Event.new
       event.activity = for_activity
       event.name = for_activity.name
-      event.name += "#{counter + 1}/#{@periods_count}" if @periods_count > 1 
+      event.name += " #{counter + 1}/#{@periods_count}" if @periods_count > 1 
 
       # set initial start of event to start of very least moment in domain
       event.start = period_domain_intervals[0].start

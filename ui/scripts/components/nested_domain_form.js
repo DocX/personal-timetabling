@@ -28,11 +28,11 @@ return Backbone.View.extend({
 		"<div class=''>" +
 			"<div class='well well-small'>" +
 				"<div class='domains-stack' style='margin-bottom:0.5em'><strong>" +
-					"<span data-role='stack-back'>Nested domain item.</span>" +
+					"<span data-role='stack-back'><a href='#' data-role='stack-back-nosave'>Back</a> Nested domain item.</span>" +
 					"<span data-role='root-indicator'>Root domain</span>" +
 				"</strong></div>" +
 				"<div class='domain-form-container'></div>" +
-				"<a class='btn' data-role='stack-back'>Save and back</a>" +
+				"<a class='btn btn-primary' data-role='stack-back'>Save and back</a>" +
 			"</div>" +
 		"</div>",
 
@@ -48,7 +48,8 @@ return Backbone.View.extend({
 		this.$back_btn = this.$el.find('a[data-role=stack-back]');
 		this.$root_indicator = this.$el.find('[data-role=root-indicator]');
 
-		this.$back_btn.click(_.bind(this.back, this));
+		this.$back_btn.click(_.bind(this.back, this, true));
+		this.$el.find('a[data-role=stack-back-nosave]').click(_.bind(this.back, this, false));
 
 		this.load_domain_templates();
 
@@ -60,8 +61,8 @@ return Backbone.View.extend({
 		this.domains_collection.fetch();
 	},
 
-	open_domain: function(domain) {
-		this.domains_stack.push(domain);
+	open_domain: function(domain,  data_for_backsave) {
+		this.domains_stack.push({domain: domain, backsave_data: data_for_backsave});
 		this.open_form(domain);
 	},
 
@@ -105,14 +106,22 @@ return Backbone.View.extend({
 		}
 	},
 
-	back: function() {
+	back: function(save) {
 		if (this.domains_stack.length <= 1) {
 			return false;
 		}
 		
-		this.domain_form.update_to_model();
-		this.domains_stack.splice(-1,1);
-		this.open_form(this.domains_stack[this.domains_stack.length-1]);
+		if (save) {
+			this.domain_form.update_to_model();
+		}
+
+		var domain = this.domains_stack.splice(-1,1);
+		this.open_form(this.domains_stack[this.domains_stack.length-1].domain);
+
+		// send data that was passed when nesting
+		if (save) {
+			this.domain_form.from_nested_save(domain[0].backsave_data);
+		}
 	},
 
 	trigger_change: function() {
