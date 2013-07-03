@@ -102,8 +102,7 @@ $.widget("pt.activity_occurance_box", $.pt.column_box, {
     $box.find('[data-source=end]').text();
     
     $box.attr('data-original-title',
-      occurance.get("activity").get("name") +
-      '<br>' +
+      (occurance.get("activity") && occurance.get("activity").get("name") + '<br>' || '' )+
       start_date + 
       ' - ' +
       end_date

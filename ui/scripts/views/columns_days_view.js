@@ -28,6 +28,10 @@ return ColumnsDaysView = ColumnsView.extend({
 
     this.render();
     this.display_date(this.options.initial_date);
+
+    // init past fader
+    this.fader_timer = window.setInterval(_.bind(this.draw_past_fader, this), 5000);
+    this.listenTo(this, 'columns_updated', this.draw_past_fader);
   },
  
   // set zoom
@@ -149,6 +153,24 @@ return ColumnsDaysView = ColumnsView.extend({
 
     return {start: start_date, end:end_date};
   },
+
+  // setup interval from start showing date to now or showing end what comes earlier
+  draw_past_fader: function() {
+    this.fader_handle && this.fader_handle.remove();
+
+    var showing = this.showing_dates();
+    if (moment.utc().isBefore(showing.start)) {
+      return;
+    }
+    var interval_end = moment.utc();
+    if (showing.end.isBefore(interval_end)) {
+      interval_end = showing.end;
+    }
+
+    this.fader_handle = this.display_interval(showing.start, interval_end, function(box) {
+      box.addClass('past-fader');
+    });
+  },
   
   
   /* INTERVALS HANDLING */
@@ -243,6 +265,9 @@ return ColumnsDaysView = ColumnsView.extend({
     },
     
     render: function() {
+      if (this.attributes.view == null) {
+        return;
+      }
       this.attributes.boxes = this.attributes.view.render_interval(
         this.attributes.interval_start, 
         this.attributes.interval_end, 

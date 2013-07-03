@@ -1,11 +1,20 @@
 
-@activity-box-border-color: saturate(darken(@mainmenu-background,40%),50%);
+@activity-box-border-color: saturate(darken(@mainmenu-background,00%),80%);
+
+@calendar-base-background: #fff;
+@calendar-event-bg: darken(@calendar-base-background, 5%);
+@calendar-weekend-highlight: rgba(64,0,0,0.1);
+@calendar-text-color: rgba(64,64,64,0.8);
+@calendar-movers: darken(@calendar-base-background, 10%);
+@calendar-past-fade: rgba(160,160,160,1);
+@calendar-domain-hg: fade(green, 50%);
+
 
 .columns-view {
   @line-cell-shadow: inset 0px 1px 0px 0px rgba(104, 57, 0, 0.26);  
   
   .mover {
-    background: rgb(169, 200, 206) repeat;
+    background: @calendar-base-background;
     position:relative;
     
     .disable-text-selection;
@@ -14,7 +23,7 @@
       background-position: left -44px; 
     }
     &.headers-mover {
-      background:rgb(248, 223, 181);
+      background:@calendar-movers
     }
   }
   
@@ -37,31 +46,32 @@
       top:0;
       height:40px;
       box-shadow: 0 0 5px black;
-      z-index:2;
+      z-index:10;
     }
   }
   
   // MAIN COLUMNS GRID
   .grid {
-    box-shadow: inset 0px -5px 5px -5px #000;    
+    box-shadow: inset 0px -5px 5px -5px #000;
+    .grid-columns {z-index:5; position:absolute; }
     
     .grid-col {
       position:absolute;
       word-wrap:break-word;
       font-size:80%;
-      background: rgb(248, 223, 181);
+      background: fade(@calendar-base-background,50%);
       
       div.line-label {
         //padding-left: 3px;
         text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
-        color: rgba(126, 76, 14, 0.56);
+        color: @calendar-text-color;
         text-align:left;
         text-indent: 5px;
         
         box-shadow: @line-cell-shadow;
         
         &.shaded-line {
-          background: rgba(255, 139, 139, 0.25);
+          background: @calendar-weekend-highlight;
         }
         &.delimiter-left {
           box-shadow:inset 3px 0 0px 0px rgba(161, 197, 199, 0.81), @line-cell-shadow;
@@ -75,7 +85,7 @@
       }
       
       &.even-col {
-        background: rgb(250, 211, 161);
+        background:fade(@calendar-event-bg,50%) ;
         //box-shadow: inset 2px 0 1px -1px rgba(0, 0, 0, 0.15), inset -2px 0 1px -1px rgba(255, 255, 255, 0.66);
         
         div.line-label {
@@ -91,8 +101,17 @@
       
       div.domain-highlight {
         position:absolute;
-        background: rgba(255,255,255,0.5);
-        z-index: 5;
+        background: @calendar-domain-hg;
+        z-index: 2;
+      }
+      .floating-activity-form {
+         background: fade(darken(saturate(@mainmenu-background,100%),40%), 60%) !important;
+         z-index: 1 !important;
+      }
+      .past-fader {
+        position:absolute;
+        background:@calendar-past-fade;
+        z-index:0;
       }
 
     }
@@ -122,13 +141,13 @@
         word-wrap:break-word;
         font-size:80%;
         text-align:center;
-        background:rgb(248, 223, 181);
+        background:@calendar-movers;
       }
     }
   
     .headers-supercols {
       height: 1.75em;
-      background:rgb(248, 223, 181);
+      background:@calendar-movers;
 
       .headers-col {
         position:absolute;
@@ -162,7 +181,7 @@
     
     
     .activity-occurance-inner {
-      background: fade(desaturate(@mainmenu-background,30%), 50%);
+      background: fade(desaturate(@mainmenu-background,00%), 70%);
       //border: @activity-box-border-color 2px solid;
       //border-left: fade(@activity-box-border-color, 45%) 1px solid;
       //border-right: fade(@activity-box-border-color, 45%) 1px solid;
@@ -172,7 +191,7 @@
       bottom:0px;
       right:5px;
       overflow: hidden;
-      border-radius:5px;
+      border-radius:0px;
       
       div.activity-occurance-labels {
         position:absolute;
@@ -182,7 +201,7 @@
       }
       div.activity-occurance-handle {
         height:5px;
-        background:fade(desaturate(@mainmenu-background,30%), 100%);
+        background:fade(darken(@mainmenu-background,10%), 100%);
         position:absolute;
         left:0;
         right:0;
@@ -199,7 +218,7 @@
 
     &.new-creating .activity-occurance-inner {
       background: fade(saturate(@mainmenu-background,40%), 30%);
-
+      border-width:2px;
       box-shadow: 0px 0px 5px 2px lighten(@mainmenu-background, 20%);
     }
   } 

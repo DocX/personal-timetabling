@@ -220,7 +220,8 @@ return PanelBase.extend({
 	},
 
 	remove: function() {
-		this.remove_intervals_view();
+		this.remove_intervals_view(this.domain_model_preview);
+		this.remove_intervals_view(this.ranges_intervals);
 
 		PanelBase.prototype.remove.apply(this); 
 	},
