@@ -37,7 +37,7 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   },
 
   defaults: function() { return {
-    start: moment.utc(),
+    start: moment.asUtc(moment()),
     duration: 3600,
     
   }},

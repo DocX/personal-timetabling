@@ -159,10 +159,11 @@ return ColumnsDaysView = ColumnsView.extend({
     this.fader_handle && this.fader_handle.remove();
 
     var showing = this.showing_dates();
-    if (moment.utc().isBefore(showing.start)) {
+    var interval_end = moment.asUtc(moment());
+    if (interval_end.isBefore(showing.start)) {
       return;
     }
-    var interval_end = moment.utc();
+    
     if (showing.end.isBefore(interval_end)) {
       interval_end = showing.end;
     }
