@@ -32,17 +32,17 @@ return Backbone.View.extend({
 			"<p><strong>New action</strong> <a href='#' class='' data-role='add_action_cancel_btn'>Cancel</a></p>" +
 			"<label>Operation</label>" +
 			"<div class='btn-group'>" +
-				"<label class='btn'><input type='radio' name='add_action_type' value='add' style='display:none'> Add</label>" +
-				"<label class='btn'><input type='radio' name='add_action_type' value='remove'  style='display:none'> Remove</label>" +
-				"<label class='btn'><input type='radio' name='add_action_type' value='mask'  style='display:none'> Mask</label>" +
+				"<label class=''><input type='radio' name='add_action_type' value='add' > Union</label>" +
+				"<label class=''><input type='radio' name='add_action_type' value='remove' > Remove</label>" +
+				"<label class=''><input type='radio' name='add_action_type' value='mask'  > Mask</label>" +
 			"</div>" +
-			"<label>Add</label>" +
-			"<div>" +
-				"<a class='btn' data-role='new_create' data-type='stack'>Nested stack</a>" +
-				"<a class='btn' data-role='new_create' data-type='bounded'>Bounded interval</a>" + 
-				"<a class='btn' data-role='new_create' data-type='boundless'>Boundless interval</a>" +
-				"<a class='btn' data-role='new_create' data-type='domain_template'>Saved domian template</a>" +
-			"</div>" +			
+			"<label>Definition</label>" +
+			"<ul class='nav-pills nav nav-stacked'>" +
+				"<li><a class='' data-role='new_create' data-type='stack'>Nested stack</a></li>" +
+				"<li><a class='' data-role='new_create' data-type='bounded'>Single interval</a></li>" + 
+				"<li><a class='' data-role='new_create' data-type='boundless'>Repeating interval</a></li>" +
+				"<li><a class='' data-role='new_create' data-type='domain_template'>Domian template</a></li>" +
+			"</ul>" +			
 		"</div>",
 
 	
@@ -65,7 +65,6 @@ return Backbone.View.extend({
 
     events: {
 		'click #addaction_btn': "openAdd",
-		'change input[name=add_action_type]': 'changeActionType',
 		'click [data-role=add_action_cancel_btn]': 'closeAddAction',
 		'click a[data-domain-item-btn=remove]': 'removeStackItem',	
 		'click a[data-domain-item-btn=edit]': 'editStackItem',
@@ -120,7 +119,7 @@ return Backbone.View.extend({
 			var action = actions[i];
 			sortable_list_item.data('action', action);
 			sortable_list_item.find('[data-domain-item-btn=action] i').attr('class', this.action_icons[action.action]);
-	      	sortable_list_item.find('[data-domain-item=title]').text(this.action_label(action));	
+	      	sortable_list_item.find('[data-domain-item=title]').html(this.action_label(action));	
 
 			this.$stack_list.find('.first').after(sortable_list_item);
 		};
@@ -132,20 +131,14 @@ return Backbone.View.extend({
 		this.trigger('change');
 	},
 
-	changeActionType: function() {
-		var inputs = this.$el.find('[name=add_action_type]');
-		inputs.not(':checked').closest('.btn').removeClass('active');
-		inputs.filter(':checked').closest('.btn').addClass('active');
-	},
-
 	openAdd: function() {
 		this.$domain_box.hide();
 		this.$addaction_box.show();
 
 		// reset all inputs
 		this.$addaction_box.find('input[type=radio]').prop('checked', false);
-		this.changeActionType();
-
+		this.$addaction_box.find('input[value=add]').prop('checked', true);
+	
 		return false;
 	},
 
@@ -198,11 +191,11 @@ return Backbone.View.extend({
 		if (action.domain.type == 'boundless') {
 			title = _.template('Repeat <%= duration.duration %> <%= duration.unit %> each <%= period.duration %> <%= period.unit %> referenced at <%= from %>', action.domain.data);
 		} else if(action.domain.type == 'bounded') {
-			title = _.template('<%= from %> - <%= to %>', action.domain.data);
+			title = _.template('<%= from.format("lll") %> - <br><%= to.format("lll") %>', {from: moment(action.domain.data.from), to: moment(action.domain.data.to) });
 		} else if(action.domain.type == 'stack') {
-			title = 'Nested stack';
+			title = '* Nested stack *';
 		} else {
-			title = _.template('Database id:<%= id %>', action.domain.data);
+			title = this.options.db_domains.get(action.domain.data.id).get('name');
 		}
 
 		return title;

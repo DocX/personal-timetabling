@@ -64,10 +64,10 @@ $.widget("pt.kinetic_draggable", $.ui.mouse, {
       if (this.options.scrollbar_container != undefined) {
         var scrollbar_delta = this.options.axis == 'y' ? x_delta : y_delta;
         if (this.options.axis == 'y') {
-          console.log ("set scrollLeft = ", this.click.scroll_left - scrollbar_delta);
+          //console.log ("set scrollLeft = ", this.click.scroll_left - scrollbar_delta);
           this.options.scrollbar_container.scrollLeft(this.click.scroll_left - scrollbar_delta);
         } else {
-          console.log ("set scrollTop = ", this.click.scroll_top - scrollbar_delta);
+          //console.log ("set scrollTop = ", this.click.scroll_top - scrollbar_delta);
           this.options.scrollbar_container.scrollTop(this.click.scroll_top - scrollbar_delta);
         }
       }

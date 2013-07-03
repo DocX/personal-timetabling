@@ -13,25 +13,26 @@ var $ = require('jquery'),
     PanelBase = require('components/panel_base'),
     ActivityRepeatingForm = require('components/activity_repeating_form'),
     NestedDomainForm = require('components/nested_domain_form'),
-    SimpleDomainForm = require('components/simple_domain_form');
-    
+    SimpleDomainForm = require('components/simple_domain_form'),
+    DomainTemplate = require('models/domain_template');
+
 return PanelBase.extend({
 
 	template: 
 		"<div>" +
 			"<label>How long activity do you want to allocate</label>" +
 			"At least <input type='number' min='1' name='duration_min' class='input-mini' /> optimal <input type='number' min='0' name='duration_max' class='input-mini'/> min" +
-			"<label>In range from</label>" +
+			"<legend><strong>Period when to schedule</strong> (blue area)</legend>" +
 			"<input type='text' name='range_from' class='datetime fill-width' />" +
-			"<label>to deadlinee</label>" +
+			"<label>to</label>" +
 			"<input type='text' name='range_to' class='datetime fill-width' />" +
 			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
 
-			"<legend><strong>Time domain</strong></legend>" +
+			"<legend><strong>At times</strong> (white area)</legend>" +
 			"<a href='#' data-role='complex-domain-switch'>Switch to complex editor</a>" +
 			"<div class='domain-form-container'>" +
 				"<div class='domain-form'></div>" +
-			"</div>" +
+			"</div>" + 
 
 			"<legend><strong>Repeating</strong></legend>" +
 			"<div class='repeat-form-controls'></div>" +
@@ -107,6 +108,14 @@ return PanelBase.extend({
 			firstDay: 1
 		});
 
+		// domain form
+		this.domain_form = new SimpleDomainForm({
+			el: this.$el.find('.domain-form')
+		});
+
+		this.domain_model = new DomainTemplate();
+		this.domain_model.set('domain_attributes', this.domain_form.model);
+
 
 		this.activity = new FloatingActivityStub();
 		this.activity.first_occurance().set('start', this.options.activities_view.get_date_aligned_to_view_grid(
@@ -127,11 +136,8 @@ return PanelBase.extend({
 
 		this.set_repeat_period_unit();
 		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);	
+		this.listenTo(this.options.activities_view.calendar,  'columns_updated', this.refresh_domains_view);
 
-		// domain form
-		this.domain_form = new SimpleDomainForm({
-			el: this.$el.find('.domain-form')
-		});
 		//this.listenTo(this.domain_form.model, 'changed', this.set_domain);
 		this.listenTo(this.domain_form, 'change', this.set_domain);
 		this.set_domain();
@@ -178,20 +184,39 @@ return PanelBase.extend({
 	},
 
 	refresh_ranges_view: function() {
-		this.remove_intervals_view();
+		this.remove_intervals_view(this.ranges_intervals);
 
 		this.ranges_intervals = this.options.activities_view.calendar.display_intervals(
 			this.activity.get_ranges_intervals(),
-			function(box) {box.addClass('domain-highlight')}
+			function(box) {box.addClass('domain-highlight floating-activity-form')}
 		);
+
+		//this.refresh_domains_view();
 	},
 
-	remove_intervals_view: function() {
-		if (this.ranges_intervals) {
-			for (var i = this.ranges_intervals.length - 1; i >= 0; i--) {
-				this.ranges_intervals[i].remove();
+	remove_intervals_view: function(intervals) {
+		if (intervals) {
+			for (var i = intervals.length - 1; i >= 0; i--) {
+				intervals[i].remove();
 			};
 		}
+	},
+
+	refresh_domains_view: function() {
+		// gets display date range
+      	var range = this.options.activities_view.calendar.showing_dates();
+
+      	this.domain_model.syncFetchIntervals(
+      		range.start, 
+      		range.end,
+      		_.bind(function() {
+				this.remove_intervals_view(this.domain_model_preview);
+				this.domain_model_preview = this.options.activities_view.calendar.display_intervals(
+					this.domain_model.intervals_collection.models,
+					function(box) {box.addClass('domain-highlight ')}
+				);this.domain_model_preview
+			}, this)
+		);
 	},
 
 	remove: function() {
@@ -204,6 +229,10 @@ return PanelBase.extend({
 		// set domain from domain form to activity model
 		this.activity.set('domain_template', this.domain_form.model );
 		//this.activity.trigger('change:domain_template');
+
+		// reset domain view
+
+		this.refresh_domains_view();
 	},
 
 	switch_to_complex_domain_editor: function() {

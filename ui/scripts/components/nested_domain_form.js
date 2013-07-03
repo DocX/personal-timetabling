@@ -16,10 +16,10 @@ var $ = require('jquery'),
     momentAddons = require('lib/moment.addons'),
     DomainTemplate = require('models/domain_template'),
     DomainTemplatesCollection = require('models/domain_templates_collection'),
-    DomainStackFormPart = require('components/domain_stack_form_part'),
-    DomainBoundlessFormPart = require('components/domain_boundless_form_part'),
-    DomainBoundedFormPart = require('components/domain_bounded_form_part'),
-    DomainDatabaseFormPart = require('components/domain_database_form_part');
+    DomainStackFormPart = require('components/domain_template_forms/domain_stack_form_part'),
+    DomainBoundlessFormPart = require('components/domain_template_forms/domain_boundless_form_part'),
+    DomainBoundedFormPart = require('components/domain_template_forms/domain_bounded_form_part'),
+    DomainDatabaseFormPart = require('components/domain_template_forms/domain_database_form_part');
 
 
 return Backbone.View.extend({
@@ -82,15 +82,16 @@ return Backbone.View.extend({
 	},
 
 	create_form: function(domain, el) {
+		var options = {el: el, model: domain, db_domains: this.domains_collection};
 		switch(domain.type) {
 			case 'stack': 
-				return new DomainStackFormPart({el: el, model: domain});
+				return new DomainStackFormPart(options);
 			case 'boundless':
-				return new DomainBoundlessFormPart({el: el, model: domain});
+				return new DomainBoundlessFormPart(options);
 			case 'bounded':
-				return new DomainBoundedFormPart({el:el, model: domain});
+				return new DomainBoundedFormPart(options);
 			case 'domain_template':
-				return new DomainDatabaseFormPart({el: el, model: domain, db_domains: this.domains_collection});
+				return new DomainDatabaseFormPart(options);
 		}
 	}, 
 

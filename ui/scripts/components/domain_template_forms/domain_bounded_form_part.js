@@ -19,6 +19,7 @@ return Backbone.View.extend({
 
 	template:
 		"<div>" +
+			"<p><strong>Single interval</strong></p>" +
 			"<label>From</label>" +
 			"<input type='text' name='bounded_from' class='datetime' />" +
 			"<label>To</label>" +

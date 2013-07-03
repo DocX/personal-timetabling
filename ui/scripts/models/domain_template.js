@@ -31,6 +31,13 @@ return DomainTemplate = Backbone.Model.extend({
 
 	fetchIntervals: function(from, to) {
 		return this.intervals_collection.fetchInRange(from, to);
+	},
+
+	syncFetchIntervals: function(from, to, callback) {
+      	var xhr = this.fetchIntervals(from, to);
+ 
+      	xhr.success(callback);
+      	return xhr;
 	}
 }, {
 	DomainTemplateIntervals: Backbone.Collection.extend({

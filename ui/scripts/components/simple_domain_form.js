@@ -1,3 +1,4 @@
+
 // (c) 2013 Lukas Dolezal
 "use strict";
 
@@ -19,7 +20,7 @@ var $ = require('jquery'),
 return Backbone.View.extend({
 
 	template: 
-		"<label>In times</label>" +
+		"<label>Day hours</label>" +
 		"<div class='time_def form-inline'>" +
 			"<label><input type='checkbox' name='time_morning' value='add' >Morning 8 - 11</label> "+
 			"<label><input type='checkbox' name='time_noon' value='add' >Noon 11 - 13</label> "+
