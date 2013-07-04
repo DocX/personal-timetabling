@@ -25,28 +25,28 @@ var DomainStackFormPart = Backbone.View.extend({
 	template:
 		"<div class='domain-display'>" +
 			"<ul class='ui-menu'>" +
-				"<li class='first fixed' style='margin-bottom:5px;'><a href='#' class='btn' id='addaction_btn' style='display:block; left:0;right:0;'>Add action</a></li>" +
+				"<li class='first fixed btn-group' style='margin-bottom:5px;'>" +
+					"<a href='#' class='btn' data-role='select_new_action' data-action='add' style=' left:0;right:0;'>Add</a>" +
+					"<a href='#' class='btn' data-role='select_new_action' data-action='mask' style=' left:0;right:0;'>Mask</a>" +
+					"<a href='#' class='btn' data-role='select_new_action' data-action='remove' style=' left:0;right:0;'>Remove</a>" +
+				"</li>" +
 				"<li class='fixed'><span class='btn disabled' style='display:block;left:0;right:0;'>Empty domain at the bottom</span></li>" +
 			"</ul>" + 
 		"</div>" +
 
 		"<div class='item-screen'>" +
 			"<p><strong>New action</strong> <a href='#' class='' data-role='add_action_cancel_btn'>Cancel</a></p>" +
-			"<label>Operation</label>" +
-			"<div class='btn-group form-inline'>" +
-				"<label class=''><input type='radio' name='add_action_type' value='add' > <i class='icon-plus'></i> Union</label> " +
-				"<label class=''><input type='radio' name='add_action_type' value='remove' > <i class='icon-minus'></i> Remove</label> " +
-				"<label class=''><input type='radio' name='add_action_type' value='mask'  > <i class='icon-filter'></i> Mask</label>" +
-			"</div>" +
-			"<label>Definition</label>" +
+			"<label>New domain</label>" +
 			"<ul class='nav-pills nav nav-stacked'>" +
 				"<li><a class='' data-role='new_create' data-type='stack'>Nested stack</a></li>" +
 				"<li><a class='' data-role='new_create' data-type='bounded'>Single interval</a></li>" + 
 				"<li><a class='' data-role='new_create' data-type='boundless'>Repeating interval</a></li>" +
 				"<li><a class='' data-role='new_create' data-type='domain_template'>Domian template</a></li>" +
-			"</ul>" +			
+			"</ul>" +
+			"<label>Quick predefined</label>" +
+			"<ul class='nav-pills nav nav-stacked' data-role='predefined'>" +
+			"</ul>" +				
 		"</div>",
-
 	
 	domain_stack_item_template: 
 		'<li class="sortable-item" style="display:block; position:relative;">' +
@@ -61,6 +61,53 @@ var DomainStackFormPart = Backbone.View.extend({
 			'<a class="btn" data-domain-item-btn="action" style="display:block"><i class="icon-minus"></i></a>' +
 		'</li>',
 
+	predefined_domains: {
+		weekends : {
+			label : 'Weekends',
+			domain : {
+				type: 'boundless',
+				data: {
+					from: '2013-07-06T00:00Z',
+					duration: {duration: 2, unit: 'day'},
+					period: {duration:1,unit:'week'}
+				}
+			}
+		},
+		workingdays : {
+			label : 'Working days',
+			domain : {
+				type: 'boundless',
+				data: {
+					from: '2013-07-01T00:00Z',
+					duration: {duration: 5, unit: 'day'},
+					period: {duration:1,unit:'week'}
+				}
+			}
+		},
+		dayhours : {
+			label : 'Day hours (7am-6pm)',
+			domain : {
+				type: 'boundless',
+				data: {
+					from: '2013-07-05T07:00Z',
+					duration: {duration: 11, unit: 'hour'},
+					period: {duration:1,unit:'day'}
+				}
+			}
+		},
+		lunchhours : {
+			label : 'Lunch hours (11am-1pm)',
+			domain : {
+				type: 'boundless',
+				data: {
+					from: '2013-07-05T11:00Z',
+					duration: {duration: 3, unit: 'hour'},
+					period: {duration:1,unit:'day'}
+				}
+			}
+		},
+	},
+
 	action_icons: {
       'add': 'icon-plus',
       'remove': 'icon-minus',
@@ -68,7 +115,7 @@ var DomainStackFormPart = Backbone.View.extend({
     },
 
     events: {
-		'click #addaction_btn': "openAdd",
+		'click [data-role=select_new_action]': "openAdd",
 		'click [data-role=add_action_cancel_btn]': 'closeAddAction',
 		'click a[data-domain-item-btn=remove]': 'removeStackItem',	
 		'click a[data-domain-item-btn=edit]': 'editStackItem',
@@ -94,6 +141,18 @@ var DomainStackFormPart = Backbone.View.extend({
 			items: '> li.sortable-item',
 			change: _.bind(this.update_to_model, this)
 		}).disableSelection();
+
+		// create predefined buttons for domains
+		var predef_container = this.$el.find('[data-role=predefined]');
+		for(var i in this.predefined_domains) {
+			var link = $('<a/>');
+			link.attr('data-role', 'new_create')
+			link.attr('data-type', i)
+			link.attr('data-predefined', true)
+			link.text(this.predefined_domains[i].label)
+			
+			predef_container.append($("<li />").append(link));
+		}
 
 		this.$el.find('a[data-role=new_create]').click(_.partial(function(that) { return that.create_new(this); }, this));
 
@@ -140,19 +199,17 @@ var DomainStackFormPart = Backbone.View.extend({
 		this.trigger('change');
 	},
 
-	openAdd: function() {
+	openAdd: function(btn) {
+		this.new_action_type = $(btn.target).data('action');
+
 		this.$domain_box.hide();
 		this.$addaction_box.show();
-
-		// reset all inputs
-		this.$addaction_box.find('input[type=radio]').prop('checked', false);
-		this.$addaction_box.find('input[value=add]').prop('checked', true);
 	
 		return false;
 	},
 
 	selectedAddActionType: function() {
-		return this.$el.find('input:radio[name=add_action_type]:checked').val();
+		return this.new_action_type;
 	},
 
 	closeAddAction: function() {
@@ -173,15 +230,20 @@ var DomainStackFormPart = Backbone.View.extend({
 		// validate
 		if (!action.action)
 			return false;
-		if (!action.domain.type)
-			return false;
 
-
+		// quick add predefined
+		if ($(button).data('predefined')) {
+			action.domain = this.predefined_domains[$(button).data('type')].domain
+			this.add_to_stack(action);
+			this.load_from_model();
+			this.$addaction_box.hide();
+      		this.$domain_box.show();
+			return;
+		}
 
       	//hide adding and show domain
       	this.$addaction_box.hide();
       	this.$domain_box.show();
-
 
       	// signal to open subdomain form
       	this.trigger('opennested', action.domain, action);

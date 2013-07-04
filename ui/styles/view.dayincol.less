@@ -7,7 +7,8 @@
 @calendar-text-color: rgba(64,64,64,0.8);
 @calendar-movers: darken(@calendar-base-background, 10%);
 @calendar-past-fade: rgba(160,160,160,1);
-@calendar-domain-hg: fade(green, 50%);
+@calendar-domain-hg: fade(lighten(green, 50%), 70%);
+@calendar-activity-range-hg: fade(darken(saturate(@mainmenu-background,100%),5%), 80%);
 
 
 .columns-view {
@@ -105,7 +106,7 @@
         z-index: 2;
       }
       .floating-activity-form {
-         background: fade(darken(saturate(@mainmenu-background,100%),40%), 60%) !important;
+         background: @calendar-activity-range-hg !important;
          z-index: 1 !important;
       }
       .past-fader {

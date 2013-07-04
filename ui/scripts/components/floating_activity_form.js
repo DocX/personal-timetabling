@@ -29,7 +29,6 @@ return PanelBase.extend({
 			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
 
 			"<legend><strong>At times</strong> (white area)</legend>" +
-			"<a href='#' data-role='complex-domain-switch'>Switch to complex editor</a>" +
 			"<div class='domain-form-container'>" +
 				"<div class='domain-form'></div>" +
 			"</div>" + 
@@ -47,7 +46,40 @@ return PanelBase.extend({
 		'change [name=duration_max]': 'set_duration_max',
 		'click [name^=weekday_]': 'set_weekdays',
 		'click [name^=time_]': 'set_hours',
-		'click a[data-role=complex-domain-switch]': 'switch_to_complex_domain_editor',
+	},
+
+	default_domain: function() {
+		return {
+			type: 'stack',
+			data: {
+				actions: [
+					{
+						action: 'mask',
+						// day hours 7am-6pm
+						domain: {
+							type: 'boundless',
+							data: {
+								from: '2013-07-05T07:00Z',
+								duration: {duration: 11, unit: 'hour'},
+								period: {duration:1,unit:'day'}
+							}
+						}
+					},
+					{
+						action: 'add',
+						// working days
+						domain: {
+							type: 'boundless',
+							data: {
+								from: '2013-07-01T00:00Z',
+								duration: {duration: 5, unit: 'day'},
+								period: {duration:1,unit:'week'}
+							}
+						}
+					},
+				]
+			}
+		}
 	},
 
 	initialize: function() {
@@ -109,12 +141,12 @@ return PanelBase.extend({
 		});
 
 		// domain form
-		this.domain_form = new SimpleDomainForm({
-			el: this.$el.find('.domain-form')
-		});
-
 		this.domain_model = new DomainTemplate();
-		this.domain_model.set('domain_attributes', this.domain_form.model);
+		this.domain_model.set('domain_attributes', this.default_domain());
+		this.domain_form = new NestedDomainForm({
+			el: this.$el.find('.domain-form'),
+			model: this.domain_model.get('domain_attributes')
+		});
 
 
 		this.activity = new FloatingActivityStub();
@@ -235,24 +267,6 @@ return PanelBase.extend({
 
 		this.refresh_domains_view();
 	},
-
-	switch_to_complex_domain_editor: function() {
-		var domain = this.domain_form.model;
-
-		this.domain_form.remove();
-
-		this.$el.find('.domain-form-container').append("<div class='domain-form'></div>");
-		this.domain_form = new NestedDomainForm({
-			el: this.$el.find('.domain-form'),
-			// TODO fix, nested form do not accepts model
-			model: domain
-		});
-
-		// hide switch
-		this.$el.find('a[data-role=complex-domain-switch]').hide();
-
-		this.listenTo(this.domain_form, 'change', this.set_domain);
-	}
 	
 });
 

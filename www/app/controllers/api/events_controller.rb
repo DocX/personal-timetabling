@@ -22,8 +22,7 @@ class Api::EventsController < ApplicationController
   end
   
   def update
-    filtered_params = params.reject {|k,v| not ['start', 'duration'].include? k}
-    @event = Event.update params[:id], params[:event].except(:end)
+    @event = Event.update params[:id], params.dup.extract!(:name, :start, :duration)
 
     respond_to do |format|
       format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at]}
