@@ -29,6 +29,7 @@ public class SolverClient {
         thread = new SolverThread(problem);
         thread.solver.timeoutLimit = timeout;
         
+        System.out.println("Solver started");
         thread.start();
     }
     

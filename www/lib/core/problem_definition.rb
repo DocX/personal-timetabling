@@ -49,8 +49,8 @@ module PersonalTimetablingAPI
       definition_builder
     end
 
-    def self.crop_until(builder, until_time) 
-      builder.cropDomainsUntil PersonalTimetablingAPI::Core::Utils.to_localdatetime(until_time)
+    def self.crop_to_future_of(builder, until_time) 
+      builder.cropToFutureOf PersonalTimetablingAPI::Core::Utils.to_localdatetime(until_time)
     end
 
      protected
@@ -91,7 +91,7 @@ module PersonalTimetablingAPI
         # add occurrence from closure definition
         definition_builder.addOccurrence( 
           o.id, 
-          PersonalTimetablingAPI::Core::Utils.to_localdatetime(o.start), 
+          PersonalTimetablingAPI::Core::Utils.to_localdatetime(o.start.to_datetime), 
           o.duration, 
           o.min_duration, 
           o.max_duration,
@@ -99,7 +99,7 @@ module PersonalTimetablingAPI
         )
 
         # prepare linked groups
-        if (not o.activity.nil? and o.activity.definition.linked?)
+        if (not o.activity.nil? and o.activity.linked?)
           linked_groups[o.activity.id] ||= {:activity => o.activity, :occurrences => []}
           linked_groups[o.activity.id][:occurrences] << o
         end

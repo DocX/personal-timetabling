@@ -12,4 +12,8 @@ class ApplicationController < ActionController::Base
         format.json {render :json => {:error => status}, :status => status}
     end
   end
+
+  def current_user_id
+    0
+  end
 end

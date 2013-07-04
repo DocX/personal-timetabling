@@ -24,4 +24,9 @@ class Activity < ActiveRecord::Base
   def create_events_from_definition
   	self.events << self.definition.create_events(self)
   end
+
+  def linked?
+    return link_events
+  end
+
 end

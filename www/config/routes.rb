@@ -77,11 +77,19 @@ PersonalTimetablingAPI::Application.routes.draw do
     # scheduler interface
     # starting and checking schedulers
     scope '/scheduler' do
-      get "/schedule_future"
-      get "/schedule_all"
-      get "/reschedule"
-      get "/check"
-      get "/cancel"
+      post "/", to: 'solver#new'
+      
+      # check if solver for user is running or is done
+      get "/", to: 'solver#check'
+
+      # checks if solver is done and if yes returns events changed from current state in best solution
+      get "/best", to: 'solver#get_best'
+
+      # stops currently running solver and saves its best result
+      post "/best", to: 'solver#save_best'
+
+      # stops currently running solver
+      delete "/", to: 'solver#cancel'
     end
 
   end

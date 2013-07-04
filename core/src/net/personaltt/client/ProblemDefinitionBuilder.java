@@ -55,6 +55,8 @@ public class ProblemDefinitionBuilder {
                 new ConverterToInteger().convert(start),
                 new ConverterToInteger().convert(start.plusSeconds(duration))
                 ));
+        
+        System.out.println("Added event to problem builder");
     }
     
     /**
@@ -124,7 +126,7 @@ public class ProblemDefinitionBuilder {
      * lower bound, it moves it to lower bound.
      * @param from_date 
      */
-    public void cropDomainsUntil(LocalDateTime toDate) {
+    public void cropToFutureOf(LocalDateTime toDate) {
         int cropToDateNum = new ConverterToInteger().convert(toDate);
         
         ArrayList<Occurrence> emptyDomain = new ArrayList<>(); 

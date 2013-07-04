@@ -15,13 +15,11 @@ class Event < ActiveRecord::Base
   belongs_to :activity
   
   after_initialize do |a|   
-    a.tz_offset ||= 0 
-    a.duration ||= 0
-    a.name ||= ''
-    a.events_after ||= []
-    a.start ||= DateTime.now
-
-    Rails.logger.debug 'event initialized'
+    a.tz_offset ||= 0 rescue nil 
+    a.duration ||= 0 rescue nil
+    a.name ||= '' rescue nil
+    a.events_after ||= [] rescue nil
+    a.start ||= DateTime.now rescue nil
   end
 
   def self.future 
@@ -55,7 +53,7 @@ class Event < ActiveRecord::Base
   # get domain limmited to schedule_since to schedule_deadline
   def scheduling_domain
     TimeDomains::StackTimeDomain.create_masked(
-      TimeDomains::BoundedTimeDomain.new(self.schedule_since, self.schedule_deadline),
+      TimeDomains::BoundedTimeDomain.create(self.schedule_since.to_datetime, self.schedule_deadline.to_datetime),
       self.domain
       )
   end

@@ -51,7 +51,7 @@ class Api::EventsController < ApplicationController
   def in_period
     start_date = DateTime.parse params[:from]
     end_date = DateTime.parse params[:to]
-    
+
     @events = Event.in_range start_date, end_date
     
     respond_events 
@@ -74,6 +74,7 @@ class Api::EventsController < ApplicationController
   def reset
     if params[:id] == 'all' 
       reset_all
+      return
     end
 
     @event = Event.find params[:id]
