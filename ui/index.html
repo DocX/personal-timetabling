@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8" />
 
-	<title>Personal timetabling</title>
+	<title>Personal timetabling by Lukáš Doležal</title>
 
 	<!-- styles -->
 	<link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
@@ -21,52 +21,21 @@
 </head>
 
 <body class='app-layout'>
-	<div id="topbar">
-		<div id="logo">
-			<h1>Personal Timetabling</h1>
-		</div>
-
-		<div id="common-panel-place">
-
-			<div id='ajax-indicator' class='rightcomponents' style="display:none;">
-				AJAX...
-			</div>
-			
-			<div id="buttons" class="rightcomponents" >
-				<div class='btn-group'>
-					<a class="btn btn-inverse" data-role='add_activity'><i class="icon-plus icon-white"></i> Add activity</a>
-					<a class="btn dropdown-toggle btn-inverse" data-toggle='dropdown'><span class="caret"></span></a>
-					<ul class="dropdown-menu pull-right">
-						<li><a tabindex="-1" data-role='add_domain_template'>Domain template</a></li>
-					</ul>
-				</div>
-			</div>
-
-
-			<div id="user"  class="rightcomponents">
-				<div class="btn-group ">
-					<button class="btn btn-inverse"><i class="icon-user icon-white"></i>  Demo</button>
-					<button class="btn dropdown-toggle btn-inverse" data-toggle="dropdown">
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu pull-right">
-						<li><a tabindex="-1" href="#">Activities</a></li>
-						<li><a tabindex="-1" href="#">Domain templates</a></li>
-						<li class="divider"></li>
-						<li><a tabindex="-1" href="#helpModal" data-toggle='modal'><i class=" icon-info-sign"></i> About</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
-
-		<div id="content-panel-place">
-
-		</div>
-
+	<div id='application'>
 	</div>
 
-	<div id="content"> </div>
-
+	<div id="pt-modal-about" class="modal hide fade" tabindex="-1" role="dialog">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="myModalLabel">About Personal Timetabling</h3>
+		</div>
+		<div class="modal-body">
+			<p></p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary">Ok, thanks</button>
+		</div>
+	</div>
 </body>
 </html>
 

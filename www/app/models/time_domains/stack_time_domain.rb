@@ -78,7 +78,7 @@ class StackTimeDomain < BaseTimeDomain
   end
 
   def self.from_attributes attrs    
-    actions = attrs[:actions].map {|v| Action.from_attributes v}
+    actions = attrs[:actions].map {|v| Action.from_attributes v} rescue []
     
     domain = self.new 
     domain.actions_stack = actions

@@ -14,7 +14,7 @@ var $ = require('jquery'),
     jQueryDateTimePicker= require('jquery-ui-timepicker'),
     moment = require('moment'),
     momentAddons = require('lib/moment.addons'),
-    BaseForm = require('components/base_form');
+    BaseForm = require('components/domain_template_forms/boundless_repeats/base_form');
 
 return BaseForm.extend({
 

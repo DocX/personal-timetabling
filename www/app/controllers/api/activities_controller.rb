@@ -39,7 +39,10 @@ class Api::ActivitiesController < ApplicationController
   end
   
   def destroy
-    raise 'not implemented yet'
+    @activity = Activity.find params[:id]
+    @activity.destroy
+
+    respond_ok_status :ok
   end
   
   def list

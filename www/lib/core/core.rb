@@ -123,11 +123,11 @@ module PersonalTimetablingAPI
       def between start_date, end_date
         j_unit = self.unit
         j_duration = self.duration
-        if j_unit == Duration::WEEK
-          j_unit = Duration::DAY
+        if j_unit == TimeDomains::Duration::WEEK
+          j_unit = TimeDomains::Duration::DAY
           j_duration *= 7
         end
-        unit_name = Duration::units[j_unit] + 's';
+        unit_name = TimeDomains::Duration::units[j_unit] + 's';
         duration_j_class = "PersonalTimetablingAPI::Core::Period#{unit_name}".constantize
         (duration_j_class.send("#{unit_name.downcase}Between", Utils.to_localdatetime(start_date), Utils.to_localdatetime(end_date)).send("get#{unit_name.capitalize}") / Float(j_duration)).floor
       end

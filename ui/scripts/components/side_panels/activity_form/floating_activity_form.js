@@ -10,10 +10,9 @@ var $ = require('jquery'),
     momentAddons = require('lib/moment.addons'),
     FloatingActivityStub = require('models/floating_activity_stub'),
     ActivityOccurance = require('models/activity_occurance'),
-    PanelBase = require('components/panel_base'),
-    ActivityRepeatingForm = require('components/activity_repeating_form'),
-    NestedDomainForm = require('components/nested_domain_form'),
-    SimpleDomainForm = require('components/simple_domain_form'),
+    PanelBase = require('components/side_panels/panel_base'),
+    ActivityRepeatingForm = require('components/side_panels/activity_form/activity_repeating_form'),
+    NestedDomainForm = require('components/domain_template_forms/nested_domain_form'),
     DomainTemplate = require('models/domain_template');
 
 return PanelBase.extend({

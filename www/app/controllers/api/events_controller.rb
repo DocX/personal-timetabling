@@ -38,7 +38,7 @@ class Api::EventsController < ApplicationController
     @activity = @event.activity
     @event.destroy
 
-    if @activity and @activity.occurances.size == 0
+    if @activity and @activity.events.size == 0
       @activity.destroy
     end
     

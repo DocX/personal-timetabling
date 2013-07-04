@@ -8,10 +8,10 @@ var $ = require('jquery'),
     jQueryDateTimePicker= require('jquery-ui-timepicker'),
     moment = require('moment'),
     momentAddons = require('lib/moment.addons'),
-    PanelBase = require('components/panel_base'),
+    PanelBase = require('components/side_panels/panel_base'),
     DomainTemplate = require('models/domain_template'),
     DomainTemplatesCollection = require('models/domain_templates_collection'),
-    NestedDomainForm = require('components/nested_domain_form');
+    NestedDomainForm = require('components/domain_template_forms/nested_domain_form');
     
 return PanelBase.extend({
 

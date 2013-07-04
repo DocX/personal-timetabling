@@ -1,7 +1,7 @@
 class Activity < ActiveRecord::Base
   attr_accessible :name, :link_events, :link_comparator, :definition_attributes
     
-  has_many :events
+  has_many :events, :dependent => :destroy
   serialize :definition, ActivityDefinition::BaseActivityDefinition
 
   validates :name, :presence => true

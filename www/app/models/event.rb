@@ -11,6 +11,17 @@ class Event < ActiveRecord::Base
   validate do |event|
     return event.schedule_since < event.schedule_deadline
   end
+  # validate domain
+  validate do 
+    return false if domain.nil?
+
+    # get intervals of domain in event boundary
+    domain_intervals = domain.get_intervals schedule_since.to_datetime, schedule_deadline.to_datetime
+
+    # check if contains at least one
+    errors.add(:domain, 'domain must contain some interval in time schedule_since to schedule_deadline') unless domain_intervals.size > 0
+    return domain_intervals.size > 0
+  end
 
   belongs_to :activity
   
