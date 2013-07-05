@@ -91,7 +91,7 @@ class Api::SolverController < ApplicationController
   end
 
   # reschedules given occurrences with given priority mode
-  # in context of only future occurrences
+  # with domain cropped to the future
   # accepts events parameter
   # with array of {:id => occurrence_id, :mode => [:repair, :added]}
   #

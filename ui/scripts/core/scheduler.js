@@ -36,7 +36,8 @@ return Backbone.View.extend({
 		this.listenTo(this.options.app, 'new:activity', this.new_activity_saved);
 		this.listenTo(this.options.app, 'move:event', this.event_updated);
 
-		this.mode = 'realtime';
+		this.mode = 'running';
+		this.delayed_events = [];
 	},
 
 	new_activity_saved: function(activity) {
@@ -52,7 +53,12 @@ return Backbone.View.extend({
 			events: event_ids
 		};
 
-		this.start_solver(solver_data);
+		if (this.mode == 'running') {
+			this.start_solver(solver_data);
+		} else {
+			this.delayed_events.push({type: 'new_activity', data: solver_data});
+		}
+		
 	},
 
 	event_updated: function(event) {
@@ -64,7 +70,11 @@ return Backbone.View.extend({
 			]
 		};
 
-		this.start_solver(solver_data);
+		if (this.mode == 'running') {
+			this.start_solver(solver_data);
+		} else {
+			this.delayed_events.push({type: 'event_repair', data: solver_data});
+		}
 	},
 
 	start_solver: function(data) {
@@ -136,7 +146,50 @@ return Backbone.View.extend({
 		this.$overlay_modal.append(this.error_tpl);
 		this.$overlay_modal.find('[data-role=error-msg]').text(error_message);
 		this.$overlay_modal.modal('show');
-	}
+	},
+
+	set_mode: function(mode) {
+		if (this.mode == mode) {
+			return;
+		}
+
+		if (this.mode == 'planning') {
+			// run scheduler for delayed events
+			this.schedule_delayed();
+		} else if (this.mode == 'running') {
+			this.delayed_events = [];
+		}
+
+		this.mode = mode;
+	},
+
+	schedule_delayed: function() {
+		// all delayed events will be scheduled with the same priority,
+		// all other will have higher priority
+		// ie all add with mode 'added'
+
+		var events = {};
+		var data = {
+			problem_type: 'list',
+			events: []
+		};
+		for (var i = 0; i < this.delayed_events.length; i++) {
+			var delayed_data = this.delayed_events[i];	
+			
+			for (var j = 0; j < delayed_data.data.events.length; j++) {
+				var event = delayed_data.data.events[j];
+
+				if (event.id in events) {
+					continue;
+				}
+
+				events[event.id] = true;
+				data.events.push({id: event.id, mode:'added'});
+			};
+		};
+
+		this.start_solver(data);
+	},
 
 });
 });

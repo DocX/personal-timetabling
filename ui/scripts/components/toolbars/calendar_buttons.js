@@ -32,6 +32,7 @@ return Backbone.View.extend({
       
       "<div class='btn-group'>" +
         "<button class='btn btn-inverse' data-role='scroll-left'><i class='icon-white icon-chevron-left'></i></button>" +
+        "<button class='btn btn-inverse' data-role='scroll-today'>Now</button>" +
         "<button class='btn btn-inverse' data-role='scroll-right'><i class='icon-white icon-chevron-right'></i></button>" +
       "</div>" +
     "</div>",
@@ -53,6 +54,10 @@ return Backbone.View.extend({
          .click(_.bind(this.calendar_view.calendar.move_left, this.calendar_view.calendar));
       this.$buttons.find("[data-role=scroll-right]")
          .click(_.bind(this.calendar_view.calendar.move_right, this.calendar_view.calendar));
+      this.$buttons.find("[data-role=scroll-today]")
+         .click(_.bind(function() {
+            this.calendar_view.calendar.display_date(moment.utc());
+         }, this));
       this.$buttons.find("[data-set-column-type]")
          .click(_.partial(function(that) {
             var type = $(this).data('set-column-type');

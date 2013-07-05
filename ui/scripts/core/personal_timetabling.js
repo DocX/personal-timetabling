@@ -10,7 +10,8 @@ var $ = require('jquery'),
     StatusPanel = require('components/toolbars/status_panel'),
     UserMenu = require('components/toolbars/user_menu'),
     ActivitiesButtons = require('components/toolbars/activities_buttons'),
-    Scheduler = require('core/scheduler');
+    Scheduler = require('core/scheduler'),
+    SchedulerButtons = require('components/toolbars/scheduler_buttons');
 
 return Backbone.View.extend({
 
@@ -23,6 +24,7 @@ return Backbone.View.extend({
       "<div id='common-panel-place'>" +
         "<div id='status-panel'></div>" +
         "<div id='activities-panel'></div>" +
+        "<div id='scheduler-panel'></div>" +
         "<div id='user-panel'></div>" +
       "</div>" +
 
@@ -56,6 +58,7 @@ return Backbone.View.extend({
     this.user_menu = new UserMenu({el: this.$el.find('#user-panel'), app: this});
 
     this.scheduler = new Scheduler({el: this.$el.find('#scheduler-el'), app: this});
+    this.scheduler_buttons = new SchedulerButtons({el: this.$el.find('#scheduler-panel'), app: this, scheduler: this.scheduler});
     
     // plumb events
     this.listenTo(this.calendar_view, 'all', this.trigger);
@@ -72,6 +75,7 @@ return Backbone.View.extend({
     }
 
     this.$app_view.addClass('panel-open');
+    this.calendar_view.render();
 
     $.extend(options, {el: $("<div class='fill'/>").appendTo(this.$app_view.find("#sidepanel")), app: this});
 
@@ -81,7 +85,8 @@ return Backbone.View.extend({
   },
 
   hide_panel: function() {
-    this.$app_view.removeClass('panel-open')    
+    this.$app_view.removeClass('panel-open');
+    this.calendar_view.render();    
   },
 
 });

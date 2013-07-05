@@ -30,10 +30,45 @@
 			<h3 id="myModalLabel">About Personal Timetabling</h3>
 		</div>
 		<div class="modal-body">
+			<p>Personal Timetabling is tool for scheduling your tasks in an automatic way. It allows you to add "intentions" or "needs" to do something, without having to manually locate free time where it fits.</p>
+
+			<p>Personal Timetabling is brought to you by <a href='http://lukas.dolezalu.cz' target='_blank'>Lukáš Doležal</a></p>
+
+			<h4>Adding activity</h4>
 			<p></p>
+
+			<h4>View modes</h4>
+			<p>Personal Timetabling calendar supports different modes of how it displays time flow. In the left top corner you can choose view mode of calendar. View mode consist of zoom type and orientation.</p>
+
+			<p>Orientations:</p>
+			<ul>
+				<li><strong><i style='background-color:rgba(64,64,64,0.8); border-radius:5px; padding:3px'><i class='icon-white icon-pt-horizontal' ></i></i> Horizontal</strong> - 
+					in horizontal orientation time goes from left to right and then from top to bottom, just like you read this text. Each day, week or month (depending on selected zoom type) is in single line and its parts (hours, week days or month dates respectivelly) are displayed in the same column.
+				</li>
+				<li><strong><i style='background-color:rgba(64,64,64,0.8); border-radius:5px; padding:3px'><i class='icon-white icon-pt-vertical' ></i></i> Vertical</strong> - 
+					vertical orientation displays time going from top to bottom and then from the left to the right. This is like many other calendars are displayed. Each day, week or month (depending on selected zoom type) is in single column and they parts (hours, week days or month dates) are in the same line.
+				</li>
+			</ul>
+			<p>Zoom types:</p>
+			<ul>
+				<li><strong>Day</strong> - days are repeating, same hours in day are aligned to the same line.</li>
+				<li><strong>Week</strong> - weeks are repeating, same weekdays are aligned to the same line. </li>
+				<li><strong>Month</strong> - months are repeating, same month dates are aligned to the same line. </li>
+			</ul>
+
+			<h4>Scheduler</h4>
+			<p>Core functionality of Personal Timetabling is scheduler. It is responsible for taking your scheduling requests, for example when you want to schedule meeting or gym attendance plan, and finding free time for them.</p>
+			<p>Personal Timetabling allows you to select two modes of scheduler function:</p>
+			<ul>
+				<li><strong>Running</strong> - in running mode, scheduler takes all changes you introduce in calendar
+					immediately and start scheduling them. This mode is useful for quick scheduling of single tasks.</li>
+				<li><strong>Planning</strong> - in planning mode, scheduler records your changes into its log. You can 
+					add all tasks you want to schedule in your calendar. When you finish adding, switch scheduler to <i>running</i> mode to schedule all recorded changes.
+				</li> 
+			</ul>
 		</div>
 		<div class="modal-footer">
-			<button class="btn btn-primary">Ok, thanks</button>
+			<button class="btn btn-primary" data-dismiss='modal'>Ok, thanks</button>
 		</div>
 	</div>
 </body>

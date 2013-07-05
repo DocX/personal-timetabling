@@ -15,6 +15,11 @@ $.widget("pt.kinetic_draggable", $.ui.mouse, {
       this._drag_stack = [];
       
       this._mouseInit();
+
+      // bind touchevents
+      this.element.on('touchdown', this._mouseDown);
+      this.element.on('touchup', this._mouseUp);
+      this.element.on('touchmove', this._mouseMove);
    },
 
    resetMouse: function(event) {
