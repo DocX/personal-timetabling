@@ -11,6 +11,7 @@ var $ = require('jquery'),
 return Backbone.View.extend({
 
 	template:
+		"&nbsp;" +
 		"<span class='label label-important' data-role='ajax'>communicating...</span> " +
 		"<span class='label label-info' data-role='scheduling'>scheduling...</span>",
 

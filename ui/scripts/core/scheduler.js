@@ -8,7 +8,31 @@ var $ = require('jquery'),
 
 return Backbone.View.extend({
 
+	overlay_template:
+		"<div class='modal hide fade' data-backdrop='static'>" +
+		"</div>",
+
+	solving_progress_tpl: 
+		"<div class='modal-body'>" +
+			"<div class='progress progress-striped active'>" +
+	  				"<div class='bar' style='width: 100%;'>Solving...</div>" +
+			"</div>" +
+		"</div>",
+		
+	error_tpl:
+		"<div class='modal-body'>" +
+			"<div class='progress progress-danger progress-striped'>" +
+	  			"<div class='bar' style='width: 100%;' data-role='error-msg'></div>" +
+			"</div>" +
+			"<div class='modal-footer'>" +
+			    "<button class='btn' data-dismiss='modal' aria-hidden='true'>Close</button>" +
+			"</div>" +
+		"</div>",
+
 	initialize: function() {
+		this.$el.append(this.overlay_template);
+		this.$overlay_modal = this.$el.find('div.modal');
+
 		this.listenTo(this.options.app, 'new:activity', this.new_activity_saved);
 		this.listenTo(this.options.app, 'move:event', this.event_updated);
 
@@ -18,8 +42,8 @@ return Backbone.View.extend({
 	new_activity_saved: function(activity) {
 		// get events ids
 		var event_ids = [];
-		activity.get('events').forEach(function(e) {
-			event_ids.push({id: e.get('id'), mode:'added'});
+		_.each(activity.get('event_ids'), function(event_id) {
+			event_ids.push({id: event_id, mode:'added'});
 		});
 
 		// start solver
@@ -60,13 +84,15 @@ return Backbone.View.extend({
 					this.long_process();
 				} else {
 					// somethink went wrong
-					alert('schedule error');
+					this.show_error('scheduling error');
 				}
 			}, this),
-			error: function() {
-				alert('starting schedule error')
-			}
+			error: _.bind(function() {
+				this.show_error('failed to start scheduler');
+			}, this)
 		});
+
+		this.show_overlay();
 	},
 
 	// check done state
@@ -74,7 +100,8 @@ return Backbone.View.extend({
 		// save best state
 		$.post('/scheduler/best')
 			.fail(function() { alert('scheudle done error'); })
-			.done(_.bind(function() { this.trigger('done:scheduling')}, this));
+			.done(_.bind(function() { this.trigger('done:scheduling')}, this))
+			.always(_.bind(function() { this.$overlay_modal.modal('hide'); }, this ));
 	},
 
 	// dim screen and check for solver end
@@ -94,7 +121,21 @@ return Backbone.View.extend({
 				} else {
 					this.check_timeout = window.setTimeout(_.bind(this.check_running, this), 750);
 				}
-			}, this));
+			}, this))
+			.always(_.bind(function() { this.$overlay_modal.modal('hide'); }, this ));
+	},
+
+	show_overlay: function() {
+		this.$overlay_modal.empty();
+		this.$overlay_modal.append(this.solving_progress_tpl);
+		this.$overlay_modal.modal('show');
+	},
+
+	show_error: function(error_message) {
+		this.$overlay_modal.empty();
+		this.$overlay_modal.append(this.error_tpl);
+		this.$overlay_modal.find('[data-role=error-msg]').text(error_message);
+		this.$overlay_modal.modal('show');
 	}
 
 });
