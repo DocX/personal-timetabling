@@ -32,6 +32,7 @@ return ColumnsDaysView = ColumnsView.extend({
     // init past fader
     this.fader_timer = window.setInterval(_.bind(this.draw_past_fader, this), 5000);
     this.listenTo(this, 'columns_updated', this.draw_past_fader);
+    this.draw_past_fader();
   },
  
   // set zoom

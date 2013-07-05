@@ -22,7 +22,7 @@ module PersonalTimetablingAPI
     # priority_modes is map of id to priority mode symbol
     #
     # Ordering preferrences are also defined
-  	def self.transitive_priortiy_problem(occurrences_to_reschedule, occurrences_all, priority_modes)
+  	def self.transitive_priority_problem(occurrences_to_reschedule, occurrences_all, priority_modes)
   		definition_builder = ProblemDefinitionBuilder.new
 
       closure = intersects_transitive_closure(occurrences_to_reschedule, occurrences_all)
@@ -33,7 +33,7 @@ module PersonalTimetablingAPI
       closure.each do |o|
         is_in_to_res = occurrences_to_reschedule.any? {|tor| tor.id == o.id}
         priority_mode = priority_modes[o.id]
-        definition_builder.setPreferredPriority(is_in_to_res ? (priority_mode == :repair ? 2 : 0) : 1)
+        definition_builder.setPreferredPriority(o.id.to_i, is_in_to_res ? (priority_mode == :repair ? 2 : 0) : 1)
       end
 
   		definition_builder

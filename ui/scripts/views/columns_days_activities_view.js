@@ -128,8 +128,10 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     box.mousedown(activate_fn);
     var box_setup = box.activity_occurance_box('option', 'box_setup');
     box.activity_occurance_box('option', 'box_setup', function(e,box) {box.mousedown(activate_fn); box_setup(e, box); });
-    box.activity_occurance_box('option', 'dropped', function(e, occurance) {occurance.save();} );
-
+    box.activity_occurance_box('option', 'dropped', _.bind(function(e, occurance) {
+      var xhr = occurance.save();
+      xhr.success(_.bind(function() { this.trigger('move:event', occurance); }, this));
+    }, this) );
 
     if (occurance.id == this.active_id) {
       this.activate_occurance_box(box);

@@ -65,7 +65,7 @@ public class ProblemDefinitionBuilder {
      * @param id
      * @param priority 
      */
-    public void setPriority(int id, int priority) {
+    public void setPreferredPriority(int id, int priority) {
         
     }
     

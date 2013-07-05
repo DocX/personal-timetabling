@@ -106,7 +106,11 @@ return PanelBase.extend({
 	save: function() {
 		
 		this.activity_form.activity.save()
-		.success(_.bind(function() {this.trigger('added'); this.remove()}, this))
+		.success(_.bind(function() {
+			this.options.activities_view.reload_activities(); 
+			this.trigger('new:activity', this.activity_form.activity);
+			this.remove()
+		}, this))
 		.error(function() {alert('Error')});
 	},
 

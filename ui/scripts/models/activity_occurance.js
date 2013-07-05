@@ -34,6 +34,7 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   
   initialize: function() { 
     this.domain_intervals = new ActivityOccurance.OccuranceDomainCollection(null, {id: this.id});
+
   },
 
   defaults: function() { return {

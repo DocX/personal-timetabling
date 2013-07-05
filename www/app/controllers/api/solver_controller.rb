@@ -106,19 +106,19 @@ class Api::SolverController < ApplicationController
   def reschedule(events)
     return unless require_done
 
-  	occurrences = Event.includes(:activity).find(events.map{|o| o[:id] }) 
+  	occurrences = Event.includes(:activity).find(events.map{|o| o[:id].to_i }) 
     future_occurrences = Event.includes(:activity).future
     modes = {}
     events.each do |m|
       modes[m[:id]] = m[:mode].to_sym
     end
 
-    problem_definition = PersonalTimetablingAPI::ProblemDefinition.transitive_priortiy_problem occurrences, future_occurrences, modes
-    PersonalTimetablingAPI::ProblemDefinition.crop_until(problem_builder, DateTime.now)
+    problem_definition = PersonalTimetablingAPI::ProblemDefinition.transitive_priority_problem occurrences, future_occurrences, modes
+    PersonalTimetablingAPI::ProblemDefinition.crop_to_future_of(problem_definition, DateTime.now)
     
     # create and run solver in new thread, timeout 60s
     solver_id = PersonalTimetablingAPI::SolverClient.run_solver(
-      problem_builder.getDefinition,
+      problem_definition.getDefinition,
       SOLVER_TIMEOUT, 
       {:user_id => current_user_id}
     )
@@ -190,7 +190,7 @@ class Api::SolverController < ApplicationController
     if state == :done
       do_save_best
       respond_to do |format|
-        format.json { render :json => {:state => :none }} 
+        format.json { render :json => {:state => :done }} 
       end
     else
       respond_to do |format|
@@ -203,9 +203,9 @@ class Api::SolverController < ApplicationController
 
   def require_done
     # check existing
-    if check_done == :running
+    if check_done != :none
       respond_to do |format|
-        format.json { render :json => {:error => :not_started}} 
+        format.json { render :json => {:error => :already_exists}, :status => :bad_request} 
       end
       return false
     end
@@ -214,7 +214,7 @@ class Api::SolverController < ApplicationController
   end
 
   def respond_new
-    if wait_for_done(1000)
+    if wait_for_done(1000) == :done
       # done
       respond_to do |format|
         format.json { render :json => {:state => :done}} 

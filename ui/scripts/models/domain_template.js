@@ -27,6 +27,7 @@ return DomainTemplate = Backbone.Model.extend({
 				domain_template_model: this
 			})
 		}
+
 	},
 
 	fetchIntervals: function(from, to) {
