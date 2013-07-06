@@ -1,6 +1,9 @@
 module ActivityDefinition
 class FloatingActivityDefinition < GenericAbstractActivityDefinition
 
+  # domain which will be splited by occurrences windows
+  attr_accessor :domain_template
+
   # Creates activity definition from fixed signature of definition
   # Receives hash containing
   # - from: datetime First occurence domain cropping start
@@ -16,29 +19,30 @@ class FloatingActivityDefinition < GenericAbstractActivityDefinition
   def self.from_attributes attributes
     definition = FloatingActivityDefinition.new
 
-    periods_intervals = definition.set_periods_from_attributes attributes
-    
-    # make intervals for each period as the mask for the domain template
-    # this will mask inside each period the range of domain template that correspond to from-to range
-    # and then in creation will be cropped to each period.
-    periods_mask_domain = TimeDomains::StackTimeDomain.new
-    periods_intervals.each do |i|
-      periods_mask_domain.push(TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::ADD, i)
-    end
+    definition.set_periods_from_attributes attributes
 
+    # load domain template
     if attributes[:domain_template].is_a? Hash 
-      attributes[:domain_template] = TimeDomains::BaseTimeDomain.from_attributes attributes[:domain_template];
+      definition.domain_template = TimeDomains::BaseTimeDomain.from_attributes attributes[:domain_template];
+    else
+      definition.domain_template = attributes[:domain_template]
     end
 
-    # create domain stack with domain template masked by periods domain
-    definition.domain_template = TimeDomains::StackTimeDomain.new
-    definition.domain_template.unshift TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::ADD, attributes[:domain_template]
-    definition.domain_template.unshift TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::MASK, periods_mask_domain
+    definition.occurrence_min_duration = attributes[:duration_min].to_i
+    definition.occurrence_max_duration = attributes[:duration_max].to_i
 
-    definition.occurence_min_duration = attributes[:duration_min]
-    definition.occurence_max_duration = attributes[:duration_max]
+    definition.first_occurrence_window_start = DateTime.parse attributes[:from]
+    definition.first_occurrence_window_end = DateTime.parse attributes[:to]
 
     definition
+  end
+
+  # return domain for occurrence with given period
+  def domain_for_event_occurrence(from, to)
+    TimeDomains::StackTimeDomain.create_masked(
+      TimeDomains::BoundedTimeDomain.create(from,to),
+      @domain_template
+    )
   end
 
   def to_attributes
@@ -48,9 +52,21 @@ class FloatingActivityDefinition < GenericAbstractActivityDefinition
       :domain_template => self.domain_template.to_attributes,
       :duration_min => self.occurence_min_duration,
       :duration_max => self.occurence_max_duration,
-      :from => self.period_start,
-      :to => selft.first_period_end
+      :from => self.first_occurrence_window_start,
+      :to => selft.first_occurrence_window_end
     }
+  end
+
+  def encode_with coder
+    coder['domain_template'] = @domain_template
+
+    super coder
+  end
+
+  def init_with coder
+    @domain_template = coder['domain_template']
+
+    super coder
   end
 end
 end

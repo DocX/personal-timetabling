@@ -23,7 +23,7 @@ class Api::ActivitiesController < ApplicationController
   end
   
   def create
-    @activity = Activity.new params
+    @activity = Activity.new params.except(:definition, :controller, :action)
     
     if @activity.save
       @activity.definition_attributes = params[:definition]  if params[:definition]
@@ -32,7 +32,7 @@ class Api::ActivitiesController < ApplicationController
       end
     else 
       Rails.logger.debug 'acitivity not saved'
-      Rails.logger.debug @activity.events.inspect
+      Rails.logger.debug @activity.inspect
       respond_error_status :bad_request
     end
     

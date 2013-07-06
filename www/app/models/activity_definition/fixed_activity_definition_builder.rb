@@ -1,6 +1,6 @@
 module ActivityDefinition
 class FixedActivityDefinition < GenericAbstractActivityDefinition
-	
+
   # Creates activity definition from fixed signature of definition
   # Receives hash containing
   # - from: datetime 
@@ -9,27 +9,32 @@ class FixedActivityDefinition < GenericAbstractActivityDefinition
   def self.from_attributes attributes
     definition = FixedActivityDefinition.new
 
-    definition.domain_template = TimeDomains::StackTimeDomain.new
-    periods_intervals = definition.set_periods_from_attributes attributes
-    
-    # make intervals for each period as the domain template
-    # this will be cropped by periods so each occurence will have only its fixed time interval
-    periods_intervals.each do |i|
-      definition.domain_template.push(TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::ADD, i)
-    end
+    definition.set_periods_from_attributes attributes
 
-    definition.occurence_min_duration = periods_intervals[0].seconds
-    definition.occurence_max_duration = periods_intervals[0].seconds
+    definition.first_occurrence_window_start = DateTime.parse attributes[:from]
+    definition.first_occurrence_window_end = DateTime.parse attributes[:to]
+    
+    # get seconds of event
+    definition.occurrence_min_duration = ((definition.first_occurrence_window_end - definition.first_occurrence_window_start) * 86400).to_i
+    definition.occurrence_max_duration = definition.occurrence_min_duration
 
     definition
+  end
+
+  # return domain for occurrence with given period
+  def domain_for_event_occurrence(from, to)
+    domain = TimeDomains::StackTimeDomain.new
+    domain.push(TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::ADD, TimeDomains::BoundedTimeDomain.create(from,to))
+
+    return domain
   end
 
   def to_attributes
     {
       :type => 'fixed',
       :repeating => self.repeating_attributes,
-      :from => self.period_start,
-      :to => selft.first_period_end
+      :from => self.first_occurrence_window_start,
+      :to => selft.first_occurrence_window_end
     }
   end
 end 

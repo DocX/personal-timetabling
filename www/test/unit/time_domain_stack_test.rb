@@ -25,11 +25,11 @@ class TimeDomainStackTest < ActiveSupport::TestCase
   		]
   	}
 
-  	stack = TimeDomainStack.from_attributes attributes
+  	stack = TimeDomains::StackTimeDomain.from_attributes attributes
 
   	stack_hash =  stack.to_hash
 
   	assert_equal 'stack', stack_hash[:type]
-  	assert_same attributes, stack_hash[:data]
+  	assert_equal attributes, stack_hash[:data]
   end
 end

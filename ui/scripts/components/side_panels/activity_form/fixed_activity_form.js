@@ -24,7 +24,6 @@ return PanelBase.extend({
 			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
 
 			"<div class='repeat-form-controls'></div>" +
-			"<p class='repeating-tip hide'>TIP: move the last occurence box to change number of repeats</p>" +
 		"</div>",
 
 	events: {
@@ -50,13 +49,14 @@ return PanelBase.extend({
 				}
 
 				// update occurance model
-				this.activity.first_occurance().set('start', moment.asUtc(this.$from_input.datetimepicker('getDate')));
+				this.activity.set('from', moment.asUtc(this.$from_input.datetimepicker('getDate')));
 
 				// move view to be visible
 				this.options.activities_view.show_date(moment.asUtc(this.$from_input.datetimepicker('getDate')))
 			}, this),
 			onSelect: _.bind(function (selectedDateTime){
 				this.$to_input.datetimepicker('option', 'minDate', this.$from_input.datetimepicker('getDate') );
+				this.$from_input.datetimepicker('hide');
 			}, this),
 			firstDay: 1,
 		});
@@ -73,20 +73,23 @@ return PanelBase.extend({
 					this.$from_input.val(dateText);
 				}
 
-				this.activity.first_occurance().set('end', moment.asUtc(this.$to_input.datetimepicker('getDate')));
+				this.activity.set('to', moment.asUtc(this.$to_input.datetimepicker('getDate')));
 			}, this),
 			onSelect: _.bind(function (selectedDateTime){
 				this.$from_input.datetimepicker('option', 'maxDate', this.$to_input.datetimepicker('getDate') );
+				this.$to_input.datetimepicker('hide');
 			}, this),
 			firstDay: 1
 		});
 
 		
 		this.activity = new FixedActivityStub();
-		this.activity.first_occurance().set('start', this.options.activities_view.get_date_aligned_to_view_grid(
-			this.activity.first_occurance().get('start')
-		));
-		this.activity.first_occurance().on('change', this.update_from_model , this);
+		this.activity.set('from', 
+			this.options.activities_view.get_date_aligned_to_view_grid(
+				this.activity.get('from')
+			)
+		);
+		this.activity.on('change', this.update_from_model, this);
 		this.activity.on('change:repeating', this.update_repeating_from_model, this);
 
 		this.repeating_form = new ActivityRepeatingForm({
@@ -95,30 +98,21 @@ return PanelBase.extend({
 
 		this.listenTo(this.repeating_form, 'change', this.update_repeating_to_model);
 
-		this.set_repeat_period_unit();
-		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);
-
-		this.update_from_model(this.activity.first_occurance());
+		this.update_from_model(this.activity);
 	},
 
-	update_from_model: function(m) {
-		this.$from_input.datetimepicker('setDate', moment.asLocal(m.get('start')).toDate());
-		this.$to_input.datetimepicker('setDate', moment.asLocal(m.get('end')).toDate());
-	},
-
-	set_repeat_period_unit: function() {
-		this.repeating_form.set_period_unit(this.options.activities_view.get_view_geometry_name());
+	update_from_model: function(activity) {
+		this.$from_input.datetimepicker('setDate', moment.asLocal(activity.get('from')).toDate());
+		this.$to_input.datetimepicker('setDate', moment.asLocal(activity.get('to')).toDate());
 	},
 
 	update_repeating_to_model: function() {
 		var repeating = this.repeating_form.get_repeating_def();
 		this.activity.set('repeating', repeating );
-
-		this.$el.find('.repeating-tip').toggle(repeating != false);
 	},
 
-	update_repeating_from_model: function(m) {
-		this.repeating_form.update_from(m.get('repeating'));
+	update_repeating_from_model: function(activity) {
+		this.repeating_form.update_from(activity.get('repeating'));
 	}
 
 	

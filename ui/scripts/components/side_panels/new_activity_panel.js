@@ -94,7 +94,7 @@ return PanelBase.extend({
 		if(this.activity_view_handle) {
 			this.activity_view_handle.remove();
 		}
-		this.activity_view_handle = this.options.activities_view.display_activity(activity, 'new-creating');
+		this.activity_view_handle = this.options.activities_view.display_activity(activity.activity, 'new-creating');
 	},
 
 	change_name: function() {
@@ -105,10 +105,11 @@ return PanelBase.extend({
 
 	save: function() {
 		
-		this.activity_form.activity.save()
+		var ap = this.activity_form.activity.get_activity_prototype();
+		ap.save()
 		.success(_.bind(function() {
 			this.options.activities_view.reload_activities(); 
-			this.trigger('new:activity', this.activity_form.activity);
+			this.trigger('new:activity', ap);
 			this.remove()
 		}, this))
 		.error(function() {alert('Error')});
@@ -118,7 +119,6 @@ return PanelBase.extend({
 	remove: function() {
 
 		this.clear_selected_form();
-
 
 		PanelBase.prototype.remove.apply(this, arguments);
 	}

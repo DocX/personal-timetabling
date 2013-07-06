@@ -70,6 +70,7 @@ PersonalTimetablingAPI::Application.routes.draw do
       post '/domain_intervals(/:from$:to)', to: 'domain_templates#new_domain_intervals'
 
       get '/:id', to: 'domain_templates#show'
+      put '/:id', to: 'domain_templates#update'
       get '/:id/domain_intervals(/:from$:to)', to: 'domain_templates#domain_intervals'
       delete '/:id', to: 'domain_templates#destroy'
     end

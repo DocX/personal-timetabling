@@ -7,69 +7,73 @@ var Backbone = require('backbone'),
 		BackboneRelational = require('backbone.relational'),
 		FixedActivityStub = require('models/fixed_activity_stub'),
 		Interval = require('models/interval'),
+		Activity = require('models/activity'),
 		ActivityOccurance = require('models/activity_occurance');
 
 // Stub representation for creating fixed activity in UI
 var FloatingActivityStub = FixedActivityStub.extend({
 	
 	defaults: function() {
+		var today = moment.utc().startOf('day');
 		return {
-			definition: {
-				repeating: false,
-				type: 'floating',
-				from: null,
-				to: null,
-				duration_min: 3600,
-				duration_max: 3600,
-				domain_template: {}
-			},
-			// stub repeating
 			repeating: false,
-			// duration of domain range. is added to start when moving with first occurance
-			range_duration: 86400 * 7,
+
+			// start of first window
+			from: today,
+			// end of first window
+			to: today.clone().add(1,'d'),
+
+			// duration range for events
 			duration_min: 3600,
-			duration_max:3600,
-			// hash containing domain template definition
+			duration_max: 3600,
+
+			// template of domain for events
 			domain_template: {},
+			name: 'Floating activity'
 		}
 	},
 
 
 	initialize: function() {
-		FixedActivityStub.prototype.initialize.apply(this);
-		this.on('change:range_duration', this.set_repeating, this);
-		this.on('change:duration_max', this.set_repeating, this);
-		this.on('change:domain_template', this.set_definition, this);
+		this.activity = new Activity();
+
+		this.on('change:from', this.set_repeating, this);
+		this.on('change:to', this.set_repeating, this);
+
 	},
 
-	// updates definition Hash from stub values
-	set_definition: function() {
-		this.attributes.definition.repeating = this.attributes.repeating;
-		this.attributes.definition.from = this.first_occurance().get('start');
-		this.attributes.definition.to = this.attributes.definition.from.clone().add(this.attributes.range_duration, 's');
+	get_activity_prototype: function() {
+		return new Activity({
+			name: this.get('name'),
+			definition: {
+				repeating: this.get('repeating'),
+				type: 'floating',
+				from: this.get('from'),
+				to: this.get('to'),
+				duration_min: this.get('duration_min'),
+				duration_max: this.get('duration_max'),
+				domain_template: this.get('domain_template'),
+			}
+		});
+	},
 
-		this.attributes.definition.duration_min = this.attributes.duration_min;
-		this.attributes.definition.duration_max = this.first_occurance().get('duration');
+	set_repeating: function() {
 
-		this.attributes.definition.domain_template = this.attributes.domain_template; 
 	},
 
 	// returns array of intervals for each period occurence of its range (to-from + period offset)
 	get_ranges_intervals: function() {
-		var intervals = [];
-		for (var i = this.get('events').models.length - 1; i >= 0; i--) {
-			var model_start = this.get('events').models[i].get('start');
+		var repeating_intervals = this.get_repeating_intervals();
 
-			intervals.push(
-				new Interval({
-					start: model_start,
-					end: model_start.clone().add(this.attributes.range_duration, 's')
-				})
-			);
-			
+		var ranges = [];
+		for (var i = 0; i < repeating_intervals.length; i++) {
+			ranges.push(new Interval({
+				start: repeating_intervals[i].start,
+				end: repeating_intervals[i].end
+				}));
 		};
 
-		return intervals;
+		return ranges;
 	},	
 
 });

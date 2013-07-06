@@ -21,19 +21,21 @@ return PanelBase.extend({
 		"<div>" +
 			"<label>How long activity do you want to allocate</label>" +
 			"At least <input type='number' min='1' name='duration_min' class='input-mini' /> optimal <input type='number' min='0' name='duration_max' class='input-mini'/> min" +
-			"<legend><strong>Period when to schedule</strong> (blue area)</legend>" +
+			"<legend><strong>Event occurrences windows</strong> (blue areas)</legend>" +
+			"<p>Define event window for first occurrence and their repeating. Think about this the same way as when you are creating fixed events, only with exception you don't know exact time for them.</p>" +
 			"<input type='text' name='range_from' class='datetime fill-width' />" +
 			"<label>to</label>" +
 			"<input type='text' name='range_to' class='datetime fill-width' />" +
-			"<p>TIP: You can move first occurence box to setup date range of acitivity</p>" +
+			"<legend><strong>Repeating</strong></legend>" +
+			"<div class='repeat-form-controls'></div>" +
 
-			"<legend><strong>At times</strong> (white area)</legend>" +
+			"<legend><strong>At times</strong> (green area)</legend>" +
+			"<p>Here define times when event occurrences can be allocated, or when they can not. Green area will be cropped by blue area for each event occurrence defined above." +
 			"<div class='domain-form-container'>" +
 				"<div class='domain-form'></div>" +
 			"</div>" + 
 
-			"<legend><strong>Repeating</strong></legend>" +
-			"<div class='repeat-form-controls'></div>" +
+
 
 		"</div>",
 
@@ -103,8 +105,19 @@ return PanelBase.extend({
 					this.$to_input.val(dateText);
 				}
 
-				// update occurance model start
-				this.activity.first_occurance().set('start', moment.asUtc(this.$from_input.datetimepicker('getDate')));
+				// update model
+				// get duration
+				var start_new = moment.asUtc(this.$from_input.datetimepicker('getDate'));
+				var start_old = this.activity.get('from');
+				var end =  moment.asUtc(this.$to_input.datetimepicker('getDate'));
+				var dur = end.diff(start_old,'seconds');
+				end = start_new.clone().add(dur, 'seconds');
+				this.$to_input.datetimepicker('setDate', moment.asLocal(end).toDate());
+
+				this.activity.set('from',start_new);
+				this.activity.set('to', end);
+
+				this.refresh_ranges_view();
 
 				// move view to be visible
 				this.options.activities_view.show_date(moment.asUtc(this.$from_input.datetimepicker('getDate')))
@@ -128,9 +141,9 @@ return PanelBase.extend({
 				}
 
 				// compute range duration and set to activity
-				this.activity.set('range_duration', moment.asUtc(this.$to_input.datetimepicker('getDate')).diff(
-					 moment.asUtc(this.$from_input.datetimepicker('getDate')), 'seconds'
-					));
+				this.activity.set('to', moment.asUtc(this.$to_input.datetimepicker('getDate')));
+				this.refresh_ranges_view();
+
 			}, this),
 			onSelect: _.bind(function (selectedDateTime){
 				this.$from_input.datetimepicker('option', 'maxDate', this.$to_input.datetimepicker('getDate') );
@@ -149,12 +162,7 @@ return PanelBase.extend({
 
 
 		this.activity = new FloatingActivityStub();
-		this.activity.first_occurance().set('start', this.options.activities_view.get_date_aligned_to_view_grid(
-			this.activity.first_occurance().get('start')
-		));
-
-		this.activity.first_occurance().on('change', this.update_from_model , this);
-		this.update_from_model(this.activity.first_occurance());
+		this.update_from_model(this.activity);
 
 
 		// initialize repeating definition form
@@ -163,10 +171,8 @@ return PanelBase.extend({
 		});
 
 		this.listenTo(this.repeating_form, 'change', this.update_repeating_to_model);
-		this.activity.on('change:repeating', this.update_repeating_from_model, this);
+		//this.listenTo(this.activity, 'change', this.update_repeating_from_model);
 
-		this.set_repeat_period_unit();
-		this.options.activities_view.on('geometry_changed', this.set_repeat_period_unit, this);	
 		this.listenTo(this.options.activities_view.calendar,  'columns_updated', this.refresh_domains_view);
 
 		//this.listenTo(this.domain_form.model, 'changed', this.set_domain);
@@ -175,13 +181,13 @@ return PanelBase.extend({
 
 	},
 
-	update_from_model: function(m) {
+	update_from_model: function(acitivity) {
 		var definition = this.activity.get('definition');
 
-		this.$from_input.datetimepicker('setDate', moment.asLocal(definition.from).toDate());
-		this.$to_input.datetimepicker('setDate', moment.asLocal(definition.to).toDate());
-		this.$duration_min_input.val(definition.duration_min / this.duration_unit );
-		this.$duration_max_input.val(m.get('duration')  / this.duration_unit )
+		this.$from_input.datetimepicker('setDate', moment.asLocal(acitivity.get('from')).toDate());
+		this.$to_input.datetimepicker('setDate', moment.asLocal(acitivity.get('to')).toDate());
+		this.$duration_min_input.val(acitivity.get('duration_min') / this.duration_unit );
+		this.$duration_max_input.val(acitivity.get('duration_max')  / this.duration_unit )
 
 		// refresh ranges intervals
 		this.refresh_ranges_view();
@@ -193,18 +199,13 @@ return PanelBase.extend({
 
 	set_duration_max: function(){
 		this.activity.set('duration_max', this.$duration_max_input.val() * this.duration_unit);
-		this.activity.first_occurance().set('duration', this.$duration_max_input.val() * this.duration_unit);
-	},
-
-	set_repeat_period_unit: function() {
-		this.repeating_form.set_period_unit(this.options.activities_view.get_view_geometry_name());
 	},
 
 	update_repeating_to_model: function() {
 		var repeating = this.repeating_form.get_repeating_def();
 		this.activity.set('repeating', repeating );
 
-		//this.$el.find('.repeating-tip').toggle(repeating != false);
+		this.refresh_ranges_view();
 	},
 
 	update_repeating_from_model: function(m) {
@@ -222,7 +223,7 @@ return PanelBase.extend({
 			function(box) {box.addClass('domain-highlight floating-activity-form')}
 		);
 
-		//this.refresh_domains_view();
+		
 	},
 
 	remove_intervals_view: function(intervals) {

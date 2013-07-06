@@ -5,7 +5,6 @@ class Activity < ActiveRecord::Base
   serialize :definition, ActivityDefinition::BaseActivityDefinition
 
   validates :name, :presence => true
-  validates_associated :definition
   
   after_initialize do |a|   
   	a.link_comparator = a.link_comparator && a.link_comparator.to_sym

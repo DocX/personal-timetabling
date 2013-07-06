@@ -10,16 +10,16 @@ class Api::DomainTemplatesControllerTest < ActionController::TestCase
 	  date_to = (DateTime.now + 10).iso8601
 
   	params = {
-  		"domain_template" => {
-  			"name" => "TEST DOMAIN",
+			'name' => "TEST DOMAIN",
+      'domain_attributes' => {
   			"type" => "stack",
   			"data" => {
   				"actions" => [
   					{"action" => "add", "domain" => {"type" => "bounded", "from" => date_from, "to" => date_to}}
   				]
   			}
-  		}
-  	}
+      }
+  	}.with_indifferent_access
 
   	post :create, params
 
@@ -28,6 +28,6 @@ class Api::DomainTemplatesControllerTest < ActionController::TestCase
   	domain = DomainTemplate.find_by_name 'TEST DOMAIN'
 
   	assert_not_nil domain
-  	assert_equal 'stack', domain.domain_type
+  	assert domain.domain.is_a? TimeDomains::StackTimeDomain
   end
 end

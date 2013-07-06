@@ -21,7 +21,6 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
       reverseRelation: {
         key: 'events',
         type: Backbone.HasMany,
-        keySource: 'event_ids',
       },
       keySource: 'activity_id',
       parse: true,

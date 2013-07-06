@@ -13,21 +13,45 @@ var $ = require('jquery'),
 return Backbone.View.extend({
 
 	template: 
-		"<p>" +
-			"<label class='radio'><input type='radio' name='repeating' value='once' checked='checked' /> Once</label>" +
-			"<label class='radio'><input type='radio' name='repeating' value='repeat' /> Repeat</label>" +
-		"</p>" +
+		"<div class='form-inline'><p>" +
+			"<label class='radio'><input type='radio' name='repeating' value='once' checked='checked' /> Once</label> " +
+			"<label class='radio'><input type='radio' name='repeating' value='repeat' /> Repeat</label> " +
+		"</p></div>" +
 
 		"<div class='repeating-controls hide'>"+	
-			"<label>Each</label>" +
-			"<input type='number' name='repeat-each' min='1' value='1' /> <span class='repeat-unit'></span>" +
-			
-			"<label>Until</label>" +
-			"<input type='number' name='repeat-until-repeats' min='1' class='fill-width' value='3' /> " +
-			"<input type='text' name='repeat-until-date' class='datetime fill-width' style='display:none' /> " +
+			"<label>Every</label>" +
+			"<div class='form-inline'><p>" +
+				"<input type='number' name='repeat-each' min='1' class='input-mini' value='1' /> " +
+				"<label><input type='radio' name='repeat-each-unit' value='days' /> days</label> " + 
+				"<label><input type='radio' name='repeat-each-unit' value='weeks' /> weeks</label> " +
+				"<label><input type='radio' name='repeat-each-unit' value='months' /> months</label> " +
+			"</p></div>" +
 
-			"<label class='radio'><input type='radio' name='repeat-until-unit' value='date' /> Date</label>" +
-			"<label class='radio'><input type='radio' name='repeat-until-unit' value='repeats' checked /> Repeats</label>" +
+			"<div data-role='repeat-unit-options' class='form-inline' data-unit='weeks'>" +
+				"<label><input type='checkbox' name='weekly_weekday' value='1'> Mo</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='2'> Tu</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='3'> We</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='4'> Th</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='5'> Fr</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='6'> Sa</label> "+
+				"<label><input type='checkbox' name='weekly_weekday' value='0'> Su</label> "+
+			"</div>" +
+			
+			"<label>Ends</label>" +
+			"<p>" +
+			"<label class='radio'>" +
+				"<input type='radio' name='repeat-until-unit' value='date' />" +
+				" On " +
+				"<input type='text' name='repeat-until-date' class='date input-small' /> " +
+			"</label>" +
+			"<label class='radio'>" +
+				"After " +
+				"<input type='radio' name='repeat-until-unit' value='repeats' checked /> " +
+				"<input type='number' name='repeat-until-repeats' min='1' class='input-mini' value='3' /> " +
+				" occurrences" +
+			"</label>" +
+			"</p>" +
+
 		"</div>",
 
 
@@ -37,39 +61,63 @@ return Backbone.View.extend({
 		'change input[name=repeat-each]': 'trigger_change',
 		'change input[name=repeat-until-repeats]': 'trigger_change',
 		'change input[name=repeat-until-date]': 'trigger_change',
+		'click input[name=repeat-each-unit]': 'period_unit_change',
 	},
 
 	initialize: function() {
 		this.$el.append(this.template);
 
-		this.$el.find('[name=repeat-until-date]').datetimepicker({
-			firstDay: 1
+		this.$el.find('[name=repeat-until-date]').datepicker({
+			firstDay: 1,
+			onSelect: _.bind(function(date, el) {$(el).datepicker('hide'); this.trigger_change()}, this)
 		});
+
+		this.$el.find('[name=weekly_weekday]').click(_.bind(this.trigger_change, this));
 
 		this.set_period_unit('days');
 	},
 
 	update_controls_from: function(repeating_def) {
-
+		this.set_period_unit(repeating_def.period_unit);
 		this.$el.find('[name=repeat-each]').val(repeating_def.period_duration);
-		this.$el.find('[name=repeat-until-repeats]').val(repeating_def.until_repeats);
-		if (repeating_def.until_date)
-			this.$el.find('[name=repeat-until-date]').datetimepicker('setDate', moment.asLocal(repeating_def.until_date));
+		
+		if (repeating_def.until_type == 'date' && repeating_def.until) {
+			this.$el.find('[name=repeat-until-date]').datepicker('setDate', moment.asLocal(repeating_def.until).toDate());
+		} else if (repeating_def.until_type == 'repeats') {
+			this.$el.find('[name=repeat-until-repeats]').val(repeating_def.until);
+		}
 
 		this.$el.find('[name=repeat-until-unit]').prop('checked', false).filter('[value='+repeating_def.until_type+']').prop('checked', true);
+
+		this.$el.find('[data-role=repeat-unit-options]').hide();
+		this.$el.find('[data-role=repeat-unit-options][data-unit='+this.period_unit+']').show();		
+		this.$el.find('[name=weekly_weekday]').prop('checked', false);
+		if(repeating_def.period_unit == 'weeks' && 'weekdays' in repeating_def.period_unit_options) {
+			for (var i = 0; i < repeating_def.period_unit_options.weekdays.length; i++) {
+				this.$el.find('[name=weekly_weekday][value='+ repeating_def.period_unit_options.weekdays[i] +']').prop('checked', true);
+			};
+		}
 	},
 
 	set_period_unit: function(unit) {
 		this.period_unit = unit;
-		this.$el.find('span.repeat-unit').text(unit);
+		this.$el.find('[name=repeat-each-unit][value='+unit+']').prop('checked', true);
+		this.$el.find('[data-role=repeat-unit-options]').hide();
+		this.$el.find('[data-role=repeat-unit-options][data-unit='+unit+']').show();
+	},
+
+	period_unit_change: function(ev) {
+		this.set_period_unit($(ev.target).val());
+
+		this.trigger_change();
 	},
 
 	toggle_repeat_until: function(){
 		var repeat_until_unit = this.$el.find('[name=repeat-until-unit]:checked').val();
 
-		this.$el.find('[name=repeat-until-repeats]').toggle(repeat_until_unit == 'repeats');
-		this.$el.find('[name=repeat-until-date]').toggle(repeat_until_unit == 'date');
-
+		if (repeat_until_unit == 'date' && !this.$el.find('[name=repeat-until-date]').datepicker('getDate')) {
+			this.$el.find('[name=repeat-until-date]').datepicker('setDate', moment().startOf('day').add(1,'d').toDate());
+		}
 		this.trigger_change();
 	},
 
@@ -84,9 +132,21 @@ return Backbone.View.extend({
 
 		repeating_def.period_duration = this.$el.find('[name=repeat-each]').val();
 		repeating_def.period_unit = this.period_unit;
-		repeating_def.until_repeats = this.$el.find('[name=repeat-until-repeats]').val();
-		repeating_def.until_date = this.$el.find('[name=repeat-until-date]').datetimepicker('getDate') && moment.asUtc(this.$el.find('[name=repeat-until-date]').datetimepicker('getDate'));
 		repeating_def.until_type = this.$el.find('[name=repeat-until-unit]:checked').val();
+		if (repeating_def.until_type == 'date') {
+			repeating_def.until = this.$el.find('[name=repeat-until-date]').datepicker('getDate') && moment.asUtc(this.$el.find('[name=repeat-until-date]').datepicker('getDate'));
+		} else {
+			repeating_def.until = this.$el.find('[name=repeat-until-repeats]').val();
+		}
+
+		if (this.period_unit == 'weeks') {
+			var checked_weekdays = [];
+			this.$el.find('[name=weekly_weekday]:checked').each(function() {
+				checked_weekdays.push($(this).val());
+			});
+
+			repeating_def.period_unit_options = {weekdays: checked_weekdays};
+		}
 
 		return repeating_def;
 	},
@@ -109,7 +169,6 @@ return Backbone.View.extend({
 			this.update_controls_from(repeating);
 		}
 
-		this.$el.find('.repeating-controls').toggle(repeating != false);
 	},
 
 

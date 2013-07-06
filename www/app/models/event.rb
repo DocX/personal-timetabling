@@ -1,5 +1,5 @@
 class Event < ActiveRecord::Base
-  attr_accessible :name, :duration, :start, :min_duration, :max_duration, :domain_attributes, :tz_offset, :activity_id, :schedule_since, :schedule_after
+  attr_accessible :name, :duration, :start, :min_duration, :max_duration, :domain_attributes, :tz_offset, :activity_id, :schedule_since, :schedule_deadlin
   
   serialize :domain, TimeDomains::BaseTimeDomain
   serialize :events_after, Array 
@@ -50,13 +50,11 @@ class Event < ActiveRecord::Base
   # instance properties 
 
   def duration=(d)
-    Rails.logger.debug 'set duretaion'
     self['duration'] = d
     self['end'] = self.start + Rational(self.duration, 86400) rescue nil
   end
 
   def start=(s)
-    Rails.logger.debug 'set start'
     self['start'] = s
     self['end'] = self.start + Rational(self.duration, 86400) rescue  self['start'] 
   end
