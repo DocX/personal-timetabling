@@ -49,4 +49,13 @@ class DaylyRepeating
 
 		periods
 	end
+
+	def to_attributes
+		{
+			:until => @until,
+			:until_type => (@until.is_a? Fixnum) ? 'repeats' : 'date',
+			:period_unit => 'days',
+			:period_duration => @period_duration,
+		}
+	end
 end

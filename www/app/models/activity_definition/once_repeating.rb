@@ -14,4 +14,8 @@ class OnceRepeating
 	def get_periods(first_start, first_end)
 		[[first_start, first_end]]
 	end
+
+	def to_attributes
+		false
+	end
 end

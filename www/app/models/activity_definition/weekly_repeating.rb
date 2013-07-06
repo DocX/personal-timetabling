@@ -59,11 +59,10 @@ class WeeklyRepeating
 
 	def to_attributes
 		{
-			:type => 'fixed',
 			:until => @until,
-			:until_type => (@until.is_a? Fixnum) ? 'repeats' : 'date',
-			:period_unit => 'weeks'
-			:period_duration => @period_duration
+			:until_type => ((@until.is_a? Fixnum) ? 'repeats' : 'date'),
+			:period_unit => 'weeks',
+			:period_duration => @period_duration,
 			:period_unit_options => {:weekdays => @weekdays}
 		}
 	end
