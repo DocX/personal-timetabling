@@ -49,6 +49,10 @@ class Event < ActiveRecord::Base
 
   # instance properties 
 
+  def domain_attributes=(attrs)
+    domain = TimeDomains::BaseTimeDomain.from_attributes attrsh
+  end
+
   def duration=(d)
     self['duration'] = d
     self['end'] = self.start + Rational(self.duration, 86400) rescue nil

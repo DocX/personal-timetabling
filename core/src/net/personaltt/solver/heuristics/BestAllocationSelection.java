@@ -60,17 +60,18 @@ public class BestAllocationSelection implements AllocationSelection {
             
             long allocationOccurrenceCost = (long)(forOccurrence.getAllocationCost(allocation) * valueCostWeight);
             
-            long allocationCost = (long)(cost.computeCostOfAllocation(allocation) * conflictCostWeight);
+            long allocationConflictCost =
+                    (long)(cost.computeCostOfAllocation(allocation) * conflictCostWeight);
             
-            //System.out.printf(" %s c%s:%s\n", allocation, allocationCost, allocationOccurrenceCost);
+            //System.out.printf(" %s c%s:%s\n", allocation, allocationConflictCost, allocationOccurrenceCost);
             
-            if (allocationCost < bestConflictCost || (allocationCost == bestConflictCost && allocationOccurrenceCost < bestOccurrenceCost)) {
-                bestConflictCost = allocationCost;
+            if (allocationConflictCost < bestConflictCost || (allocationConflictCost == bestConflictCost && allocationOccurrenceCost < bestOccurrenceCost)) {
+                bestConflictCost = allocationConflictCost;
                 bestAllocations.clear();
                 bestOccurrenceCost = allocationOccurrenceCost;
             }
             
-            if (allocationCost == bestConflictCost && allocationOccurrenceCost == bestOccurrenceCost) {
+            if (allocationConflictCost == bestConflictCost && allocationOccurrenceCost == bestOccurrenceCost) {
                 bestAllocations.add(allocation);
             }
         }

@@ -42,10 +42,9 @@ public class Occurrence {
     int preferredStart;
     
     /**
-     * Priority of perturbing value of this occurrence. 
-     * Greater value means higher priority of keeping unchanged.
+     * Priority of preferred allocation start
      */
-    int preferredWeight = 1;
+    int preferrencePriority = 0;
     
     long domainLowerBound = 0;
     
@@ -144,7 +143,7 @@ public class Occurrence {
     @Override
     public Object clone() {
         Occurrence o = new Occurrence(domain, minDuration, maxDuration, id);
-        o.preferredWeight = this.preferredWeight;
+        o.preferrencePriority = this.preferrencePriority;
         o.preferredStart = this.preferredStart;
         o.maximalPreferredStartDiff = this.maximalPreferredStartDiff;
         return o;
@@ -168,8 +167,8 @@ public class Occurrence {
         this.maximalPreferredStartDiff = Math.max(preferredStart - domainLowerBound, domainUpperBound - preferredStart);
     }
 
-    public int getPreferredWeight() {
-        return preferredWeight;
+    public int getPreferrencePriority() {
+        return preferrencePriority;
     }
 
     public int getPreferredStart() {
@@ -206,9 +205,14 @@ public class Occurrence {
         return getAllocationCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
     }
     
+    int PRIORTY_OFFSET = 48;
     
     public long getAllocationCost(int start, int duration) {
-        return (maxDuration - duration) * (maximalPreferredStartDiff * preferredWeight) +  Math.abs(start - preferredStart) * preferredWeight;
+        long diffFromPreferred = (long)Math.abs(start - preferredStart);
+        
+        return (diffFromPreferred > 0 ? ((long)preferrencePriority << PRIORTY_OFFSET) : 0) +
+                (maxDuration - duration) * (maximalPreferredStartDiff) +  
+                diffFromPreferred;
     }
     
     public long getDurationCost() {
@@ -230,16 +234,14 @@ public class Occurrence {
     }
     
     public long getPreferredStartCost(long start) {
-        return Math.abs(start - preferredStart) * preferredWeight ; 
+        return Math.abs(start - preferredStart) ; 
     }
 
     public void setDomain(BaseIntervalsSet<Integer> domain) {
         this.domain = domain;
     }
     
-    public void setPreferredWeight(int weight) {
-        this.preferredWeight = weight;
+    public void setPreferrencePriority(int weight) {
+        this.preferrencePriority = weight;
     }
-    
-    
 }

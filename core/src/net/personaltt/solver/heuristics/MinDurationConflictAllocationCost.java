@@ -23,6 +23,8 @@ import net.personaltt.utils.intervalmultimap.IntervalMultimap;
  */
 public class MinDurationConflictAllocationCost extends OccurrenceConflictAllocationCost {
 
+
+    
     public MinDurationConflictAllocationCost(Occurrence allocatingOccurrence, SolverState solution)  {
         this.allocatingOccurrence = allocatingOccurrence;
         this.solution = solution;
@@ -49,13 +51,16 @@ public class MinDurationConflictAllocationCost extends OccurrenceConflictAllocat
                 Math.max(
                     0, 
                     occurrence.getAllocation().getDuration() - occurrence.getMinDuration());
-        return 
+        
+        return  
                 Math.min(
                     durationInOccurrence, 
                     overMinDuration) + 
                 Math.max(
                     0, 
                     durationInOccurrence - overMinDuration) * 2;
+        
+        
     }
      
      

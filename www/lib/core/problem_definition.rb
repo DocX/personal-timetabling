@@ -33,6 +33,7 @@ module PersonalTimetablingAPI
       closure.each do |o|
         is_in_to_res = occurrences_to_reschedule.any? {|tor| tor.id == o.id}
         priority_mode = priority_modes[o.id]
+        Rails.logger.debug "priority mode of #{o.id} #{is_in_to_res}: #{priority_mode}"
         definition_builder.setPreferredPriority(o.id.to_i, is_in_to_res ? (priority_mode == :repair ? 2 : 0) : 1)
       end
 

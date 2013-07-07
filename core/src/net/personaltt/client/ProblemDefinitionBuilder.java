@@ -66,7 +66,7 @@ public class ProblemDefinitionBuilder {
      * @param priority 
      */
     public void setPreferredPriority(int id, int priority) {
-        this.getOccurrence(id).setPreferredWeight(priority < 1 ? 1 : priority);
+        this.getOccurrence(id).setPreferrencePriority(priority);
     }
     
     /**

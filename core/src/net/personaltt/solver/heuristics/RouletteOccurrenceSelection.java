@@ -38,7 +38,7 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
      * Gets occurrence to solve using heuristic from conflicting occurrences with
      * cost
      * @param conflictingOccurrencesWithCost
-     * @return 
+     * @return ConflictSumAllocationCost
      */    
     @Override
     public Occurrence select(SolverState solution) {
