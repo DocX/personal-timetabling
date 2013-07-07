@@ -38,25 +38,47 @@ public class Benchmark {
      */
     public static void main(String[] args) {
         
-        ProblemDefinition problem;
+//        ProblemDefinition problem;
+//        
+//        problem =
+//        //bench1();
+//        //bench2();
+//        //bench3();
+//        //bench4();
+//        //bench5();
+//        //testSolverClient();
+//        benchPriority(10);
+//        
+//        //solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
+//        //solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
+//        benchSolve(problem);
+//
+//        // benchmark stay min conflict
+//        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
+//        
+//        // benchmark probBestIgnoringSelWhenNoConflict
+//        //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
         
-        problem =
-        //bench1();
-        //bench2();
-        //bench3();
-        bench4();
-        //bench5();
-        //testSolverClient();
-        
-        solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
-        solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
-        benchSolve(problem);
-
-        // benchmark stay min conflict
-        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
-        
-        // benchmark probBestIgnoringSelWhenNoConflict
-        //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
+        benchmarkPriority();
+    }
+    
+    public static void benchmarkPriority() {
+        List<String> results = new ArrayList<String>();
+        for (int i = 1; i <= 101; i+=10) {
+            int nonPrefCount = 0;
+            for (int j = 0; j < 10; j++) {
+                ProblemDefinition problem = benchPriority(i);
+                SolverState state = benchSolve(problem);
+                if (state.getBestSolution().getSchedule().getAllocationOf(1).getStart() != 0) {
+                    nonPrefCount++;
+                }
+            }
+            results.add(String.format("Priority: %s, not preffered count: %s/10", i, nonPrefCount));
+        }
+       
+        for (String string : results) {
+            System.out.println(string);
+        }
     }
     
     public static void benchmarkProp(ProblemDefinition problem, String prop, double min, double max, double step) {
@@ -186,6 +208,23 @@ public class Benchmark {
         
         System.out.println();
         return (problem);
+    }
+    
+    private static ProblemDefinition benchPriority(int priority) {
+        ProblemDefinition problem = new ProblemDefinition();
+        
+        BaseIntervalsSet<Integer> domain = new BaseIntervalsSet<>();
+        domain.unionWith(0,1000);
+        
+        Occurrence priorityOccurrence = new Occurrence(domain, 10,10, 1);
+        problem.addOccurrence(priorityOccurrence, new BaseInterval<>(0,10));     
+        priorityOccurrence.setPreferredWeight(priority);
+        
+        for (int i = 2; i <= 50; i++) {
+            problem.addOccurrence(new Occurrence(domain, 10,10, i), new BaseInterval<>(0,10));            
+        }
+        
+        return problem;
     }
     
     

@@ -18,7 +18,7 @@ import net.personaltt.utils.intervalmultimap.IntervalMultimap;
  * 
  * @author docx
  */
-public class ConflictSumAllocationCost implements Cost {
+public class ConflictSumAllocationCost implements CostForOccurrence {
      /**
      * Allocating occurrence. It will not be computed to cost, as it is not allocated.
      */
@@ -46,7 +46,7 @@ public class ConflictSumAllocationCost implements Cost {
         
         // next walk thgrought edges and compute for all new added occurrences
         for (ValuedInterval<Integer, IntervalMultimap.MultimapEdge<Occurrence>> valuedInterval :  this.solution.allocationsMultimap().valuesChangesInInterval(allocation)) {
-           
+            
             // add length of element times number of occurrences allocated there.
             cost += valuedInterval.getValues().size() * (valuedInterval.getEnd() - valuedInterval.getStart());
         }
@@ -67,5 +67,10 @@ public class ConflictSumAllocationCost implements Cost {
         }
         
         return cost;
+    }
+
+    @Override
+    public void setOccurrence(Occurrence occurrence) {
+        allocatingOccurrence = occurrence;
     }
 }

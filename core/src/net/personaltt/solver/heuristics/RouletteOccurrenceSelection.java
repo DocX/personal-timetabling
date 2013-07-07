@@ -48,14 +48,15 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         }
         
         // select more problematic occurrence with more probability
-        ConflictSumAllocationCost conflicting = new ConflictSumAllocationCost(null, solution);
+        //TODO original ConflictSumCost
+        CostForOccurrence conflicting = new ConflictSumAllocationCost(null, solution);
         long totalConflictCost = 0;
         long totalAllocationCost = 0;
         
         long[] occurrenceConflictCost = new long[solution.allocationsMultimap().size()];
         int i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            conflicting.allocatingOccurrence = occurrence;
+            conflicting.setOccurrence(occurrence);
             occurrenceConflictCost[i] = conflicting.computeCostOfAllocation(occurrence.getAllocation().toInterval());
             
             totalConflictCost += occurrenceConflictCost[i] ;

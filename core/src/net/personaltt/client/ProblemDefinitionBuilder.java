@@ -66,7 +66,7 @@ public class ProblemDefinitionBuilder {
      * @param priority 
      */
     public void setPreferredPriority(int id, int priority) {
-        
+        this.getOccurrence(id).setPreferredWeight(priority < 1 ? 1 : priority);
     }
     
     /**
@@ -166,6 +166,15 @@ public class ProblemDefinitionBuilder {
         for (Occurrence occurrence : emptyDomain) {
             definition.removeOccurrence(occurrence);
         }
+    }
+    
+    private Occurrence getOccurrence(int id) {
+        for (Occurrence occurrence : this.definition.problemOccurrences) {
+            if (occurrence.getId() == id) {
+                return occurrence;
+            }
+        }
+        return null;
     }
     
 }

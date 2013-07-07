@@ -45,7 +45,7 @@ public class Occurrence {
      * Priority of perturbing value of this occurrence. 
      * Greater value means higher priority of keeping unchanged.
      */
-    int preferredWeight = 0;
+    int preferredWeight = 1;
     
     long domainLowerBound = 0;
     
@@ -208,7 +208,7 @@ public class Occurrence {
     
     
     public long getAllocationCost(int start, int duration) {
-        return (maxDuration - duration) * (maximalPreferredStartDiff) +  Math.abs(start - preferredStart);
+        return (maxDuration - duration) * (maximalPreferredStartDiff * preferredWeight) +  Math.abs(start - preferredStart) * preferredWeight;
     }
     
     public long getDurationCost() {
@@ -230,11 +230,15 @@ public class Occurrence {
     }
     
     public long getPreferredStartCost(long start) {
-        return Math.abs(start - preferredStart); 
+        return Math.abs(start - preferredStart) * preferredWeight ; 
     }
 
     public void setDomain(BaseIntervalsSet<Integer> domain) {
         this.domain = domain;
+    }
+    
+    public void setPreferredWeight(int weight) {
+        this.preferredWeight = weight;
     }
     
     

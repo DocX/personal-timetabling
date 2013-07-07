@@ -100,13 +100,7 @@ public class Solver {
             System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
             
             //printState();
-            
-            // store best solution
-            if (currentSolution.isBetterThanBest()) {
-                currentSolution.saveBestSolution();
-                System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
-            }
-            
+                        
             if (pause) {
                 System.out.println("Paused");
                 synchronized(this) {
@@ -139,6 +133,11 @@ public class Solver {
             boolean conflicts = currentSolution.setAllocation(toSolve, selectedAllocation);
             System.out.printf(" Conflicting %s\n", conflicts);
             
+            // store best solution
+            if (currentSolution.isBetterThanBest()) {
+                currentSolution.saveBestSolution();
+                System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
+            }
            
         }
         
