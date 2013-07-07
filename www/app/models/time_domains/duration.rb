@@ -12,6 +12,7 @@ class Duration
   WEEK = 3
   DAY = 2
   HOUR = 1
+  MINUTE = 5
 
   attr_accessor :duration, :unit
   attr_reader :errors
@@ -28,6 +29,7 @@ class Duration
       self::WEEK => 'Week',
       self::DAY => 'Day',
       self::HOUR => 'Hour',
+      self::MINUTE => 'Minute'
     }
   end
 
@@ -41,6 +43,8 @@ class Duration
       'hours' => self::HOUR,
       'week' => self::WEEK,
       'weeks' => self::WEEK,
+      'minutes' => self::MINUTE,
+      'minute' => self::MINUTE
     }
   end
   

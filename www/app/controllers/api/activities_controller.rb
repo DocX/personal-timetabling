@@ -19,7 +19,29 @@ class Api::ActivitiesController < ApplicationController
   end
   
   def update
-    raise 'not implemented yet'
+    # updates activity
+    # update can be of two types:
+    # - update of activity properties, such a name
+    # - activity definition
+    # 
+    # in activity definition can be updated 
+    # - domain template
+    # - first window end
+    # - first window start
+    # - repeating definition
+
+    # activity properties - changes them.
+    # definition domain template - update events domains using definition
+    # first window end - update events domains and schedule window by definition
+    # repeating definition - merges changes 
+    #   create new events, then go one by one by creation order
+    #   for match - update current event domain and check allocation, move it to nearest in
+    #   domain place
+    #   new - create new event and associate with activity
+    #   extra - remove event
+
+    @activity = Activity.find params[:id]
+
   end
   
   def create

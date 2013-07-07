@@ -13,6 +13,7 @@ module PersonalTimetablingAPI
     PeriodDays = Rjb::import 'org.joda.time.Days'
     PeriodHours = Rjb::import 'org.joda.time.Hours'
     PeriodMonths = Rjb::import 'org.joda.time.Months'
+    PeriodMinutes = Rjb::import 'org.joda.time.Minutes'
 
     module Utils
       ArrayList = Rjb::import 'java.util.ArrayList'
@@ -108,6 +109,8 @@ module PersonalTimetablingAPI
     module DurationMixin
       def to_j
         case self.unit
+        when TimeDomains::Duration::MINUTE
+          return PeriodMinutes.minutes self.duration
         when TimeDomains::Duration::HOUR
           return PeriodHours.hours self.duration
         when TimeDomains::Duration::DAY

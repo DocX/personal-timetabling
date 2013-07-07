@@ -61,7 +61,7 @@ return PanelBase.extend({
 							type: 'boundless',
 							data: {
 								from: '2013-07-05T07:00Z',
-								duration: {duration: 11, unit: 'hour'},
+								duration: {duration: 660, unit: 'minute'},
 								period: {duration:1,unit:'day'}
 							}
 						}
