@@ -6,7 +6,8 @@ define(function(require) {
 var $ = require('jquery'),
     Backbone = require('backbone'),
     moment = require('moment'),
-    DomainTemplatesPanel = require('components/side_panels/domain_templates/domain_templates_index');
+    DomainTemplatesPanel = require('components/side_panels/domain_templates/domain_templates_index'),
+    ActivitiesPanel = require('components/side_panels/activities/activities_index');
     
 // View controller for calendar buttons
 return Backbone.View.extend({
@@ -19,7 +20,7 @@ return Backbone.View.extend({
 					"<span class='caret'></span>" +
 				"</button>" +
 				"<ul class='dropdown-menu pull-right'>" +
-					"<li><a tabindex='-1' href='#'>Activities</a></li>" +
+					"<li><a tabindex='-1' href='#' data-role='activities'>Activities</a></li>" +
 					"<li><a tabindex='-1' href='#' data-role='domain-template'>Domain templates</a></li>" +
 					"<li class='divider'></li>" +
 					"<li><a tabindex='-1' href='#pt-modal-about' data-toggle='modal' role='button'><i class=' icon-info-sign'></i> About</a></li>" +
@@ -33,6 +34,10 @@ return Backbone.View.extend({
 		
 		this.$el.find('[data-role=domain-template]').click(_.bind(function() {
 			this.options.app.open_panel(DomainTemplatesPanel, {calendar_view: this.options.app.calendar_view.calendar});
+		}, this));
+
+		this.$el.find('[data-role=activities]').click(_.bind(function() {
+			this.options.app.open_panel(ActivitiesPanel, {calendar_view: this.options.app.calendar_view.calendar});
 		}, this));
 	}
 

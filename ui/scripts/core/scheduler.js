@@ -38,6 +38,8 @@ return Backbone.View.extend({
 
 		this.mode = 'running';
 		this.delayed_events = [];
+
+		this.check_running();
 	},
 
 	new_activity_saved: function(activity) {
@@ -124,15 +126,21 @@ return Backbone.View.extend({
 
 	check_running: function() {
 		$.post('/scheduler/best')
-			.fail(function() { alert('scheudle done error'); })
+			.fail(_.bind(function() { 
+				this.show_error('error when saving result.');
+			}, this ))
 			.done(_.bind(function(data) { 
 				if (data.state == 'done') {
+					this.$overlay_modal.modal('hide');
 					this.trigger('done:scheduling');
+				} else if (data.state == 'none') {
+					this.$overlay_modal.modal('hide');
 				} else {
+					this.show_overlay();
 					this.check_timeout = window.setTimeout(_.bind(this.check_running, this), 750);
 				}
-			}, this))
-			.always(_.bind(function() { this.$overlay_modal.modal('hide'); }, this ));
+			}, this));
+			
 	},
 
 	show_overlay: function() {

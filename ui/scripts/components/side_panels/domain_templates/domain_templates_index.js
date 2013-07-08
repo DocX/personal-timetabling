@@ -35,7 +35,7 @@ return PanelBase.extend({
 	domain_item_template: _.template(
 		"<li>" +
 			"<a href='#' data-role='edit-domain' data-id='<%= id %>'><%= name %></a> " +
-			"<a href='#' data-role='remove-domain' data-id='<%= id %>'>Remove</a>" +
+			"[<a href='#' data-role='remove-domain' data-id='<%= id %>' title='Remove'>X</a>]" +
 		"</li>"
 		),
 

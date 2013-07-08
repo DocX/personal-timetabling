@@ -39,10 +39,7 @@ class FloatingActivityDefinition < GenericAbstractActivityDefinition
 
   # return domain for occurrence with given period
   def domain_for_event_occurrence(from, to)
-    TimeDomains::StackTimeDomain.create_masked(
-      TimeDomains::BoundedTimeDomain.create(from,to),
       @domain_template
-    )
   end
 
   def to_attributes

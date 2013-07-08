@@ -59,16 +59,26 @@ module PersonalTimetablingAPI
     # compute transitive closure of "intersects" relation of occurrences domains
     # given in occurrencfes_all, that closure contains occurrences_seed.
     def self.intersects_transitive_closure(occurrences_seed, occurrences_all)
+      Rails.logger.debug "intersects_transitive_closure called"
       # make list of domains and mapping of indexes to occurrence ids
       domains = PersonalTimetablingAPI::Core::Utils::ArrayList.new occurrences_all.size
-      indexes_to_id = []
+      indexes_to_o = []
       id_to_index = {}
 
       # add domains to data for finding transitive closure 
       occurrences_all.each do |o|
         domains.add o.scheduling_domain.to_j
-        indexes_to_id << o.id
-        id_to_index[o.id] = indexes_to_id.length-1
+        indexes_to_o << o
+        id_to_index[o.id] = indexes_to_o.length-1
+      end
+
+      # ensure that in domains is all from seed
+      occurrences_seed.each do |s|
+        unless id_to_index.include? s.id
+          domains.add s.scheduling_domain.to_j
+          indexes_to_o << s
+          id_to_index[s.id] = indexes_to_o.length - 1
+        end
       end
 
       seeds_indexes = PersonalTimetablingAPI::Core::Utils::ArrayList.new occurrences_seed.size
@@ -78,7 +88,7 @@ module PersonalTimetablingAPI
       closure_indexes = IntervalsTimeDomainUtils.computeIntersectsTransitiveClosure domains, seeds_indexes
 
       closure_occurrenes = PersonalTimetablingAPI::Core::Utils::j_list_to_ary(closure_indexes) do |j| 
-        occurrences_all.find {|o| o.id == indexes_to_id[j.intValue()] }
+        indexes_to_o[j.intValue()]
       end
 
       return closure_occurrenes
@@ -86,6 +96,7 @@ module PersonalTimetablingAPI
 
     # Adds given occurrences to problem with linked groups and ordering
     def self.add_to_problem(definition_builder, occurrences) 
+      Rails.logger.debug "add_to_problem called"
       linked_groups = {}
 
       occurrences.each do |o|

@@ -238,13 +238,14 @@ return PanelBase.extend({
 		// gets display date range
       	var range = this.options.activities_view.calendar.showing_dates();
 
-      	this.domain_model.syncFetchIntervals(
+      	this.domain_model.fetchPreviewIntervals(
       		range.start, 
-      		range.end,
+      		range.end)
+      	.success(
       		_.bind(function() {
 				this.remove_intervals_view(this.domain_model_preview);
 				this.domain_model_preview = this.options.activities_view.calendar.display_intervals(
-					this.domain_model.intervals_collection.models,
+					this.domain_model.preview_intervals_collection.models,
 					function(box) {box.addClass('domain-highlight ')}
 				);this.domain_model_preview
 			}, this)

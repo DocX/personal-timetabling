@@ -2,7 +2,7 @@ class Activity < ActiveRecord::Base
   attr_accessible :name, :link_events, :link_comparator, :definition_attributes
     
   has_many :events, :dependent => :destroy
-  serialize :definition, ActivityDefinition::BaseActivityDefinition
+  serialize :definition
 
   validates :name, :presence => true
   
@@ -29,6 +29,7 @@ class Activity < ActiveRecord::Base
   end
 
   def referenced_domain_templates_ids
+    return [] if definition.nil?
     definition.referenced_domain_templates_ids
   end
 
@@ -37,6 +38,7 @@ class Activity < ActiveRecord::Base
   end
 
   def referenced_domain_templates_ids_was
+    return [] if definition_was.nil?
     definition_was.referenced_domain_templates_ids
   end
 

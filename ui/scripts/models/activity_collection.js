@@ -12,8 +12,8 @@ return Backbone.Collection.extend({
   
   model: Activity,
 
-  withOccurancesInRange: function(start, end) {
-    return this.models;
+  fetchInRange: function(start, end) {
+  	return this.fetch();
   }
 });
 

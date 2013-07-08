@@ -28,6 +28,9 @@ module ActivityDefinition
 			raise 'not implemented'
 		end
 
+		def referenced_domain_templates_ids
+			raise 'not implemented'
+		end
 
 		def persisted?
 			false

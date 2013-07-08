@@ -112,7 +112,7 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
     @repeating
   end
 
-  def  repeating_attributes
+  def repeating_attributes
     return @repeating.to_attributes
   end
 end

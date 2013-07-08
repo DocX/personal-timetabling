@@ -49,6 +49,8 @@ class Api::ActivitiesController < ApplicationController
     
     if @activity.save
       @activity.definition_attributes = params[:definition]  if params[:definition]
+      @activity.save
+      
       respond_to do |format|
         format.json { render :json => @activity, :methods => [:event_ids] }
       end

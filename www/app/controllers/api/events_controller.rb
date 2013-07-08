@@ -62,7 +62,7 @@ class Api::EventsController < ApplicationController
     
     @event = Event.find params[:id]
 
-    @intervals = @event.domain.get_intervals start_date, end_date
+    @intervals = @event.scheduling_domain.get_intervals start_date, end_date
     
     respond_to do |format|
       format.json { render :json => @intervals}

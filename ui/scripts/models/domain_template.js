@@ -36,13 +36,6 @@ return DomainTemplate = Backbone.Model.extend({
 	// request domain intervals for current state of domain template model
 	fetchPreviewIntervals: function(from, to) {
 		return this.preview_intervals_collection.fetchInRange(from,to);
-	},
-
-	syncFetchIntervals: function(from, to, callback) {
-      	var xhr = this.fetchIntervals(from, to);
- 
-      	xhr.success(callback);
-      	return xhr;
 	}
 }, {
 	DomainTemplateIntervals: Backbone.Collection.extend({
