@@ -6,8 +6,7 @@ define(function(require) {
 var $ = require('jquery'),
     Backbone = require('backbone'),
     moment = require('moment'),
-    NewActivityPanel = require('components/side_panels/new_activity_panel'),
-    DomainTemplateEditor = require('components/side_panels/domain_template_editor');
+    DomainTemplatesPanel = require('components/side_panels/domain_templates/domain_templates_index');
     
 // View controller for calendar buttons
 return Backbone.View.extend({
@@ -33,7 +32,7 @@ return Backbone.View.extend({
 		this.$el.addClass('rightcomponents');
 		
 		this.$el.find('[data-role=domain-template]').click(_.bind(function() {
-			this.options.app.open_panel(DomainTemplateEditor, {calendar_view: this.options.app.calendar_view.calendar});
+			this.options.app.open_panel(DomainTemplatesPanel, {calendar_view: this.options.app.calendar_view.calendar});
 		}, this));
 	}
 

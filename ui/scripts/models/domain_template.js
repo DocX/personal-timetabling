@@ -15,23 +15,27 @@ return DomainTemplate = Backbone.Model.extend({
 		domain_attributes: ''
 	},
 
-	url: '/domain_templates',
+	urlRoot: '/domain_templates',
 
 	initialize: function() {
-		if (this.get('id')) {
-			this.intervals_collection = new DomainTemplate.DomainTemplateIntervals(null, {
-				domain_template_id: this.get('id')
-			});
-		} else {
-			this.intervals_collection = new DomainTemplate.DomainTemplatePreviewIntervals(null, {
-				domain_template_model: this
-			})
-		}
+		this.intervals_collection = new DomainTemplate.DomainTemplateIntervals(null, {
+			domain_template_model: this
+		});
+	
 
+		this.preview_intervals_collection = new DomainTemplate.DomainTemplatePreviewIntervals(null, {
+			domain_template_model: this
+		})
 	},
 
+	// request domain intervals for state stored in server
 	fetchIntervals: function(from, to) {
 		return this.intervals_collection.fetchInRange(from, to);
+	},
+
+	// request domain intervals for current state of domain template model
+	fetchPreviewIntervals: function(from, to) {
+		return this.preview_intervals_collection.fetchInRange(from,to);
 	},
 
 	syncFetchIntervals: function(from, to, callback) {
@@ -44,7 +48,7 @@ return DomainTemplate = Backbone.Model.extend({
 	DomainTemplateIntervals: Backbone.Collection.extend({
 
 		initialize: function(models, options) {
-			this.url = '/domain_templates/' + options.domain_template_id + '/domain_intervals/';
+			this.url = '/domain_templates/' + options.domain_template_model.get('id') + '/domain_intervals/';
 		},
 
 		model: Interval,

@@ -88,4 +88,18 @@ class Event < ActiveRecord::Base
     
     save
   end
+
+  # referenced domains ids observer interface
+  def referenced_domain_templates_ids
+    domain.referenced_domain_templates_ids
+  end
+
+  def referenced_domain_templates_ids_changed?
+    domain_changed?
+  end
+
+  def referenced_domain_templates_ids_was
+    domain_was.referenced_domain_templates_ids
+  end
+
 end

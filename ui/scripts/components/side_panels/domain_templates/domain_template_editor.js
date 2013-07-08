@@ -41,14 +41,19 @@ return PanelBase.extend({
 		this.listenTo(this.options.calendar_view, 'columns_updated', this.refresh_preview);
 
 		// initial stack domain
-		this.model = new DomainTemplate();
-		this.model.set('domain_attributes', {type: 'stack', data: { actions: [] } });
-	
+		if (this.model == null) {
+			this.model = new DomainTemplate();
+			this.model.set('domain_attributes', {type: 'stack', data: { actions: [] } });			
+		} 
+
+		this.$el.find('[name=domain_name]').val(this.model.get('name'));
 
 		this.domain_form = new NestedDomainForm({
 			el: this.$el.find('.domain_stack_form'),
 			model: this.model.get('domain_attributes')
 		});
+
+		this.refresh_preview();
 
 		this.listenTo(this.domain_form, 'change', this.refresh_preview);
 	},
@@ -76,7 +81,7 @@ return PanelBase.extend({
       	var range = this.options.calendar_view.showing_dates();
 
 		this.preview_xhr && this.preview_xhr.abort();
-      	this.preview_xhr = this.model.fetchIntervals(range.start, range.end);
+      	this.preview_xhr = this.model.fetchPreviewIntervals(range.start, range.end);
       	if (this.preview_xhr == false) {
       		return;
       	}
@@ -84,7 +89,7 @@ return PanelBase.extend({
       	this.preview_xhr.success(_.bind(function() {
 			this.remove_preview_intervals_display();
 			this.handling_boxes = this.options.calendar_view.display_intervals(
-				this.model.intervals_collection.models,
+				this.model.preview_intervals_collection.models,
 				function(box) {box.addClass('domain-highlight')}
 				);
 		}, this)
@@ -94,7 +99,9 @@ return PanelBase.extend({
 	save: function() {	
 		this.model.set('name', this.$el.find('[name=domain_name]').val());
 
-		this.model.save();
+		this.model.save()
+		.success(_.bind(this.remove, this))
+		.error(function() { alert('error saving domain')});
 	},
 
 	remove: function() {

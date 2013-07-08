@@ -28,4 +28,17 @@ class Activity < ActiveRecord::Base
     return link_events
   end
 
+  def referenced_domain_templates_ids
+    definition.referenced_domain_templates_ids
+  end
+
+  def referenced_domain_templates_ids_changed?
+    definition_changed?
+  end
+
+  def referenced_domain_templates_ids_was
+    definition_was.referenced_domain_templates_ids
+  end
+
+
 end

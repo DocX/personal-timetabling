@@ -90,7 +90,7 @@ var DomainStackFormPart = Backbone.View.extend({
 				type: 'boundless',
 				data: {
 					from: '2013-07-05T07:00Z',
-					duration: {duration: 11, unit: 'hour'},
+					duration: {duration: 660, unit: 'minute'},
 					period: {duration:1,unit:'day'}
 				}
 			}
@@ -101,7 +101,7 @@ var DomainStackFormPart = Backbone.View.extend({
 				type: 'boundless',
 				data: {
 					from: '2013-07-05T11:00Z',
-					duration: {duration: 3, unit: 'hour'},
+					duration: {duration: 180, unit: 'minute'},
 					period: {duration:1,unit:'day'}
 				}
 			}
@@ -252,8 +252,10 @@ var DomainStackFormPart = Backbone.View.extend({
 	},
 
 	from_nested_save: function(data) {
-		this.add_to_stack(data);
-		this.load_from_model();
+		if (data) {
+			this.add_to_stack(data);
+			this.load_from_model();
+		}
 	},
 
 	add_to_stack: function(action){
@@ -301,7 +303,7 @@ var DomainStackFormPart = Backbone.View.extend({
 		var editing_item = $(e.target).closest('li');
 
 		// signal to open subdomain form
-      	this.trigger('opennested', editing_item.data('action').domain);
+      	this.trigger('opennested', editing_item.data('action').domain );
 	},
 
 }, {

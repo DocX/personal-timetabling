@@ -7,9 +7,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def respond_error_status(status)
+  def respond_error_status(status, *attrs)
+    error = status
+    error = attrs.first if attrs.size > 0
+
   	respond_to do |format|
-        format.json {render :json => {:error => status}, :status => status}
+        format.json {render :json => {:error => error}, :status => status}
     end
   end
 

@@ -37,5 +37,9 @@ class FixedActivityDefinition < GenericAbstractActivityDefinition
       :to => selft.first_occurrence_window_end
     }
   end
+
+  def referenced_domain_templates_ids
+    []
+  end
 end 
 end

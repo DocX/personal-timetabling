@@ -68,5 +68,9 @@ class FloatingActivityDefinition < GenericAbstractActivityDefinition
 
     super coder
   end
+
+  def referenced_domain_templates_ids
+    domain_template.referenced_domain_templates_ids
+  end
 end
 end

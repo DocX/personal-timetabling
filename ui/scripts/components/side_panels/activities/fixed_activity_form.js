@@ -11,7 +11,7 @@ var $ = require('jquery'),
     FixedActivityStub = require('models/fixed_activity_stub'),
     ActivityOccurance = require('models/activity_occurance'),
     PanelBase = require('components/side_panels/panel_base'),
-    ActivityRepeatingForm = require('components/side_panels/activity_form/activity_repeating_form');
+    ActivityRepeatingForm = require('components/side_panels/activities/activity_repeating_form');
     
 return PanelBase.extend({
 

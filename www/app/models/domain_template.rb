@@ -13,8 +13,7 @@ class DomainTemplate < ActiveRecord::Base
   validates :name, :presence => true
   validates :domain, :presence => true
 
-  before_save :store_referenced_ids
-  before_destroy :no_references?
+  before_destroy :is_not_referenced?
 
   def domain_attributes
     self.domain.to_hash
@@ -24,35 +23,25 @@ class DomainTemplate < ActiveRecord::Base
     self.domain = TimeDomains::BaseTimeDomain.from_attributes attributes
   end
 
-  protected 
-
-  # inflates domain definition hash with database references
-  def get_referenced_ids
+  # referenced domain templates implementation methods for counting observer
+  def referenced_domain_templates_ids
     domain.referenced_domain_templates_ids
   end
 
-  def store_referenced_ids
-    return true unless self.domain_changed?
-
-    # get referenced ids
-    was_ids = self.domain_was.nil? ? [] : self.domain_was.referenced_domain_templates_ids
-    now_ids = get_referenced_ids
-
-    # make diff of before safe and after safe ids
-    # and store that diff to counter
-
-    removed_ids = was_ids.select {|id| not now_ids.include? id }
-    same_ids = was_ids.select {|id| now_ids.include? id}
-    new_ids = now_ids.select {|id| not was_ids.include? id} 
-   
-    # count referenced templates
-    DomainTemplate.where('id IN (?)', removed_ids).update_all('reference_count = reference_count - 1')
-    DomainTemplate.where('id IN (?)', new_ids).update_all('reference_count = reference_count + 1')
-
-    return true
+  def referenced_domain_templates_ids_changed?
+    domain_changed?
   end
 
-  def no_references?
+  def referenced_domain_templates_ids_was
+    domain_was.referenced_domain_templates_ids
+  end
+
+  def is_not_referenced?
     self.reference_count == 0
   end
+
+  def is_referenced?
+    self.reference_count != 0
+  end
+  
 end

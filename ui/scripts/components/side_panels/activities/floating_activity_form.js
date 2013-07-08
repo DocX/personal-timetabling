@@ -11,7 +11,7 @@ var $ = require('jquery'),
     FloatingActivityStub = require('models/floating_activity_stub'),
     ActivityOccurance = require('models/activity_occurance'),
     PanelBase = require('components/side_panels/panel_base'),
-    ActivityRepeatingForm = require('components/side_panels/activity_form/activity_repeating_form'),
+    ActivityRepeatingForm = require('components/side_panels/activities/activity_repeating_form'),
     NestedDomainForm = require('components/domain_template_forms/nested_domain_form'),
     DomainTemplate = require('models/domain_template');
 

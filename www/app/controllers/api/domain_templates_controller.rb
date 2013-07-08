@@ -23,15 +23,33 @@ class Api::DomainTemplatesController < ApplicationController
     @domain_template = DomainTemplate.find(params[:id])
     
     respond_to do |format|
-      format.json {render :json => @domain_template, :only => [:name, :id, :domain_attributes]}
+      format.json {render :json => @domain_template, :only => [:name, :id, :domain_attributes], :methods=>[:domain_attributes]}
     end
+  end
+
+  def update
+    @domain_template = DomainTemplate.find(params[:id])
+
+    if @domain_template.update_attributes(params.slice(:name,:domain_attributes))
+      respond_ok_status :updated
+    else
+      respond_error_status :bad_request
+    end
+
   end
   
   def destroy
     @domain_template = DomainTemplate.find(params[:id])
-    @domain_template.destroy
-
-    respond_ok_status :destroyed
+    
+    if @domain_template.destroy
+      respond_ok_status :destroyed
+    else
+      if @domain_template.is_referenced? 
+        respond_error_status :method_not_allowed, :is_referenced 
+      else
+        respond_error_status :method_not_allowed
+      end
+    end
   end
   
   def new_domain_intervals

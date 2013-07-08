@@ -11,8 +11,8 @@ var $ = require('jquery'),
     Activity = require('models/activity'),
     PanelBase = require('components/side_panels/panel_base'),
     DomainTemplatesCollection = require('models/domain_templates_collection'),
-    FixedActivityForm = require('components/side_panels/activity_form/fixed_activity_form'),
-    FloatingActivityForm = require('components/side_panels/activity_form/floating_activity_form');
+    FixedActivityForm = require('components/side_panels/activities/fixed_activity_form'),
+    FloatingActivityForm = require('components/side_panels/activities/floating_activity_form');
     
 return PanelBase.extend({
 

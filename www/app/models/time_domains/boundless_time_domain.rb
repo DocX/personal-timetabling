@@ -41,6 +41,7 @@ class BoundlessTimeDomain < BaseTimeDomain
     {
       :type => 'boundless',
       :data => {
+        :from => self.reference_start,
         :duration => self.duration.to_hash,
         :period => self.period.to_hash
       }
