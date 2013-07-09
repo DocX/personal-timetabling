@@ -51,13 +51,13 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
 
   // fetches occurances in current view range 
   // and then triggers its redraw
-  reload_activities: function() {
+  reload_activities: function(force) {
     // render first current state of collection
     this.refresh();
 
     // fetch new view
     var range = this.calendar.showing_dates();
-    this.collection.fetchRange(range.start, range.end)
+    this.collection.fetchRange(range.start, range.end, force)
     .success(_.bind(this.refresh, this));
   },
   
@@ -98,6 +98,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     this.active_id = null;
     this.calendar.$grid_overlay_el.find('.activity-occurance.active').removeClass('active');
     this.domain_intervals_display && _.forEach(this.domain_intervals_display, function(i) {i.remove()});
+    this.domain_intervals_display = null;
   },
   
   // creates view box for given occurance
@@ -114,6 +115,7 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
       remove: _.bind(this.delete_activity_occurance, this),
       box_setup: function(e, box) { box.addClass(class_name); box.data('occurance', occurance); },
     });
+
     box.data('occurance', occurance);
 
     return box;
@@ -124,8 +126,12 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
   add_occurance_box: function(occurance) {
     var box = this.add_raw_occurance_box(occurance);
 
-    var activate_fn = function(that) { return function() { that.activate_occurance_box(this) } }(this);
+    var activate_fn = function(that) { return function() { 
+      that.activate_occurance_box(this) ;
+       that.trigger('selected:event', occurance);
+    } }(this);
     box.mousedown(activate_fn);
+
     var box_setup = box.activity_occurance_box('option', 'box_setup');
     box.activity_occurance_box('option', 'box_setup', function(e,box) {box.mousedown(activate_fn); box_setup(e, box); });
     box.activity_occurance_box('option', 'dropped', _.bind(function(e, occurance) {
@@ -144,9 +150,16 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     if ($(box).hasClass('active'))
       return;
 
-
     //get its intervals and shows them
     var occurance = $(box).closest('.activity-occurance').data('occurance');
+
+    if (this.active_id != occurance.id) {
+      this.trigger('selected:event', occurance);
+    }
+    if (this.active_id == occurance.id) {
+      return true;
+    }
+
     this.active_id = occurance.id;
 
     // display again last intervals in activity memory
@@ -160,7 +173,14 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
 
     var range = this.calendar.showing_dates();
     occurance.domain_intervals.fetchRange(range.start, range.end)
-    .success(_.bind(_.partial(this.show_domain, occurance), this));
+    .success(_.bind(function(){
+      if (this.active_id == occurance.get('id')) {
+        this.show_domain(occurance);
+      }
+    }, this));
+
+    
+
   },
 
   // fetches and displays domain of given occurance model

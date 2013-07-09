@@ -53,6 +53,9 @@ return PanelBase.extend({
 		this.$activity_type_select = this.$el.find('.activity_type_select');
 
 		this.$actions.hide();
+
+		this.options.activities_view.clear_selection();
+
 	},
 
 	clear_selected_form: function() {

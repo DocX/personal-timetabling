@@ -1,5 +1,5 @@
 class Event < ActiveRecord::Base
-  attr_accessible :name, :duration, :start, :min_duration, :max_duration, :domain_attributes, :tz_offset, :activity_id, :schedule_since, :schedule_deadlin
+  attr_accessible :name, :duration, :start, :min_duration, :max_duration, :domain_attributes, :tz_offset, :activity_id, :schedule_since, :schedule_deadline
   
   serialize :domain, TimeDomains::BaseTimeDomain
   serialize :events_after, Array 
@@ -50,7 +50,11 @@ class Event < ActiveRecord::Base
   # instance properties 
 
   def domain_attributes=(attrs)
-    domain = TimeDomains::BaseTimeDomain.from_attributes attrsh
+    self.domain = TimeDomains::BaseTimeDomain.from_attributes attrs
+  end
+
+  def domain_attributes
+    domain.to_hash
   end
 
   def duration=(d)

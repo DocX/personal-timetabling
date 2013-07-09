@@ -10,6 +10,10 @@ class Activity < ActiveRecord::Base
   	a.link_comparator = a.link_comparator && a.link_comparator.to_sym
   end
 
+  def self.with_events_in_range(from, to)
+    Activity.where('EXISTS (SELECT 1 FROM events WHERE events.activity_id = activities.id AND start <= ? AND end >= ?)', to, from)
+  end
+
   def definition_attributes
   	self.definition && self.definition.to_attributes
   end

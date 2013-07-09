@@ -54,6 +54,7 @@ return PanelBase.extend({
 		});
 
 		this.refresh_preview();
+		this.options.activities_view.clear_selection();
 
 		this.listenTo(this.domain_form, 'change', this.refresh_preview);
 	},

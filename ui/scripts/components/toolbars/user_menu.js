@@ -33,11 +33,17 @@ return Backbone.View.extend({
 		this.$el.addClass('rightcomponents');
 		
 		this.$el.find('[data-role=domain-template]').click(_.bind(function() {
-			this.options.app.open_panel(DomainTemplatesPanel, {calendar_view: this.options.app.calendar_view.calendar});
+			this.options.app.open_panel(DomainTemplatesPanel, {
+				calendar_view: this.options.app.calendar_view.calendar,
+				activities_view: this.options.app.calendar_view
+			});
 		}, this));
 
 		this.$el.find('[data-role=activities]').click(_.bind(function() {
-			this.options.app.open_panel(ActivitiesPanel, {calendar_view: this.options.app.calendar_view.calendar});
+			this.options.app.open_panel(ActivitiesPanel, {
+				calendar_view: this.options.app.calendar_view.calendar,
+				activities_view: this.options.app.calendar_view
+			});
 		}, this));
 	}
 

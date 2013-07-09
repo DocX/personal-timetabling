@@ -13,7 +13,7 @@ return Backbone.Collection.extend({
   model: Activity,
 
   fetchInRange: function(start, end) {
-  	return this.fetch();
+  	return this.fetch({data:{from: start.toJSON(), to: end.toJSON()}});
   }
 });
 

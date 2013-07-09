@@ -56,8 +56,11 @@ return PanelBase.extend({
 
 		this.activity_collection = new ActivityCollection();
 		this.listenTo(this.activity_collection, 'add destroy sync', this.load_from_collection);
-
+		this.listenTo(this.options.calendar_view, 'columns_updated', this.update_range)
 		this.update_range();
+
+		this.options.activities_view.clear_selection();
+
 	},
 
 	update_range: function() {
@@ -83,7 +86,11 @@ return PanelBase.extend({
 
 		var panel_el = $('<div/>');
 		this.$panel_view.append(panel_el);
-		this.subpanel = new NewActivityForm({el:panel_el, calendar_view: this.options.calendar_view});
+		this.subpanel = new NewActivityForm({
+			el:panel_el, 
+			calendar_view: this.options.calendar_view,
+			activities_view: this.options.activities_view
+		});
 		this.activity_collection.add(this.subpanel.model);
 		this.listenTo(this.subpanel, 'removed', this.subpanel_removed);
 
@@ -95,7 +102,7 @@ return PanelBase.extend({
 
 		this.activity_collection.get(item_id).destroy({wait: true})	
 		.success(_.bind(function() {
-			this.options.calendar_view.reload_activities();
+			this.options.activities_view.reload_activities(true);
 		}, this))
 		.error(function(xhr) {
 			var d = JSON.parse(xhr.responseText);

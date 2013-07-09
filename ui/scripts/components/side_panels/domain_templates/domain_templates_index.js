@@ -16,7 +16,7 @@ return PanelBase.extend({
 
 	template: 
 		"<div id='domain_box'>" +
-			"<p><strong>Domain templates</strong> <a class='' style='float:right' data-role='cancel_btn'>Cancel</a></p>" +
+			"<p><strong>Domain templates</strong> <a href='#' class='' style='float:right' data-role='cancel_btn'>Cancel</a></p>" +
 
 			"<div>" +
 				"<a href='#' class='btn btn-primary' data-role='new-domain'>Create new domain</a>" +
@@ -57,6 +57,9 @@ return PanelBase.extend({
 		this.domains_collection = new DomainTemplatesCollection();
 		this.listenTo(this.domains_collection, 'add destroy sync', this.load_from_domains);
 		this.domains_collection.fetch();
+
+		this.options.activities_view.clear_selection();
+
 	},
 
 	remove: function() {

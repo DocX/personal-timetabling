@@ -11,7 +11,8 @@ var $ = require('jquery'),
     UserMenu = require('components/toolbars/user_menu'),
     ActivitiesButtons = require('components/toolbars/activities_buttons'),
     Scheduler = require('core/scheduler'),
-    SchedulerButtons = require('components/toolbars/scheduler_buttons');
+    SchedulerButtons = require('components/toolbars/scheduler_buttons'),
+    EventEditor = require('components/side_panels/events/event_edit');
 
 return Backbone.View.extend({
 
@@ -64,6 +65,7 @@ return Backbone.View.extend({
     this.listenTo(this.calendar_view, 'all', this.trigger);
     this.listenTo(this.scheduler, 'all', this.trigger);
     this.calendar_view.listenTo(this.scheduler, 'done:scheduling', this.calendar_view.reload_activities);
+    this.listenTo(this.calendar_view, 'selected:event', this.open_event_editor);
 
     // start doing job
     this.calendar_view.render();
@@ -71,11 +73,14 @@ return Backbone.View.extend({
 
   open_panel: function(view_class, options) {
     if (this.sidebar) {
+      this.stopListening(this.sidebar);
       this.sidebar.remove();
     }
 
     this.$app_view.addClass('panel-open');
-    this.calendar_view.render();
+    if (this.sidebar == null) {
+      this.calendar_view.render();
+    }
 
     $.extend(options, {el: $("<div class='fill'/>").appendTo(this.$app_view.find("#sidepanel")), app: this});
 
@@ -88,6 +93,17 @@ return Backbone.View.extend({
     this.$app_view.removeClass('panel-open');
     this.calendar_view.render();    
   },
+
+  open_event_editor: function(event_model) {
+    event_model.fetch()
+    .success(_.bind(function() {
+      this.open_panel(EventEditor, {
+        model: event_model,
+        activities_view: this.calendar_view
+      });
+    }, this));
+    
+  }
 
 });
 

@@ -40,6 +40,9 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   defaults: function() { return {
     start: moment.asUtc(moment()),
     duration: 3600,
+    schedule_since: moment.asUtc(moment()),
+    schedule_deadline: moment.asUtc(moment()).add(1,'h'),
+    domain_attributes: {}
     
   }},
   
@@ -100,6 +103,9 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
       data.duration = moment.utc(data.end).diff(data.start,'seconds');
       delete data.end;
     }
+
+    data.schedule_since = moment.utc(data.schedule_since);
+    data.schedule_deadline = moment.utc(data.schedule_deadline);
     return data;
   },
 
@@ -119,6 +125,23 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     return this.domain_intervals.isFeasible(start, duration) && this.validDuration(duration);
   },
   
+  fetchPreviewDomainIntervals: function(from, to) {
+    var domain_intervals = new ActivityOccurance.OccurancePreviewDomainCollection(
+      null,
+      {
+        occurrence: this
+      }
+    );
+
+    return {collection: domain_intervals, xhr: domain_intervals.fetchRange(from,to)};
+  },
+
+  toJSON: function() {
+    var json = $.extend({}, this.attributes);
+    delete json.activity;
+    return json;
+  },
+
   urlRoot: '/events', 
 },{
   OccuranceDomainCollection: Backbone.Collection.extend({
@@ -143,6 +166,38 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
     isFeasible: function(start, duration) {
       return !this.fetched || this.any(function(i) {return i.isInInterval(start, duration);});
     }
+    
+  }),
+
+  OccurancePreviewDomainCollection: Backbone.Collection.extend({
+
+    url: '/events/domain_intervals',
+
+    initialize: function(models, options) {
+      this.occurrence = options.occurrence;
+    },
+    
+    fetched: false,
+    model: Interval,
+    
+    fetchRange: function(start, end) {
+      var xhr = this.fetch({
+        type: 'post', 
+        processData: false,
+        contentType: 'application/json',
+        data: JSON.stringify({
+          event: {
+            schedule_since: this.occurrence.get('schedule_since').toJSON(),
+            schedule_deadline: this.occurrence.get('schedule_deadline').toJSON(),
+            domain_attributes: this.occurrence.get('domain_attributes'),
+          },
+          from: start.toJSON(), 
+          to: end.toJSON()
+        })
+      });
+      xhr.success(_.bind(function() {this.fetched = true;}, this));
+      return xhr;
+    },
     
   }),
 

@@ -1,7 +1,11 @@
 class Api::ActivitiesController < ApplicationController
   
   def index
-    @activities = Activity.all
+    unless params[:to].nil? and params[:from].nil?
+      @activities = Activity.with_events_in_range DateTime.parse(params[:from]), DateTime.parse(params[:to])
+    else
+      @activities = Activity.all
+    end
     respond_to do |format|
       format.json { render :json => @activities, :only=>[:name, :id], :methods => [:event_ids] }
     end

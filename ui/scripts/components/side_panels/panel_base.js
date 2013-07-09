@@ -9,6 +9,7 @@ var Backbone = require('backbone');
 // panel-like view in application
 return Backbone.View.extend({
 	remove: function() {
+		this.stopListening();		
 		this.trigger('removed');
 		// and remove view
 		Backbone.View.prototype.remove.apply(this);

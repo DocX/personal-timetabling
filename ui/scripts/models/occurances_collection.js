@@ -12,8 +12,8 @@ return Backbone.Collection.extend({
   
   model: ActivityOccurance,
   
-  fetchRange: function(start, end) {
-    return this.fetch({remove: false, data: {from: start.toJSON(), to: end.toJSON()}});
+  fetchRange: function(start, end, remove) {
+    return this.fetch({remove: remove == true, data: {from: start.toJSON(), to: end.toJSON()}});
   },
   
   inRange: function(start, end) {

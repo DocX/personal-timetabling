@@ -2,25 +2,25 @@ PersonalTimetablingAPI::Application.routes.draw do
   
   namespace :api, :path=>'', :defaults => {:format => :json} do
 
-    # users resources
-    # access to user data and creating new users
-    scope '/users' do
-      get '/:id', to: 'users#show'
-      post '/', to: 'user#create'
-      delete '/:id', to: 'user#destroy'
-      put '/:id', to: 'user#update'
-    end
+    # # users resources
+    # # access to user data and creating new users
+    # scope '/users' do
+    #   get '/:id', to: 'users#show'
+    #   post '/', to: 'user#create'
+    #   delete '/:id', to: 'user#destroy'
+    #   put '/:id', to: 'user#update'
+    # end
 
-    # user session resource
-    # handles user's session creation and invalidation
-    scope '/user_session' do 
-      # get current session info
-      get '/', to: 'user_session#show'
-      # create new session
-      post '/', to: 'user_session#crate'
-      # delete session, invalidating auth token
-      delete '/', to: 'user_session#destroy'
-    end
+    # # user session resource
+    # # handles user's session creation and invalidation
+    # scope '/user_session' do 
+    #   # get current session info
+    #   get '/', to: 'user_session#show'
+    #   # create new session
+    #   post '/', to: 'user_session#crate'
+    #   # delete session, invalidating auth token
+    #   delete '/', to: 'user_session#destroy'
+    # end
 
     # events resources
     # access and handling event occurrences
@@ -42,6 +42,7 @@ PersonalTimetablingAPI::Application.routes.draw do
       delete '/:id', to: 'events#destroy'
       # get intervals of domain in given period
       get '/:id/domain_intervals(/:from$:to)', to: 'events#domain_intervals'
+      post '/domain_intervals(/:from$:to)', to: 'events#domain_intervals_preview'
       # get activity object of event with given :id
       get '/:event_id/activity', to: 'activity#show'
 
@@ -52,7 +53,7 @@ PersonalTimetablingAPI::Application.routes.draw do
     # activities resources
     # activity is logical set of events defined by activity definition
     scope '/activities' do
-      get '/', to: 'activities#index'
+      get '/(:from$:to)', to: 'activities#index'
       get '/list/:ids', to: 'activities#list'
       post '/', to: 'activities#create'
 

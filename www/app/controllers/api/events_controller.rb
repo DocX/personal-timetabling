@@ -17,15 +17,15 @@ class Api::EventsController < ApplicationController
     @event = Event.find(params[:id])
 
     respond_to do |format|
-      format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at]}
+      format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at, :domain], :methods => [:domain_attributes]}
     end        
   end
   
   def update
-    @event = Event.update params[:id], params.dup.extract!(:name, :start, :duration)
+    @event = Event.update params[:id], params.dup.extract!(:name, :start, :duration, :max_duration, :min_duration, :schedule_since, :schedule_deadline, :domain_attributes)
 
     respond_to do |format|
-      format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at]}
+      format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at, :domain], :methods => [:domain_attributes]}
     end
   end
   
@@ -61,6 +61,19 @@ class Api::EventsController < ApplicationController
     end_date = DateTime.parse params[:to]
     
     @event = Event.find params[:id]
+
+    @intervals = @event.scheduling_domain.get_intervals start_date, end_date
+    
+    respond_to do |format|
+      format.json { render :json => @intervals}
+    end
+  end
+
+  def domain_intervals_preview
+    start_date = DateTime.parse params[:from]
+    end_date = DateTime.parse params[:to]
+    
+    @event = Event.new params[:event]
 
     @intervals = @event.scheduling_domain.get_intervals start_date, end_date
     

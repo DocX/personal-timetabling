@@ -9,7 +9,9 @@ moment.asUtc = function(date) {
 };
 
 moment.asLocal = function(date) {
-	return moment(moment(date).toJSON().replace(/Z$/,''))	
+	date = moment.utc(date).toJSON();
+	
+	return moment(date.replace(/(Z|\d\d\d\d)$/,''))	
 }
 
 });
