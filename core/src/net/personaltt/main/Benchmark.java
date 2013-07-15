@@ -38,28 +38,28 @@ public class Benchmark {
      */
     public static void main(String[] args) {
         
-//        ProblemDefinition problem;
-//        
-//        problem =
-//        //bench1();
-//        //bench2();
-//        //bench3();
-//        //bench4();
-//        //bench5();
-//        //testSolverClient();
-//        benchPriority(1);
-//        
-//        //solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
-//        //solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
-//        benchSolve(problem);
-//
-//        // benchmark stay min conflict
-//        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
-//        
-//        // benchmark probBestIgnoringSelWhenNoConflict
-//        //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
+        ProblemDefinition problem;
         
-        benchmarkPriority();
+        problem =
+        //bench1();
+        //bench2();
+        //bench3();
+        bench4();
+        //bench5();
+        //testSolverClient();
+        //benchPriority(1);
+        
+        //solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
+        //solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
+        benchSolve(problem);
+
+        // benchmark stay min conflict
+        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
+        
+        // benchmark probBestIgnoringSelWhenNoConflict
+        //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
+        
+        //benchmarkPriority();
     }
     
     public static void benchmarkPriority() {

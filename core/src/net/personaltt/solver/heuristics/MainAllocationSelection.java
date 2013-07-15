@@ -40,7 +40,7 @@ public class MainAllocationSelection implements AllocationSelection {
     }
     
     double conflictCostWeight = 1.0;
-    int lastToZeroConflictIt = 0;
+    int lastConflictLoweringIteration = 0;
     long lastConflictCost = 0;
     
     // smalest conflict cost statitstic
@@ -53,15 +53,17 @@ public class MainAllocationSelection implements AllocationSelection {
             smallestConflict = schedule.constraintsCost();
         }
         
-        // if previous  iteration gets smallest conflict
+        // until we are lowering conflict value, store last iteration to current
         if (lastConflictCost > smallestConflict && schedule.constraintsCost() == smallestConflict) {
-            lastToZeroConflictIt = schedule.getItearation();
+            lastConflictLoweringIteration = schedule.getItearation();
         }
         lastConflictCost = schedule.constraintsCost();
         
-        if (schedule.constraintsCost() > smallestConflict || schedule.getItearation() - lastToZeroConflictIt < stayMinConflictSelectionAfterToZeroConflict) {
+        // if current conflict value is worst than smallest found OR 
+        // we are not moving better for last stayMinConflictSelction
+        if (schedule.constraintsCost() > smallestConflict || schedule.getItearation() - lastConflictLoweringIteration < stayMinConflictSelectionAfterToZeroConflict) {
             // best minimal conflict
-            System.out.printf("AlocSelection: min conflict, min cost. sc:%s, lzi:%s\n",smallestConflict, lastToZeroConflictIt);
+            System.out.printf("AlocSelection: min conflict, min cost. sc:%s, lzi:%s\n",smallestConflict, lastConflictLoweringIteration);
             return conflictingSelection.select(schedule, forOccurrence);
         } else {
             if (random.nextDouble() < probBestIgnoringSelWhenNoConflict) {

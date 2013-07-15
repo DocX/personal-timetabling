@@ -53,14 +53,6 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
       # get domain for this period by implementation of domain_for_event_occurrence
       period_domain = domain_for_event_occurrence(period_interval.first, period_interval.last)
 
-      # get first interval of domain cut
-      period_domain_intervals = period_domain.get_intervals period_interval.first, period_interval.last
-
-      # if zero intervals in this period, skip to the next and dont create occurence
-      if period_domain_intervals.size == 0
-        counter += 1
-        next
-      end
 
       Rails.logger.debug 'activity definition create event new event'
       event = Event.new
@@ -70,8 +62,6 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
         event.name += " #{counter + 1}/#{period_intervals.size}" if period_intervals.size > 1 
       end
 
-      # set initial start of event to start of very least moment in domain
-      event.start = period_domain_intervals.first.start
       
       # set initial duration to max duration as it is considered as optimal
       event.duration = @occurrence_max_duration
@@ -82,6 +72,18 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
       # set schedule interval for event to current repeat period interval
       event.schedule_since = period_interval.first
       event.schedule_deadline = period_interval.last
+
+      # get first interval of domain cut
+      period_domain_intervals = event.scheduling_domain.get_intervals period_interval.first, period_interval.last
+
+      # if zero intervals in this period, skip to the next and dont create occurence
+      if period_domain_intervals.size == 0
+        counter += 1
+        next
+      end
+
+      # set initial start of event to start of very least moment in domain
+      event.start = period_domain_intervals.first.start
 
       events << event
       Rails.logger.debug 'activity definition create event event added'

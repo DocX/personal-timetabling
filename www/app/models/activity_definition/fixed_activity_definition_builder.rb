@@ -23,8 +23,14 @@ class FixedActivityDefinition < GenericAbstractActivityDefinition
 
   # return domain for occurrence with given period
   def domain_for_event_occurrence(from, to)
-    domain = TimeDomains::StackTimeDomain.new
-    domain.push(TimeDomains::StackTimeDomain::Action.new TimeDomains::StackTimeDomain::Action::ADD, TimeDomains::BoundedTimeDomain.create(from,to))
+    domain = TimeDomains::BoundlessTimeDomain.new
+    domain.reference_start = DateTime.now.utc.midnight
+    domain.duration = TimeDomains::Duration.new
+    domain.duration.duration = 1440
+    domain.duration.unit = TimeDomains::Duration::MINUTE
+    domain.period = TimeDomains::Duration.new
+    domain.period.duration = 1
+    domain.period.unit = TimeDomains::Duration::DAY
 
     return domain
   end
