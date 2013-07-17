@@ -30,8 +30,10 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
     double optimizationWhenConflictProb;
 
     public RouletteOccurrenceSelection(DataProperties properties) {
+        // EXPERIMENT with added probability of also counting preference cost when
+        // conflict solving phase. According to experiments, zero is best so far.
         optimizationWhenConflictProb = 
-                properties.getPropertyDouble("rouletteOccurrenceSelection.optimizationWhenConflictProb", 0.2);
+                properties.getPropertyDouble("rouletteOccurrenceSelection.optimizationWhenConflictProb", 0);
     }
     
      /**

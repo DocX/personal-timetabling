@@ -33,7 +33,9 @@ public class MainAllocationSelection implements AllocationSelection {
         stayMinConflictSelectionAfterToZeroConflict =
                 properties.getPropertyInt("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 10);
         probBestIgnoringSelWhenNoConflict =
-                properties.getPropertyDouble("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0.7);
+                // according to experimental tests, probability of 1 of always selecting one of the minimal cost 
+                // allocations, seems to be the best
+                properties.getPropertyDouble("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 1);
         
         conflictingSelection = new BestAllocationSelection(properties);
         optimizingSelection = new RouletteAllocationSelection(properties);
@@ -48,7 +50,7 @@ public class MainAllocationSelection implements AllocationSelection {
     
     @Override
     public OccurrenceAllocation select(SolverState schedule, Occurrence forOccurrence) {
-        // todo in last X iterations?
+        
         if (schedule.constraintsCost() < smallestConflict) {
             smallestConflict = schedule.constraintsCost();
         }
@@ -60,54 +62,28 @@ public class MainAllocationSelection implements AllocationSelection {
         lastConflictCost = schedule.constraintsCost();
         
         // if current conflict value is worst than smallest found OR 
-        // we are not moving better for last stayMinConflictSelction
+        // we are not moving better in last stayMinConflictSelction iterations
         if (schedule.constraintsCost() > smallestConflict || schedule.getItearation() - lastConflictLoweringIteration < stayMinConflictSelectionAfterToZeroConflict) {
             // best minimal conflict
             System.out.printf("AlocSelection: min conflict, min cost. sc:%s, lzi:%s\n",smallestConflict, lastConflictLoweringIteration);
             return conflictingSelection.select(schedule, forOccurrence);
         } else {
-            if (random.nextDouble() < probBestIgnoringSelWhenNoConflict) {
+           // if (random.nextDouble() < probBestIgnoringSelWhenNoConflict) {
                 // best conflicting
+                // see constructor for explanation of only this selection
                 System.out.println("AlocSelection: best ignoring conflict");
                 return selectBestIgnoringConflict(schedule, forOccurrence);
-            } else {
+            //} else {
                 // roulette selection
-                System.out.println("AlocSelection: roullette");
-                return optimizingSelection.select(schedule, forOccurrence);
-            }
+            //    System.out.println("AlocSelection: roullette");
+            //    return optimizingSelection.select(schedule, forOccurrence);
+            //}
         }
     }
     
     
     public OccurrenceAllocation selectBestIgnoringConflict(SolverState schedule, Occurrence forOccurrence) {
-        // Allocations aligned to elementary intervals start and ends
-        AlignedOccurrenceAllocationsIterator allocations = 
-                new AlignedOccurrenceAllocationsIterator(forOccurrence, schedule.allocationsMultimap());
-    
-        
-        ArrayList<BaseInterval<Integer>> bestAllocations = new ArrayList<>();
-        long bestOccurrenceCost = Long.MAX_VALUE;
-        
-        // iterate thgrouh all aligned allocations
-        while(allocations.hasNext()) {
-            BaseInterval<Integer> allocation = allocations.next();
-            
-            long allocationOccurrenceCost = (long)(forOccurrence.getAllocationCost(allocation));
-            
-            if (allocationOccurrenceCost < bestOccurrenceCost) {
-                bestAllocations.clear();
-                bestOccurrenceCost = allocationOccurrenceCost;
-            }
-            
-            if (allocationOccurrenceCost == bestOccurrenceCost) {
-                bestAllocations.add(allocation);
-            }
-        }
-        
-        System.out.printf(" Found %s best conflicting allocations with cost %s: \n",bestAllocations.size(), bestOccurrenceCost);
-        
-        BaseInterval<Integer> choosen = bestAllocations.get(random.nextInt(bestAllocations.size()));
-        return new OccurrenceAllocation(choosen);
+        return forOccurrence.getBestPreferredAllocation();
     }
     
 }

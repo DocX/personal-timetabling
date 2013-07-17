@@ -205,7 +205,7 @@ public class Occurrence {
         return getAllocationCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
     }
     
-    int PRIORTY_OFFSET = 48;
+    int PRIORTY_OFFSET = 56;
     
     public long getAllocationCost(int start, int duration) {
         long diffFromPreferred = (long)Math.abs(start - preferredStart);
@@ -243,5 +243,20 @@ public class Occurrence {
     
     public void setPreferrencePriority(int weight) {
         this.preferrencePriority = weight;
+    }
+
+    /**
+     * Return new instance of allocation that is best preferred. It is 
+     * allocation with preferred start and preferred duration, bud duration
+     * can be cropped by domain of allocation.
+     * @return 
+     */
+    public OccurrenceAllocation getBestPreferredAllocation() {
+        // get allocation in preferred start with maximal duration that is allowed
+        // due to domain
+        
+        BaseInterval<Integer> d = this.domain.getIntervalContaining(preferredStart);
+        
+        return new OccurrenceAllocation(preferredStart, Math.min(d.getEnd() - preferredStart, maxDuration));
     }
 }

@@ -29,7 +29,7 @@ import net.sf.cpsolver.ifs.util.DataProperties;
  */
 public class Benchmark {
 
-    static int SOLVER_TIMEOUT = 900000;
+    static int SOLVER_TIMEOUT = 9000000;
     
     static DataProperties solverProperties = new DataProperties();
     
@@ -40,25 +40,37 @@ public class Benchmark {
         
         ProblemDefinition problem;
         
+        // select problem
         problem =
         //bench1();
         //bench2();
         //bench3();
-        bench4();
-        //bench5();
+        //bench4();
+        bench5();
         //testSolverClient();
         //benchPriority(1);
         
+        // set some values if want
         //solverProperties.setProperty("mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", "2");
         //solverProperties.setProperty("mainAllocationSelection.probBestIgnoringSelWhenNoConflict", "1");
-        benchSolve(problem);
-
-        // benchmark stay min conflict
-        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 20, 5);
         
-        // benchmark probBestIgnoringSelWhenNoConflict
+        
+        // RUN ONE OF FOLLOWING
+        
+        //// start solving selected problem
+        benchSolve(problem);
+        
+        //// benchmark number of iteration in what must not fall conflict area
+        //// to determine minimal conflict area and start solving preference
+        //benchmarkProp(problem, "mainAllocationSelection.stayMinConflictSelectionAfterToZeroConflict", 5, 25, 5);
+        
+        //// benchmark probBestIgnoringSelWhenNoConflict
         //benchmarkProp(problem, "mainAllocationSelection.probBestIgnoringSelWhenNoConflict", 0, 1, 0.2);
         
+        //// benchmark optimizationWhenConflictProb
+        //benchmarkProp(problem, "rouletteOccurrenceSelection.optimizationWhenConflictProb", 0, 1, 0.2);
+       
+        //// benchmark priority
         //benchmarkPriority();
     }
     
@@ -83,22 +95,43 @@ public class Benchmark {
     
     public static void benchmarkProp(ProblemDefinition problem, String prop, double min, double max, double step) {
         
-        Map<String, String> results = new HashMap<>();
+        List<String> results = new ArrayList<>();
         
         for (double stay = min; stay <= max; stay+= step) {
-            for (int i = 0; i < 1; i++) {
+            long ccost = 0;
+            long pcost = 0;
+            long besti = 0;
+            for (int i = 0; i < 5; i++) {
                 solverProperties.setProperty(prop, String.valueOf(stay));
                 
                 SolverState state = benchSolve(problem);
-                results.put(
-                        String.format("stay:%s, i:%s", stay, i), 
-                        String.format("best c:%s:%s, i:%s", state.getBestSolution().constraintsCost(), state.getBestSolution().optimalCost(), state.getLastBestIteration())
+                results.add(
+                        String.format("test prop:%s, i:%s result: best c:%s p:%s it:%s",
+                        stay,
+                        i, 
+                        state.getBestSolution().constraintsCost(), 
+                        state.getBestSolution().optimalCost(), 
+                        state.getLastBestIteration())
                        );
+                
+                ccost += state.getBestSolution().constraintsCost();
+                pcost += state.getBestSolution().optimalCost();
+                besti += state.getLastBestIteration();
             }
+            results.add(String.format("prop %s avg: best c:%s p:%s it:%s",
+                    stay,
+                    ccost / 5f,
+                    pcost / 5f,
+                    besti / 5f
+                    ));
         }
         
         System.out.println();
-        System.out.print(results);
+        
+        for (String string : results) {
+            System.out.println(string);    
+        }
+        
     }
     
     
@@ -121,7 +154,7 @@ public class Benchmark {
      * Initialy all occurrences fills entire domain.
      */
     private static ProblemDefinition bench2() {
-        ProblemDefinition problem = SeqentialProblemInitialyFilled(1000);
+        ProblemDefinition problem = SeqentialProblemInitialyFilled(100);
         //printProblem(problem.problemOccurrences);
         return (problem);
     }
@@ -142,7 +175,7 @@ public class Benchmark {
      * So this bench can be compared to determined optimum. 
      */
     private static ProblemDefinition bench4() {
-        SolvableProblemGenerator generator = new SolvableProblemGenerator(24*60*60, 1000);
+        SolvableProblemGenerator generator = new SolvableProblemGenerator(24*60*60, 100);
         /*
          * seed 22108929:
          * stucks on costs of 
