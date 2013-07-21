@@ -65,7 +65,7 @@ return Backbone.View.extend({
     this.listenTo(this.calendar_view, 'all', this.trigger);
     this.listenTo(this.scheduler, 'all', this.trigger);
     this.calendar_view.listenTo(this.scheduler, 'done:scheduling', this.calendar_view.reload_activities);
-    this.listenTo(this.calendar_view, 'selected:event', this.open_event_editor);
+    this.listenTo(this.calendar_view, 'dblclick:event', this.open_event_editor);
 
     // start doing job
     this.calendar_view.render();
