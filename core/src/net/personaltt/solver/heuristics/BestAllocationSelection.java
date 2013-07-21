@@ -44,7 +44,7 @@ public class BestAllocationSelection implements AllocationSelection {
         // cost function. use simpler ConflictSumCost when state is rapidly moving, and 
         // more sofisticated minDurationConflictCost when state is long time tapped in local extrem 
         Cost cost;
-        if (schedule.constraintsCost() > 0 && !tapped(schedule)) {
+        if (schedule.constraintsCost() > 0) {
             cost = new MinDurationConflictAllocationCost(forOccurrence, schedule);
         } else {
             cost = new ConflictSumAllocationCost(forOccurrence, schedule);
@@ -76,7 +76,7 @@ public class BestAllocationSelection implements AllocationSelection {
             }
         }
         
-        System.out.printf("Found best %s:%s allocations: %s\n", bestConflictCost, bestOccurrenceCost, bestAllocations.size());
+        //System.out.printf("Found best %s:%s allocations: %s\n", bestConflictCost, bestOccurrenceCost, bestAllocations.size());
         
         BaseInterval<Integer> choosen = bestAllocations.get(random.nextInt(bestAllocations.size()));
         return new OccurrenceAllocation(choosen);

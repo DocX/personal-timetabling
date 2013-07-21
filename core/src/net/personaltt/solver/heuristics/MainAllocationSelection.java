@@ -65,13 +65,13 @@ public class MainAllocationSelection implements AllocationSelection {
         // we are not moving better in last stayMinConflictSelction iterations
         if (schedule.constraintsCost() > smallestConflict || schedule.getItearation() - lastConflictLoweringIteration < stayMinConflictSelectionAfterToZeroConflict) {
             // best minimal conflict
-            System.out.printf("AlocSelection: min conflict, min cost. sc:%s, lzi:%s\n",smallestConflict, lastConflictLoweringIteration);
+            //System.out.printf("AlocSelection: min conflict, min cost. sc:%s, lzi:%s\n",smallestConflict, lastConflictLoweringIteration);
             return conflictingSelection.select(schedule, forOccurrence);
         } else {
            // if (random.nextDouble() < probBestIgnoringSelWhenNoConflict) {
                 // best conflicting
                 // see constructor for explanation of only this selection
-                System.out.println("AlocSelection: best ignoring conflict");
+                //System.out.println("AlocSelection: best ignoring conflict");
                 return selectBestIgnoringConflict(schedule, forOccurrence);
             //} else {
                 // roulette selection

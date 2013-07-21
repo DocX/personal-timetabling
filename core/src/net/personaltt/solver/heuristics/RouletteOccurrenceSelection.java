@@ -81,12 +81,14 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         long totalCost = totalConflictCost + (countAllocationCost ? totalAllocationCost : 0);
         long selection = RandomUtils.nextLong(random, totalCost);
         
+        /*
         System.out.printf("Selection total conflict: %s, cost: %s, count cost: %s, selected: %s\n", 
                 totalConflictCost,
                 totalAllocationCost,
                 countAllocationCost,
                 selection
                 );
+        */
         
         // go throught occurrences and first where sum is less than random
         totalCost = 0;

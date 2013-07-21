@@ -19,6 +19,7 @@ import net.personaltt.model.Schedule;
 import net.personaltt.solver.core.Solver;
 import net.personaltt.solver.core.SolverSolution;
 import net.personaltt.solver.core.SolverState;
+import net.personaltt.solver.heuristics.MainSolverState;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 import net.sf.cpsolver.ifs.util.DataProperties;
@@ -29,7 +30,7 @@ import net.sf.cpsolver.ifs.util.DataProperties;
  */
 public class Benchmark {
 
-    static int SOLVER_TIMEOUT = 9000000;
+    static int SOLVER_TIMEOUT = 1000*60*30;
     
     static DataProperties solverProperties = new DataProperties();
     
@@ -38,15 +39,15 @@ public class Benchmark {
      */
     public static void main(String[] args) {
         
-        ProblemDefinition problem;
+        //ProblemDefinition problem;
         
         // select problem
-        problem =
-        //bench1();
+        //problem =
+        //bench1(100);
         //bench2();
         //bench3();
-        //bench4();
-        bench5();
+        //bench4(100);
+        //bench5();
         //testSolverClient();
         //benchPriority(1);
         
@@ -58,7 +59,7 @@ public class Benchmark {
         // RUN ONE OF FOLLOWING
         
         //// start solving selected problem
-        benchSolve(problem);
+        //benchSolve(problem);
         
         //// benchmark number of iteration in what must not fall conflict area
         //// to determine minimal conflict area and start solving preference
@@ -72,20 +73,133 @@ public class Benchmark {
        
         //// benchmark priority
         //benchmarkPriority();
+        
+        //benchmarkTerminationCondition();
+        
+        testAll();
     }
+
+    public static void testAll() {
+//        test1(100);
+//        test2(100);
+//        test3(100);
+//        test4(100);
+//        testS(1);
+//        testP(50);
+//        
+//        test1(500);
+//        test1(1000);
+//        test1(5000);     
+//        
+//        test2(500);
+//        test2(1000);
+//        test2(5000);
+//        
+//        
+        //test3(500);
+        test3(1000);
+        //test3(5000);
+//        
+//        
+//        test4(500);
+//        test4(1000);
+//        test4(5000);
+//        
+//        
+//        testS(10);
+//        testS(100);
+        //testS(500);
+        
+        
+        //testP(100);
+    }
+    
+    public static void test1(int number) {
+        System.out.printf("PROBLEM 1 - %s events\n", number);
+        ProblemDefinition p = bench1(number);
+        printInitialCosts(p);
+        testProblem(p);
+    }
+    
+    public static void test2(int number) {
+        System.out.printf("PROBLEM 2 - %s events\n", number);
+        ProblemDefinition p = bench2(number);
+        printInitialCosts(p);
+        testProblem(p);
+    }
+    
+    public static void test3(int number) {
+        System.out.printf("PROBLEM 3 - %s events\n", number);
+        ProblemDefinition p = bench3(number);
+        printInitialCosts(p);
+        testProblem(p);
+    }
+    
+    public static void test4(int number) {
+        System.out.printf("PROBLEM 4 - %s events\n", number);
+        ProblemDefinition p = bench4(number);
+        printInitialCosts(p);
+        testProblem(p);
+    }
+    
+    public static void testS(int number) {
+        System.out.printf("PROBLEM S - %s number\n", number);
+        ProblemDefinition p = bench5(number);
+        printInitialCosts(p);
+        testProblem(p);
+    }
+    
+    public static void testP(int number) {
+        System.out.printf("PROBLEM P - %s number\n", number);
+        ProblemDefinition p = benchPriority(1,number);
+        printInitialCosts(p);
+        testProblem(p);
+    }    
+
+    private static void printInitialCosts(ProblemDefinition p) {
+           
+        MainSolverState currentSolution = new MainSolverState();
+        currentSolution.init(p.initialSchedule);
+        
+        System.out.println(String.format("INITIAL COST: c:%s p:%s", currentSolution.constraintsCost(), currentSolution.optimalCost()));
+    }
+    
+ 
+    
     
     public static void benchmarkPriority() {
         List<String> results = new ArrayList<String>();
         for (int i = 0; i <= 0; i+=1) {
             int nonPrefCount = 0;
             for (int j = 0; j < 10; j++) {
-                ProblemDefinition problem = benchPriority(i);
+                ProblemDefinition problem = benchPriority(i,50);
                 SolverState state = benchSolve(problem);
                 if (state.getBestSolution().getSchedule().getAllocationOf(1).getStart() != 0) {
                     nonPrefCount++;
                 }
             }
             results.add(String.format("Priority: %s, not preffered count: %s/10", i, nonPrefCount));
+        }
+       
+        for (String string : results) {
+            System.out.println(string);
+        }
+    }
+    
+    /**
+     * Experimental benchmark for determination relation between
+     * number of events and interation in whish is found best solution
+     */
+    public static void benchmarkTerminationCondition() {
+        List<String> results = new ArrayList<String>();
+        for (int j = 100; j <= 1000; j+=100) {
+            ProblemDefinition problem = bench1(j);
+            SolverState state = benchSolve(problem);
+            results.add(String.format("Events: %s, best iteration: %s, end iteration: %s",
+                    j, 
+                    state.getLastBestIteration(),
+                    state.getItearation()
+                    ));
         }
        
         for (String string : results) {
@@ -141,9 +255,9 @@ public class Benchmark {
      * that is long exactly as sum of minimal durations. Initialy all
      * occurrences are placed on the start of domain with minimal duration.
      */
-    private static ProblemDefinition bench1() {
-        ProblemDefinition problem = SeqentialProblem(1000);
-        printProblem(problem.problemOccurrences);
+    private static ProblemDefinition bench1(int number) {
+        ProblemDefinition problem = SeqentialProblem(number);
+        //printProblem(problem.problemOccurrences);
         return problem;
     }
     
@@ -153,8 +267,8 @@ public class Benchmark {
      * only when all are minimal duration long.
      * Initialy all occurrences fills entire domain.
      */
-    private static ProblemDefinition bench2() {
-        ProblemDefinition problem = SeqentialProblemInitialyFilled(100);
+    private static ProblemDefinition bench2(int number) {
+        ProblemDefinition problem = SeqentialProblemInitialyFilled(number);
         //printProblem(problem.problemOccurrences);
         return (problem);
     }
@@ -163,9 +277,10 @@ public class Benchmark {
      * Random problem. Random problem with given number of occurrences in given
      * time horizont. It may be overconstrained - no not-conflicting solution exists.
      */
-    private static ProblemDefinition bench3() {
-        ProblemDefinition problem = (new RandomProblemGenerator(24*60*60, 100, 0f)).generateRandomProblem();
-        printProblem(problem.problemOccurrences);
+    private static ProblemDefinition bench3(int number) {
+        ProblemDefinition problem = (new RandomProblemGenerator(24*60*60*30, number, 0.2f)).generateRandomProblem();
+        //printProblem(problem.problemOccurrences);
+        
         return (problem);
     }
     
@@ -174,8 +289,8 @@ public class Benchmark {
      * valid solution. That solution is also the best one in terms of max duration.
      * So this bench can be compared to determined optimum. 
      */
-    private static ProblemDefinition bench4() {
-        SolvableProblemGenerator generator = new SolvableProblemGenerator(24*60*60, 100);
+    private static ProblemDefinition bench4(int number) {
+        SolvableProblemGenerator generator = new SolvableProblemGenerator(24*60*60*30, number);
         /*
          * seed 22108929:
          * stucks on costs of 
@@ -193,11 +308,11 @@ public class Benchmark {
         // print optimal solutions
         System.out.println();
         System.out.println("Optimal solution:");
-        printProblem(generator.optimalSolution);
+        //printProblem(generator.optimalSolution);
         
         // print initial problem
         System.out.println("Initial problem:");
-        printProblem(problem.problemOccurrences);
+        //printProblem(problem.problemOccurrences);
         
         // Print optimal cost sum
         long optimalCostSumInInitial = 0;
@@ -215,20 +330,31 @@ public class Benchmark {
      * Stuck test bench. Problem where to obtain lower cost from
      * initial must be placed conflicting allocation.
      */
-    private static ProblemDefinition bench5() {
+    private static ProblemDefinition bench5(int number) {
         ProblemDefinition problem = new ProblemDefinition();
         
-        BaseIntervalsSet<Integer> domain1 = new BaseIntervalsSet<>();
-        domain1.unionWith(0,20);
-        
-        BaseIntervalsSet<Integer> domain2 = new BaseIntervalsSet<>();
-        domain2.unionWith(0,20);
-        domain2.unionWith(30,40);
-        
-        // initial complicated problem with no conflict but not maximal duration sum
-        problem.addOccurrence(new Occurrence(domain1, 10, 20, 1), new BaseInterval<>(0,10));
-        problem.addOccurrence(new Occurrence(domain2, 10, 20, 2), new BaseInterval<>(10,20));
-        problem.addOccurrence(new Occurrence(domain2, 5, 5, 3), new BaseInterval<>(30,35));
+        for (int i = 0; i < number; i++) {
+             
+            int start = 40*i;
+            
+            BaseIntervalsSet<Integer> domain1 = new BaseIntervalsSet<>();
+            domain1.unionWith(start,start+20);
+
+            BaseIntervalsSet<Integer> domain2 = new BaseIntervalsSet<>();
+            domain2.unionWith(start,start+20);
+            domain2.unionWith(start+30,start+40);
+
+            // initial complicated problem with no conflict but not maximal duration sum
+            problem.addOccurrence(new Occurrence(domain1, 10, 20, 3*i + 1), new BaseInterval<>(start,start+10));
+            problem.addOccurrence(new Occurrence(domain2, 10, 20, 3*i +2), new BaseInterval<>(start+10,start+20));
+            problem.addOccurrence(new Occurrence(domain2, 5, 5, 3*i + 3), new BaseInterval<>(start+30,start+35));
+        }
+       
+        // problem i
+        // 0     10    20    30    40
+        // |-----|
+        //       |-----|
+        //                   |--|
         
         // optimal solution in duration sum is
         // 1: 0-15
@@ -236,24 +362,24 @@ public class Benchmark {
         // 3: 15-20
         
         // print initial problem
-        System.out.println("\nInitial problem:");
-        printProblem(problem.problemOccurrences);
+        //System.out.println("\nInitial problem:");
+        //printProblem(problem.problemOccurrences);
         
         System.out.println();
         return (problem);
     }
     
-    private static ProblemDefinition benchPriority(int priority) {
+    private static ProblemDefinition benchPriority(int priority, int number) {
         ProblemDefinition problem = new ProblemDefinition();
         
         BaseIntervalsSet<Integer> domain = new BaseIntervalsSet<>();
-        domain.unionWith(0,1000);
+        domain.unionWith(0,number*10);
         
         Occurrence priorityOccurrence = new Occurrence(domain, 10,10, 1);
         problem.addOccurrence(priorityOccurrence, new BaseInterval<>(0,10));     
         priorityOccurrence.setPreferrencePriority(priority);
         
-        for (int i = 2; i <= 50; i++) {
+        for (int i = 2; i <= number; i++) {
             problem.addOccurrence(new Occurrence(domain, 10,10, i), new BaseInterval<>(0,10));            
         }
         
@@ -337,7 +463,7 @@ public class Benchmark {
         SolverSolution best = run.state.getBestSolution();
         
         // print solution
-        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
+        /*for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
             entry.getKey().setAllocation(entry.getValue());
             System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
                     entry.getKey().getId(), 
@@ -349,8 +475,23 @@ public class Benchmark {
             
         }
         System.out.printf("Conflicting: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), run.state.getLastBestIteration());
-        
+        */
         return run.state;
+    }
+
+
+    private static void testProblem(ProblemDefinition p) {
+        long startTime = System.currentTimeMillis();
+        SolverState state = benchSolve(p);
+        System.out.println(String.format("END in %s, iterations %s", System.currentTimeMillis() - startTime, state.getItearation()));
+        System.out.println("RESULTS");
+        System.out.printf("ConflictBest:%s, PrefBest:%s, IterBest:%s\n", 
+                state.getBestSolution().constraintsCost(), 
+                state.getBestSolution().optimalCost(), 
+                state.getLastBestIteration()
+        );
+        System.out.println();
+        System.out.println();
     }
      
     private static class SolverThread extends Thread {
