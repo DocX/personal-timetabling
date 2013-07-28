@@ -42,6 +42,12 @@ public class Occurrence {
     int preferredStart;
     
     /**
+     * Preferred duration for preferrence priority. Without preferrence priority,
+     * default preferred duration is to maximize it 
+     */
+    int preferredDuration;
+    
+    /**
      * Priority of preferred allocation start
      */
     int preferrencePriority = 0;
@@ -160,6 +166,7 @@ public class Occurrence {
     public void setInitialAllocation(OccurrenceAllocation allocation) {
         this.allocation = allocation;
         this.setPreferredStart(allocation.start);
+        this.setPreferredDuration(allocation.duration);
     }
     
     private void setPreferredStart(int start) {
@@ -176,44 +183,64 @@ public class Occurrence {
     }
     
     /**
-     * Allocation cost is made primarly 
+     * Encoded preferrence cost of current allocation of this occurrence.
      * @return 
      */
-    public long getAllocationCost() {
+    public long getPreferrenceCost() {
         if (allocation == null) {
             return 0;
         }
-        return getAllocationCost(allocation.start, allocation.duration);
+        return getPreferrenceCost(allocation.start, allocation.duration);
     }
     
     /**
-     * Cost of given allocation for this occurrence. 
+     * Encoded preferrence cost of given allocation
      * @param inAllocation
      * @return 
      */
-    public long getAllocationCost(OccurrenceAllocation inAllocation) {
+    public long getPreferrenceCost(OccurrenceAllocation inAllocation) {
         if (inAllocation == null) {
             return 0;
         }
-        return getAllocationCost(inAllocation.start, inAllocation.duration);
+        return getPreferrenceCost(inAllocation.start, inAllocation.duration);
     }
     
-    public long getAllocationCost(BaseInterval<Integer> allocationInterval) {
+    /**
+     * Encoded preferrence cost of given allocation.
+     * @param allocationInterval
+     * @return 
+     */
+    public long getPreferrenceCost(BaseInterval<Integer> allocationInterval) {
         if (allocationInterval == null) {
             return 0;
         }
-        return getAllocationCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
+        return getPreferrenceCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
     }
     
     int PRIORTY_OFFSET = 48;
     int DURATIONPREF_OFFSET = 20;
     
-    public long getAllocationCost(int start, int duration) {
-        long diffFromPreferred = (long)Math.abs(start - preferredStart);
+    /**
+     * Encoded preference cost of given allocation. It consist
+     * of prefference priority cost, duration cost and preferred start cost
+     * @param start
+     * @param duration
+     * @return 
+     */
+    public long getPreferrenceCost(int start, int duration) {
+        long diffFromPreferredStart = (long)Math.abs(start - preferredStart);
         
-        return (diffFromPreferred > 0 ? ((long)preferrencePriority << PRIORTY_OFFSET) : 0) +
+        long cost = 
                 ((long)(maxDuration - duration) << DURATIONPREF_OFFSET) +  
-                diffFromPreferred;
+                diffFromPreferredStart;
+        
+        // if priority is applied and  preferred allocation is not met
+        if (preferrencePriority != 0 && (start != preferredStart || duration != preferredDuration)) {
+            cost = ((long)preferrencePriority << PRIORTY_OFFSET);
+        }
+        
+        return cost;
+                
     }
     
     public long getDurationCost() {
@@ -259,5 +286,9 @@ public class Occurrence {
         BaseInterval<Integer> d = this.domain.getIntervalContaining(preferredStart);
         
         return new OccurrenceAllocation(preferredStart, Math.min(d.getEnd() - preferredStart, maxDuration));
+    }
+
+    private void setPreferredDuration(int duration) {
+        this.preferredDuration = duration;
     }
 }

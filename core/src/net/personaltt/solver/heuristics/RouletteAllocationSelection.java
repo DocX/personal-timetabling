@@ -48,7 +48,7 @@ public class RouletteAllocationSelection implements AllocationSelection {
                 continue;
             }
             
-            long allocationCost = forOccurrence.getAllocationCost(allocation);
+            long allocationCost = forOccurrence.getPreferrenceCost(allocation);
             
             allocationsList.add(new AllocationAndCost(allocation, 1d/(allocationCost+1)));
         }

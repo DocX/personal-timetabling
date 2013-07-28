@@ -113,7 +113,7 @@ public class MainSolverState implements SolverState {
         conflictingCost -= allocationMultimap.remove(toSolve);
         
         // subtract removed allocation cost
-        preferencesCost -= toSolve.getAllocationCost();
+        preferencesCost -= toSolve.getPreferrenceCost();
         toSolve.setAllocation(null);
         
         unassignedOccurrences.add(toSolve);
@@ -130,7 +130,7 @@ public class MainSolverState implements SolverState {
         
         List<Occurrence> newConflicts = new ArrayList<>();
         conflictingCost += allocationMultimap.put(toSolve, solvingAllocation.toInterval(), newConflicts);
-        preferencesCost += toSolve.getAllocationCost();
+        preferencesCost += toSolve.getPreferrenceCost();
 
         return newConflicts;
     }

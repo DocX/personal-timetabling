@@ -324,7 +324,7 @@ public class Benchmark {
         long optimalCostSumInInitial = 0;
         for (int i = 0; i < problem.problemOccurrences.size(); i++) {
             optimalCostSumInInitial += problem.problemOccurrences.get(i)
-                    .getAllocationCost(generator.optimalSolution.get(i).getAllocation());
+                    .getPreferrenceCost(generator.optimalSolution.get(i).getAllocation());
         }
         System.out.printf("Optimal solution cost: %s\n", optimalCostSumInInitial);
         
@@ -480,7 +480,7 @@ public class Benchmark {
             System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
                     entry.getKey().getId(), 
                     entry.getValue().toString(), //allocation
-                    entry.getKey().getAllocationCost(),
+                    entry.getKey().getPreferrenceCost(),
                     entry.getKey().getDurationCost(),
                     entry.getKey().getPreferredStartCost()
                     );

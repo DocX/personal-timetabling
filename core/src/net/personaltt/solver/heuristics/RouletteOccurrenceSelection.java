@@ -62,7 +62,7 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
             occurrenceConflictCost[i] = conflicting.computeCostOfAllocation(occurrence.getAllocation().toInterval());
             
             totalConflictCost += occurrenceConflictCost[i] ;
-            totalAllocationCost += occurrence.getAllocationCost();
+            totalAllocationCost += occurrence.getPreferrenceCost();
             i++;
         }
         
@@ -94,7 +94,7 @@ public class RouletteOccurrenceSelection implements OccurrenceSelection {
         totalCost = 0;
         i = 0;
         for (Occurrence occurrence : solution.allocationsMultimap().keys()) {
-            long cost = occurrenceConflictCost[i] + (countAllocationCost ? occurrence.getAllocationCost() : 0);
+            long cost = occurrenceConflictCost[i] + (countAllocationCost ? occurrence.getPreferrenceCost() : 0);
             i++;
             if (cost == 0) {
                 continue;
