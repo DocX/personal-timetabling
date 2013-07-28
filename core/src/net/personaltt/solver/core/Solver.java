@@ -87,6 +87,8 @@ public class Solver {
         currentSolution = new MainSolverState();
         currentSolution.init(problem.initialSchedule);
         
+        System.out.printf("Starting solver. Events %s\n", problem.problemOccurrences.size());
+        
         // initial is best found so far
         currentSolution.saveBestSolution();
         
@@ -97,7 +99,7 @@ public class Solver {
         
         // while we have time and is not termination condition met, improve solution 
         while(currentSolution.iterate() && System.currentTimeMillis() - startTime < timeoutLimit) {
-            //System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.optimalCost());
+            //System.out.printf("\nIteration %s\n Cost\t%s\t%s\n", currentSolution.getItearation(), currentSolution.constraintsCost(), currentSolution.preferenceCost());
             
             //printState();
                         
@@ -136,11 +138,19 @@ public class Solver {
             // store best solution
             if (currentSolution.isBetterThanBest()) {
                 currentSolution.saveBestSolution();
-                //System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.optimalCost());
+                //System.out.printf(">New best solution found: %s:%s\n", currentSolution.constraintsCost(), currentSolution.preferenceCost());
             }
            
         }
         
+        /*
+        System.out.printf("Best solution found: c%s p%s i%s, End: i%s\n", 
+                currentSolution.getBestSolution().constraintsCost(),
+                currentSolution.getBestSolution().preferenceCost(),
+                currentSolution.getLastBestIteration(),
+                currentSolution.getItearation()
+                );
+        */
         // return best solution ever found
         return currentSolution;
     }

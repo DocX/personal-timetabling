@@ -14,7 +14,10 @@ import net.personaltt.utils.BaseInterval;
 import net.sf.cpsolver.ifs.util.DataProperties;
 
 /**
- *
+ * Main allocation selection for algorithm.
+ * It selects allocation with preference of conflict with over minimal duration 
+ * of other allocations when is minimizing conflict. Otherwise selects
+ * preferred alloaction
  * @author docx
  */
 public class MainAllocationSelection implements AllocationSelection {

@@ -31,7 +31,7 @@ public class BestAllocationSelection implements AllocationSelection {
 
     public BestAllocationSelection(DataProperties properties) {
         conflictCostWeight = properties.getPropertyDouble("bestAllocationSelection.conflictCostWeight", 1.0);
-        valueCostWeight = properties.getPropertyDouble("bestAllocationSelection.valueCostWeight", 0.0);
+        valueCostWeight = properties.getPropertyDouble("bestAllocationSelection.valueCostWeight", 1.0);
     }
 
     
@@ -44,19 +44,26 @@ public class BestAllocationSelection implements AllocationSelection {
         // cost function. use simpler ConflictSumCost when state is rapidly moving, and 
         // more sofisticated minDurationConflictCost when state is long time tapped in local extrem 
         Cost cost;
-        if (schedule.constraintsCost() > 0) {
+        //if (schedule.constraintsCost() > 0) {
             cost = new MinDurationConflictAllocationCost(forOccurrence, schedule);
-        } else {
-            cost = new ConflictSumAllocationCost(forOccurrence, schedule);
-        }
+        //} else {
+        //    cost = new ConflictSumAllocationCost(forOccurrence, schedule);
+        //}
         
         ArrayList<BaseInterval<Integer>> bestAllocations = new ArrayList<>();
         long bestOccurrenceCost = Long.MAX_VALUE;
         long bestConflictCost = Long.MAX_VALUE;
         
+        BaseInterval<Integer> occurrenceAllocation = forOccurrence.getAllocation().toInterval();
+        
         // iterate thgrouh all aligned allocations
         while(allocations.hasNext()) {
             BaseInterval<Integer> allocation = allocations.next();
+            
+            // skip same allocation
+            if (allocation.equals(occurrenceAllocation)) {
+                continue;
+            }
             
             long allocationOccurrenceCost = (long)(forOccurrence.getAllocationCost(allocation) * valueCostWeight);
             
@@ -77,14 +84,15 @@ public class BestAllocationSelection implements AllocationSelection {
         }
         
         //System.out.printf("Found best %s:%s allocations: %s\n", bestConflictCost, bestOccurrenceCost, bestAllocations.size());
+        if (bestAllocations.isEmpty()) {
+            return null;
+        }
         
         BaseInterval<Integer> choosen = bestAllocations.get(random.nextInt(bestAllocations.size()));
         return new OccurrenceAllocation(choosen);
     }
     
-    private boolean tapped(SolverState schedule) {
-        return schedule.getItearation() - schedule.getLastBestIteration() > schedule.allocationsMultimap().size() / 2;
-    }
+  
 
   
     

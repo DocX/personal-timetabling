@@ -205,13 +205,14 @@ public class Occurrence {
         return getAllocationCost(allocationInterval.getStart(), allocationInterval.getEnd() - allocationInterval.getStart());
     }
     
-    int PRIORTY_OFFSET = 56;
+    int PRIORTY_OFFSET = 48;
+    int DURATIONPREF_OFFSET = 20;
     
     public long getAllocationCost(int start, int duration) {
         long diffFromPreferred = (long)Math.abs(start - preferredStart);
         
         return (diffFromPreferred > 0 ? ((long)preferrencePriority << PRIORTY_OFFSET) : 0) +
-                (maxDuration - duration) * (maximalPreferredStartDiff) +  
+                ((long)(maxDuration - duration) << DURATIONPREF_OFFSET) +  
                 diffFromPreferred;
     }
     

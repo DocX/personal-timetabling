@@ -15,7 +15,7 @@ public interface SolverSolution {
      * Cost of solution againts optimal solution
      * @return 
      */
-    public long optimalCost();
+    public long preferenceCost();
     
     /**
      * Cost of not satisfied constraints

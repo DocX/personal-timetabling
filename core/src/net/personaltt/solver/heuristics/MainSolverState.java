@@ -15,8 +15,10 @@ import net.personaltt.solver.core.SolverState;
 import net.personaltt.utils.intervalmultimap.IntervalMultimap;
 
 /**
- * Simple solver solution. It uses intervals multimap as backing store of
- * allocations. Also keeps updated Schedule all time
+ * Solver state. This is main structure used in algorithm
+ * to store current state. Uses IntervalMultimap for
+ * storing allocated intervals and quick computation of values of objective
+ * function. Also keeps best solution and statistic information
  * @author docx
  */
 public class MainSolverState implements SolverState {
@@ -45,7 +47,7 @@ public class MainSolverState implements SolverState {
     /**
      * Sum of current solution occurrences assignment costs 
      */
-    long assignedCost;
+    long preferencesCost;
     
     /**
      * Sum of current solution conflicting area
@@ -60,6 +62,7 @@ public class MainSolverState implements SolverState {
     /**
      * Switch of incomplete search. If true, occurrences can be unassigned when
      * violating conflicting constraint
+     * EXPERIMENTAL, keep to false
      */
     boolean incompleteSearch = false;
     
@@ -73,7 +76,7 @@ public class MainSolverState implements SolverState {
         allocationMultimap = new IntervalMultimap<>();
         solutionSchedule = new Schedule();
         unassignedOccurrences = new ArrayList<>(schedule.numberOccurrences());
-        assignedCost = 0;
+        preferencesCost = 0;
         conflictingCost = 0;
 
         currentIteration = 0;
@@ -90,8 +93,8 @@ public class MainSolverState implements SolverState {
     }
 
     @Override
-    public long optimalCost() {
-        return assignedCost;
+    public long preferenceCost() {
+        return preferencesCost;
     }
 
     @Override
@@ -110,7 +113,7 @@ public class MainSolverState implements SolverState {
         conflictingCost -= allocationMultimap.remove(toSolve);
         
         // subtract removed allocation cost
-        assignedCost -= toSolve.getAllocationCost();
+        preferencesCost -= toSolve.getAllocationCost();
         toSolve.setAllocation(null);
         
         unassignedOccurrences.add(toSolve);
@@ -127,7 +130,7 @@ public class MainSolverState implements SolverState {
         
         List<Occurrence> newConflicts = new ArrayList<>();
         conflictingCost += allocationMultimap.put(toSolve, solvingAllocation.toInterval(), newConflicts);
-        assignedCost += toSolve.getAllocationCost();
+        preferencesCost += toSolve.getAllocationCost();
 
         return newConflicts;
     }
@@ -160,14 +163,14 @@ public class MainSolverState implements SolverState {
     }
 
     public SolverSolution cloneSolution() {
-        final long optimalCost = this.optimalCost();
+        final long optimalCost = this.preferenceCost();
         final long constraintCost = this.constraintsCost();
         final Schedule clonedSchedule = (Schedule)this.getSchedule().allocationsClone();
         
         return new SolverSolution() {
             
             @Override
-            public long optimalCost() {
+            public long preferenceCost() {
                 return optimalCost;
             }
 
@@ -197,7 +200,7 @@ public class MainSolverState implements SolverState {
         if (o instanceof SolverSolution) {
             int constraintCostCmp = Long.compare(((SolverSolution)o).constraintsCost(), constraintsCost());
             
-            return constraintCostCmp != 0 ? constraintCostCmp : Long.compare(((SolverSolution)o).optimalCost() , optimalCost());
+            return constraintCostCmp != 0 ? constraintCostCmp : Long.compare(((SolverSolution)o).preferenceCost() , preferenceCost());
         }
         
         return 1;
@@ -206,7 +209,7 @@ public class MainSolverState implements SolverState {
 
     @Override
     public boolean iterate() {
-        if (optimalCost() == 0 && constraintsCost() == 0) {
+        if (preferenceCost() == 0 && constraintsCost() == 0) {
             return false;
         }
         currentIteration++;

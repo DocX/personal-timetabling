@@ -69,47 +69,6 @@ public class ProblemDefinitionBuilder {
         this.getOccurrence(id).setPreferrencePriority(priority);
     }
     
-    /**
-     * Add ordering prefference of id_before should be before id_after
-     * @param id_before
-     * @param id_after 
-     */
-    public void addOrderPreferrence(int id_before, int id_after) {
-        // check for cycle
-    }
-    
-    /**
-     * Enum of supported linked periods. Each period means that the same
-     * value if that period is maintained for all occurrences in linked group.
-     */
-    public enum LinkedPeriods {
-        /**
-         * Same time in day. For example all at 14:30 anyday
-         */
-        TIME_IN_DAY,
-        /**
-         * Same hour in day and day in week. For example all at Thu 9:00
-         */
-        DAY_AND_TIME_IN_WEEK,
-        /**
-         * Same hour in day and date in month. For example all at 15th of month at 15:00
-         */
-        DAY_AND_TIME_IN_MONTH
-    }
-    
-    /**
-     * Set linked occurrences. Given periods, when occurrences are linked, 
-     * same differrence from start of period in which occurrence lay is
-     * enforced.
-     * One occurrence can be at least in one linked occurrences group.
-     * @param ids 
-     */
-    public void setLinkedOccurrences(int[] ids, LinkedPeriods period) {
-        //TODO
-        // check if ids is not in some linked group already
-        // convert period to list of start dates - for each occurrence in its domain boundaries
-        // 
-    }
 
     /**
      * Returns definition as is constructed so far.
@@ -125,8 +84,10 @@ public class ProblemDefinitionBuilder {
      * it removes it completely. If occurrence starts before resulting domain
      * lower bound, it moves it to lower bound.
      * @param from_date 
+     * @return True if at least one domain has some time. False if no domain remain time
+     * and thus no problem is defined
      */
-    public void cropToFutureOf(LocalDateTime toDate) {
+    public boolean cropToFutureOf(LocalDateTime toDate) {
         int cropToDateNum = new ConverterToInteger().convert(toDate);
         
         ArrayList<Occurrence> emptyDomain = new ArrayList<>(); 
@@ -151,7 +112,7 @@ public class ProblemDefinitionBuilder {
             BaseInterval<Integer> first = occurrence.getDomain().getFirstInterval();
             if (first != null && first.getStart() == cropToDateNum && 
                     (first.getEnd() - first.getStart()) < occurrence.getMinDuration()) {
-                // remove that interval
+                // remove thatgolf karlovy varygolf karlovy vary interval
                 occurrence.getDomain().minus(BaseIntervalsSet.oneInterval(first.getStart(), first.getEnd()));
             }
             
@@ -166,6 +127,8 @@ public class ProblemDefinitionBuilder {
         for (Occurrence occurrence : emptyDomain) {
             definition.removeOccurrence(occurrence);
         }
+        
+        return definition.problemOccurrences.isEmpty() == false;
     }
     
     private Occurrence getOccurrence(int id) {
@@ -176,5 +139,48 @@ public class ProblemDefinitionBuilder {
         }
         return null;
     }
+    
+    
+//    /**
+//     * Add ordering prefference of id_before should be before id_after
+//     * @param id_before
+//     * @param id_after 
+//     */
+//    public void addOrderPreferrence(int id_before, int id_after) {
+//        // check for cycle
+//    }
+//    
+//    /**
+//     * Enum of supported linked periods. Each period means that the same
+//     * value if that period is maintained for all occurrences in linked group.
+//     */
+//    public enum LinkedPeriods {
+//        /**
+//         * Same time in day. For example all at 14:30 anyday
+//         */
+//        TIME_IN_DAY,
+//        /**
+//         * Same hour in day and day in week. For example all at Thu 9:00
+//         */
+//        DAY_AND_TIME_IN_WEEK,
+//        /**
+//         * Same hour in day and date in month. For example all at 15th of month at 15:00
+//         */
+//        DAY_AND_TIME_IN_MONTH
+//    }
+//    
+//    /**
+//     * Set linked occurrences. Given periods, when occurrences are linked, 
+//     * same differrence from start of period in which occurrence lay is
+//     * enforced.
+//     * One occurrence can be at least in one linked occurrences group.
+//     * @param ids 
+//     */
+//    public void setLinkedOccurrences(int[] ids, LinkedPeriods period) {
+//        //TODO
+//        // check if ids is not in some linked group already
+//        // convert period to list of start dates - for each occurrence in its domain boundaries
+//        // 
+//    }
     
 }

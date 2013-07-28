@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeSet;
+import net.personaltt.client.ProblemDefinitionBuilder;
 import net.personaltt.client.SolverClient;
 import net.personaltt.model.Occurrence;
 import net.personaltt.model.OccurrenceAllocation;
@@ -20,9 +21,13 @@ import net.personaltt.solver.core.Solver;
 import net.personaltt.solver.core.SolverSolution;
 import net.personaltt.solver.core.SolverState;
 import net.personaltt.solver.heuristics.MainSolverState;
+import net.personaltt.timedomain.RepeatingIntervalDomain;
 import net.personaltt.utils.BaseInterval;
 import net.personaltt.utils.BaseIntervalsSet;
 import net.sf.cpsolver.ifs.util.DataProperties;
+import org.joda.time.Days;
+import org.joda.time.Hours;
+import org.joda.time.LocalDateTime;
 
 /**
  *
@@ -47,7 +52,7 @@ public class Benchmark {
         //bench2();
         //bench3();
         //bench4(100);
-        //bench5();
+        //bench5(2);
         //testSolverClient();
         //benchPriority(1);
         
@@ -59,7 +64,8 @@ public class Benchmark {
         // RUN ONE OF FOLLOWING
         
         //// start solving selected problem
-        //benchSolve(problem);
+        //SolverState solution = benchSolve(problem);
+        //printBestSolution(solution);
         
         //// benchmark number of iteration in what must not fall conflict area
         //// to determine minimal conflict area and start solving preference
@@ -80,38 +86,38 @@ public class Benchmark {
     }
 
     public static void testAll() {
-//        test1(100);
-//        test2(100);
-//        test3(100);
-//        test4(100);
-//        testS(1);
-//        testP(50);
-//        
-//        test1(500);
-//        test1(1000);
-//        test1(5000);     
-//        
-//        test2(500);
-//        test2(1000);
-//        test2(5000);
-//        
-//        
-        //test3(500);
-        test3(1000);
+        test1(100);
+        test2(100);
+        test3(100);
+        test4(100);
+        testS(1);
+        testP(50);
+        
+        test1(500);
+        test1(1000);
+        //test1(5000);     
+        
+        //test2(500);
+        //test2(1000);
+        //test2(5000);
+        
+        
+        test3(500);
+        //test3(1000);
         //test3(5000);
-//        
-//        
-//        test4(500);
-//        test4(1000);
-//        test4(5000);
-//        
-//        
-//        testS(10);
-//        testS(100);
-        //testS(500);
         
         
-        //testP(100);
+        test4(500);
+        //test4(1000);
+        //test4(5000);
+        
+        
+        testS(10);
+        testS(100);
+        testS(500);
+        
+        
+        testP(100);
     }
     
     public static void test1(int number) {
@@ -161,7 +167,7 @@ public class Benchmark {
         MainSolverState currentSolution = new MainSolverState();
         currentSolution.init(p.initialSchedule);
         
-        System.out.println(String.format("INITIAL COST: c:%s p:%s", currentSolution.constraintsCost(), currentSolution.optimalCost()));
+        System.out.println(String.format("INITIAL COST: c:%s p:%s", currentSolution.constraintsCost(), currentSolution.preferenceCost()));
     }
     
  
@@ -224,12 +230,12 @@ public class Benchmark {
                         stay,
                         i, 
                         state.getBestSolution().constraintsCost(), 
-                        state.getBestSolution().optimalCost(), 
+                        state.getBestSolution().preferenceCost(), 
                         state.getLastBestIteration())
                        );
                 
                 ccost += state.getBestSolution().constraintsCost();
-                pcost += state.getBestSolution().optimalCost();
+                pcost += state.getBestSolution().preferenceCost();
                 besti += state.getLastBestIteration();
             }
             results.add(String.format("prop %s avg: best c:%s p:%s it:%s",
@@ -429,41 +435,47 @@ public class Benchmark {
         SolverThread run = new SolverThread(solver, problem);
         //run.solver.pause();
         run.start();
-        if (System.console() != null) {
-            run.solver.pause();
-        while(run.isAlive()) {
-            String cmd = System.console().readLine();
-            System.out.println(cmd);
-            
-            switch(cmd) {
-                case "p":
-                    run.solver.pause();
-                    break;
-                case "s":
-                    System.out.println("Step");
-                    run.solver.step();
-                    break;
-                case "r":
-                    System.out.println("Printing state");
-                    run.solver.printState();
-                    break;
-                case "q":
-                    run.solver.timeoutLimit = 0;
-                    run.solver.step();
-                    break;
-            }
-        }
-        }
+//        if (System.console() != null) {
+//            run.solver.pause();
+//        while(run.isAlive()) {
+//            String cmd = System.console().readLine();
+//            System.out.println(cmd);
+//            
+//            switch(cmd) {
+//                case "p":
+//                    run.solver.pause();
+//                    break;
+//                case "s":
+//                    System.out.println("Step");
+//                    run.solver.step();
+//                    break;
+//                case "r":
+//                    System.out.println("Printing state");
+//                    run.solver.printState();
+//                    break;
+//                case "q":
+//                    run.solver.timeoutLimit = 0;
+//                    run.solver.step();
+//                    break;
+//            }
+//        }
+//        }
         try {
             run.join();
         } catch(Exception e) {
             
         }
         
-        SolverSolution best = run.state.getBestSolution();
+        
+        return run.state;
+    }
+
+    
+    private static void printBestSolution(SolverState state) {
+        SolverSolution best = state.getBestSolution();
         
         // print solution
-        /*for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
+        for (Map.Entry<Occurrence, OccurrenceAllocation> entry : best.getSchedule().getOccurrencesAllocations()) {
             entry.getKey().setAllocation(entry.getValue());
             System.out.printf("%s\ta:%s\tc:%s:%s:%s\n", 
                     entry.getKey().getId(), 
@@ -474,11 +486,12 @@ public class Benchmark {
                     );
             
         }
-        System.out.printf("Conflicting: %s, Cost: %s, Found in: %s", best.constraintsCost(), best.optimalCost(), run.state.getLastBestIteration());
-        */
-        return run.state;
+        System.out.printf("Conflicting: %s, Cost: %s, Found in: %s", 
+                best.constraintsCost(), 
+                best.preferenceCost(), 
+                state.getLastBestIteration());
+        
     }
-
 
     private static void testProblem(ProblemDefinition p) {
         long startTime = System.currentTimeMillis();
@@ -487,7 +500,7 @@ public class Benchmark {
         System.out.println("RESULTS");
         System.out.printf("ConflictBest:%s, PrefBest:%s, IterBest:%s\n", 
                 state.getBestSolution().constraintsCost(), 
-                state.getBestSolution().optimalCost(), 
+                state.getBestSolution().preferenceCost(), 
                 state.getLastBestIteration()
         );
         System.out.println();
@@ -738,6 +751,39 @@ public class Benchmark {
             occurrence.setAllocation(new OccurrenceAllocation(start, end - start));
             optimalSolution.add(occurrence);
         }
+    }
+    
+    /**
+     * Definition of real world problem of Bob from the thesis. Office work, meetings, lunch, 
+     * child pickup from school, 
+     * @param weeks
+     * @return 
+     */
+    private static ProblemDefinition BobProblem(int weeks) {
+        ProblemDefinitionBuilder pb = new ProblemDefinitionBuilder();
+        
+        LocalDateTime refDate = new LocalDateTime(2013,7,1,0,0,0);
+        
+        RepeatingIntervalDomain lunchDomain = new RepeatingIntervalDomain(refDate.plusHours(11), Hours.THREE, Days.ONE);
+        RepeatingIntervalDomain officeDomain = new RepeatingIntervalDomain(refDate.plusHours(9), Hours.SIX, Days.ONE);
+        
+        
+        for (int i = 0; i < weeks; i++) {
+            int eventsInWeek = 1;
+            LocalDateTime weekStart = refDate.plusWeeks(i);
+            
+            // for all week days
+            for (int j = 0; j < 5; j++) {
+                pb.addOccurrence(eventsInWeek*i + 0,weekStart.plusHours(j*24 + 11), 60, 30,60, lunchDomain);
+                pb.addOccurrence(eventsInWeek*i + 1,weekStart.plusHours(j*24 + 9), 3*60, 30,60, officeDomain);
+            }
+            
+            
+                    
+           
+        }
+        
+        return pb.getDefinition();
     }
     
 }
