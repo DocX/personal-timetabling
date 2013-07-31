@@ -95,21 +95,21 @@ public class Benchmark {
         
         test1(500);
         test1(1000);
-        //test1(5000);     
+        test1(5000);     
         
-        //test2(500);
-        //test2(1000);
-        //test2(5000);
+        test2(500);
+        test2(1000);
+        test2(5000);
         
         
         test3(500);
-        //test3(1000);
-        //test3(5000);
+        test3(1000);
+        test3(5000);
         
         
         test4(500);
-        //test4(1000);
-        //test4(5000);
+        test4(1000);
+        test4(5000);
         
         
         testS(10);

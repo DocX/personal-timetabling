@@ -96,6 +96,15 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
       (rangestart.isBefore(end) && rangeend.isAfter(start));
   },
 
+  // event is bounded in given range
+  fullyInRange: function(rangestart, rangeend) {
+    var start = this.get("start");
+    var end = this.end();
+
+    return (start.isAfter(rangestart) || start.isSame(rangestart) ) && 
+      (end.isBefore(rangeend) || end.isSame(rangeend));
+  },
+
   parse: function(data, options) {
     data.start = moment.utc(data.start);
     data.duration = Number(data.duration);
@@ -139,6 +148,9 @@ var ActivityOccurance = Backbone.RelationalModel.extend({
   toJSON: function() {
     var json = $.extend({}, this.attributes);
     delete json.activity;
+    if (json.domain_attributes.length == 0) {
+      delete json.domain_attributes;
+    }
     return json;
   },
 

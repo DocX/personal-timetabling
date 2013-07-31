@@ -107,7 +107,7 @@ class GenericAbstractActivityDefinition < BaseActivityDefinition
       @repeating =  DaylyRepeating.from_attributes attributes[:repeating]
     when 'weeks'
       @repeating = WeeklyRepeating.from_attributes attributes[:repeating]
-    when 'monthly'
+    when 'months'
       @repeating = MonthlyRepeating.from_attributes attributes[:repeating]
     end
 

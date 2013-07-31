@@ -22,7 +22,10 @@ class Api::EventsController < ApplicationController
   end
   
   def update
-    @event = Event.update params[:id], params.dup.extract!(:name, :start, :duration, :max_duration, :min_duration, :schedule_since, :schedule_deadline, :domain_attributes)
+    @params = params.dup.extract!(:name, :start, :duration, :max_duration, :min_duration, :schedule_since, :schedule_deadline, :domain_attributes)
+
+    @params.delete :domain_attributes if @params[:domain_attributes].empty?
+    @event = Event.update params[:id], @params 
 
     respond_to do |format|
       format.json { render :json => @event, :except => [:activity, :end, :created_at, :updated_at, :domain], :methods => [:domain_attributes]}
@@ -100,8 +103,8 @@ class Api::EventsController < ApplicationController
   protected
 
   def reset_all
-    Event.for_each do |e|
-      e.reset!
+    Event.find_each do |e|
+      e.reset! rescue nil
     end
 
     respond_to do |format|
@@ -111,7 +114,7 @@ class Api::EventsController < ApplicationController
 
   def respond_events
     respond_to do |format|
-      format.json { render :json => @events, :only => [:id, :name, :start, :duration, :tz_offset, :min_duration, :max_duration, :activity_id]}
+      format.json { render :json => @events, :only => [:id, :name, :start, :duration, :tz_offset, :min_duration, :max_duration, :activity_id, :schedule_since, :schedule_deadline]}
     end    
   end
   

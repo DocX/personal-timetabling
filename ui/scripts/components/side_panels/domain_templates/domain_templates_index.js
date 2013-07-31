@@ -78,7 +78,7 @@ return PanelBase.extend({
 
 		var panel_el = $('<div/>');
 		this.$panel_view.append(panel_el);
-		this.subpanel = new DomainTemplateEditor({el:panel_el, calendar_view: this.options.calendar_view});
+		this.subpanel = new DomainTemplateEditor({el:panel_el, calendar_view: this.options.calendar_view, activities_view: this.options.activities_view});
 		this.domains_collection.add(this.subpanel.model);
 		this.listenTo(this.subpanel, 'removed', this.subpanel_removed);
 

@@ -26,6 +26,12 @@ return PanelBase.extend({
 			"<input type='text' name='range_from' class='datetime fill-width' />" +
 			"<label>to</label>" +
 			"<input type='text' name='range_to' class='datetime fill-width' />" +
+			"<p>"+
+				"<a href='#' data-role='range-preset' data-range='today'>Today</a> " +
+				"<a href='#' data-role='range-preset' data-range='tomorrow'>Tomorrow</a> " +
+				"<a href='#' data-role='range-preset' data-range='thisweek'>This week</a> " +
+				"<a href='#' data-role='range-preset' data-range='nextweek'>Next week</a> " +
+			"</p>" +
 			"<legend><strong>Repeating</strong></legend>" +
 			"<div class='repeat-form-controls'></div>" +
 
@@ -47,6 +53,7 @@ return PanelBase.extend({
 		'change [name=duration_max]': 'set_duration_max',
 		'click [name^=weekday_]': 'set_weekdays',
 		'click [name^=time_]': 'set_hours',
+		'click [data-role=range-preset]': 'range_preset',
 	},
 
 	default_domain: function() {
@@ -224,6 +231,40 @@ return PanelBase.extend({
 		);
 
 		
+	},
+
+	range_preset: function(e) {
+		var range = $(e.target).attr('data-range');
+		var range_from, range_to;this.$from_input
+		switch(range) {
+
+			case 'today':
+				range_from = moment.utc().startOf('day');
+				range_to = range_from.clone().add(1,'d');
+				break;
+			case 'tomorrow':
+				range_from = moment.utc().add(1,'d').startOf('day');
+				range_to = range_from.clone().add(1,'d');
+				break;
+			case 'thisweek':
+				range_from = moment.utc().startOf('week').day(1);
+				range_to = range_from.clone().add(1,'week');
+				break;
+			case 'nextweek':
+				range_from = moment.utc().add(1,'week').startOf('week'),day(1);
+				range_to = range_from.clone().add(1,'week');
+				break;
+		}
+
+		this.$from_input.datetimepicker('setDate', moment.asLocal(range_from).toDate());
+		this.activity.set('from', range_from);
+		this.$to_input.datetimepicker('setDate', moment.asLocal(range_to).toDate());
+		this.activity.set('to', range_to);
+
+		// move view to be visible
+		this.options.activities_view.show_date(moment.asUtc(this.$from_input.datetimepicker('getDate')))		
+
+		this.refresh_ranges_view();
 	},
 
 	remove_intervals_view: function(intervals) {

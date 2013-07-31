@@ -18,6 +18,7 @@ module PersonalTimetablingAPI
 
     # creates new solver thread in Java VM, start solving and return id
   	def self.run_solver(definition, timeout, data)
+      Rails.logger.debug "run_solver called"
   		solver = SolverClient.new
       solver.solve definition, timeout 
 

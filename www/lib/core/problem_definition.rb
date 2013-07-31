@@ -3,7 +3,7 @@ module PersonalTimetablingAPI
 
   	# load java classes
   	ProblemDefinitionBuilder = Rjb::import 'net.personaltt.client.ProblemDefinitionBuilder'
-    ProblemDefinitionBuilderLinkedPeriods = Rjb::import 'net.personaltt.client.ProblemDefinitionBuilder$LinkedPeriods'
+    #ProblemDefinitionBuilderLinkedPeriods = Rjb::import 'net.personaltt.client.ProblemDefinitionBuilder$LinkedPeriods'
   	ScheduleParser = Rjb::import 'net.personaltt.client.ScheduleParser'
     IntervalsTimeDomainUtils = Rjb::import 'net.personaltt.timedomain.IntervalsTimeDomainUtils'
 
@@ -51,6 +51,7 @@ module PersonalTimetablingAPI
     end
 
     def self.crop_to_future_of(builder, until_time) 
+      Rails.logger.debug "crop_to_future_of called"
       builder.cropToFutureOf PersonalTimetablingAPI::Core::Utils.to_localdatetime(until_time)
     end
 
@@ -96,7 +97,7 @@ module PersonalTimetablingAPI
 
     # Adds given occurrences to problem with linked groups and ordering
     def self.add_to_problem(definition_builder, occurrences) 
-      Rails.logger.debug "add_to_problem called"
+      #Rails.logger.debug "add_to_problem called"
       linked_groups = {}
 
       occurrences.each do |o|
@@ -110,31 +111,8 @@ module PersonalTimetablingAPI
           o.scheduling_domain.to_j
         )
 
-        # prepare linked groups
-        if (not o.activity.nil? and o.activity.linked?)
-          linked_groups[o.activity.id] ||= {:activity => o.activity, :occurrences => []}
-          linked_groups[o.activity.id][:occurrences] << o
-        end
-
-        # add order
-        o.ordered_after_this_ids.each do |oa|
-          definition_builder.addOrderPreferrence(o.id, oa.id)
-        end
       end
-
-      # add linked groups
-      linked_groups.each do |aid, g|
-        case g[:activity].link_comparator
-        when :time_in_day
-          linked_period = ProblemDefinitionBuilderLinkedPeriods.TIME_IN_DAY
-        when :day_and_time_in_week
-          linked_period = ProblemDefinitionBuilderLinkedPeriods.DAY_AND_TIME_IN_WEEK
-        when :day_and_time_in_month
-          linked_period = ProblemDefinitionBuilderLinkedPeriods.DAY_AND_TIME_IN_MONTH
-        end
-
-        definition_builder.setLinkedOccurrences( (g[:occurrences].map {|o| o.id}), linked_period)
-      end
+      #Rails.logger.debug "add_to_problem ended"
 
       definition_builder
     end

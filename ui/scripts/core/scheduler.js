@@ -196,6 +196,10 @@ return Backbone.View.extend({
 			};
 		};
 
+		if (data.events.length == 0) {
+			return;
+		}
+
 		this.start_solver(data);
 	},
 

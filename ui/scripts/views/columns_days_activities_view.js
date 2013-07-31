@@ -74,14 +74,23 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     for(var io = 0; io < occurances_to_show.length; io++) {
       var occurance = occurances_to_show[io];
 
-      this.add_occurance_box(occurance);
+      // restrict to events that are full in view,
+      // because view is buggy to display events that crosses view
+      // boundary
+      if (occurance.fullyInRange(range.start, range.end)) {
+           this.add_occurance_box(occurance); 
+      } 
     }
 
     for (var i = this.unmapped_activities.length - 1; i >= 0; i--) {
       var class_name = this.unmapped_activities[i].class_name;
       this.unmapped_activities[i].activity.get('events').each(
-        function(occurance) { if (occurance.inRange(range.start, range.end)) { this.add_raw_occurance_box(occurance, class_name) } },
-         this);
+        function(occurance) { 
+          if (occurance.fullyInRange(range.start, range.end)) {
+           this.add_raw_occurance_box(occurance, class_name) 
+         } 
+       },
+      this);
     };
   },
 
@@ -132,15 +141,18 @@ return ColumnsDaysActivitiesView = Backbone.View.extend({
     } }(this);
 
     box.mousedown(activate_fn);
-    box.dblclick(_.bind(function(e) {
+    var dbclick_fn = _.bind(function(e) {
         this.trigger('dblclick:event', occurance);
-    }, this));
+    }, this);
+    box.dblclick(dbclick_fn);
 
+    // set function for initializing overflow boxes
     var box_setup = box.activity_occurance_box('option', 'box_setup');
     box.activity_occurance_box('option', 'box_setup', function(e,box) {
-      //box.mousedown(activate_fn); 
-      //box.dblclick()
+      box.mousedown(activate_fn); 
+      box.dblclick(dbclick_fn);
       box_setup(e, box); });
+
     box.activity_occurance_box('option', 'dropped', _.bind(function(e, occurance) {
       var xhr = occurance.save();
       xhr.success(_.bind(function() { this.trigger('move:event', occurance); }, this));

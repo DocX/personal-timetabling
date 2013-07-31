@@ -233,7 +233,7 @@ var DomainStackFormPart = Backbone.View.extend({
 
 		// quick add predefined
 		if ($(button).data('predefined')) {
-			action.domain = this.predefined_domains[$(button).data('type')].domain
+			action.domain = _.clone(this.predefined_domains[$(button).data('type')].domain);
 			this.add_to_stack(action);
 			this.load_from_model();
 			this.$addaction_box.hide();

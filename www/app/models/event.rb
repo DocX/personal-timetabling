@@ -87,8 +87,8 @@ class Event < ActiveRecord::Base
   # which is max_duration and first start of domain
   def reset!
     self.duration = self.max_duration
-    bounding_interval = self.domain.bounding_interval
-    self.start = self..domain.get_intervals(bounding_interval.first, bounding_interval.last).first.start
+    bounding_interval = self.scheduling_domain.bounding_interval
+    self.start = self.scheduling_domain.get_intervals(bounding_interval.first, bounding_interval.last).first.start
     
     save
   end
