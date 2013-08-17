@@ -107,9 +107,7 @@ class Api::EventsController < ApplicationController
       e.reset! rescue nil
     end
 
-    respond_to do |format|
-      format.json { render :json => 'OK'}
-    end
+    respond_ok_status "all reset"
   end
 
   def respond_events

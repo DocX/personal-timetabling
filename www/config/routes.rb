@@ -94,6 +94,10 @@ PersonalTimetablingAPI::Application.routes.draw do
       delete "/", to: 'solver#cancel'
     end
 
+    scope '/reset' do
+      post '/purge_all', to: 'reset#purge_all'
+    end
+
   end
   
 end

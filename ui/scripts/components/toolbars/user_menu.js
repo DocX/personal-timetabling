@@ -23,10 +23,18 @@ return Backbone.View.extend({
 					"<li><a tabindex='-1' href='#' data-role='activities'>Activities</a></li>" +
 					"<li><a tabindex='-1' href='#' data-role='domain-template'>Domain templates</a></li>" +
 					"<li class='divider'></li>" +
+					"<li><a tabindex='-1' href='#' data-role='purge-all'>Purge demo database</a></li>" +
+					"<li><a tabindex='-1' href='#' data-role='reset-all'>Reset all events to initial allocation</a></li>" +
+					"<li class='divider'></li>" +
 					"<li><a tabindex='-1' href='#pt-modal-about' data-toggle='modal' role='button'><i class=' icon-info-sign'></i> About</a></li>" +
 				"</ul>" +
 			"</div>" +
 		"</div>",
+
+	events: {
+		"click a[data-role=purge-all]": 'purge_all',
+		"click a[data-role=reset-all]": 'reset_all',
+	},
 
 	initialize: function() {
 		this.$el.append(this.template);
@@ -45,7 +53,43 @@ return Backbone.View.extend({
 				activities_view: this.options.app.calendar_view
 			});
 		}, this));
-	}
+	},
+
+	purge_all: function() {
+		$.ajax({
+			url: '/reset/purge_all',
+			type: 'post',
+			dataType: 'json',
+			contentType: "application/json; charset=utf-8",
+			processData: false,
+			data: "",
+			success: _.bind(function(result) {
+				window.location.reload();
+			}, this),
+			error: _.bind(function() {
+				alert('failed to purge database');
+			}, this)
+		});
+
+	},
+
+	reset_all: function() {
+		$.ajax({
+			url: '/events/all/reset',
+			type: 'post',
+			dataType: 'json',
+			contentType: "application/json; charset=utf-8",
+			processData: false,
+			data: "",
+			success: _.bind(function(result) {
+				window.location.reload();
+			}, this),
+			error: _.bind(function() {
+				alert('failed to reset events allocations');
+			}, this)
+		});
+
+	},
 
 });
 });
