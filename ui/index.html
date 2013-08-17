@@ -55,20 +55,48 @@
 				<li>Click on "I know exact time when" button</li>
 				<li>Each event in floating activity definition is represented as so called "time window". Time window specifies in whish time interval can be found free time for event. Usualy it is whole day or week.</li>
 				<li>Time windows can be repeated, creating more than one event for whish should be found time. Repeating can be selected the same way as in fixed activity (see section abour repeating below)</li>
-				<li>Next specify time domain, which describes times from whish You want to find free time for event in more detailed way. (see section about timedomains below)</li>
+				<li>Next specify time domain, which describes times from which You want to find free time for event in more detailed way. (see section about timedomains below)</li>
 				<li>Click on "Add activity" button</li>
 				<li>Activity will be added to Your calendar. If "running" mode of scheduling is activated, calendar will immediately search for free time for activities and place them to found one</li>
 			</ol>
 
-			<p>Defining time domains for floating activity:</p>
-			<p>TODO</p>
-
-
 			<h5>Specifying repeating of events</h5>
-			<p>TODO</p>
+			<p>Both types of events can be repeated. In activity creating form you can select from two types of event repeating:</p>
+			<ul>
+				<li><strong>Once</strong> - only one event with specified time is created</li>
+				<li><strong>Repeat</strong> - setting of repeating is appeared and more event occurrences are created</li>
+			</ul>
 
+			<p>For fixed activity events start and end dates are repeated, as you know from common calendar applications. For floating events, time windows are repeated. Then for each time window specified time domain is cropped to that window and used as time domain for that event occurrence.</p>
 
-			<p>
+			<h4>Editing events</h4>
+			<p>Both fixed and floating events can be edited by double click on them in the calendar view. Editing form is then showed in the panel.</p>
+			<p>Floating events can be also edited by drag-n-drop in the calendar view. Event can be moved only inside its time domain (displayed as green area). By dragging border of event you can change only starting or ending time of event.</p>
+			<p>To delete event, open event editor by double click and then click on the "Delete event" button.</p>
+
+			<h4>Time domains</h4>
+			<p>Time domain is definition of set of possible times at which event can be allocated. Time domain is created by connecting simple time intervals that you can imagine as single boxes in the calendar overlapping desired time intervals.</p>
+
+			<p>Time domain is specified when new floating activity is created. You can also create predefined time domains. It can be accomplished in user menu (right top corner) in "Domain tamplates" menu item. 
+
+			<p>Time domain is made as a stack of connections where result is given by applying actions from the bottom to the top of this stack. Possible connections are</p>
+			<ul>
+				<li><strong><i class='icon-plus' ></i> Add</strong> - adds time intervals to the set created below in the stack.</li>
+				<li><strong><i class='icon-minus' ></i> Remove</strong> - removes time intervals from the set created below in the stack</li>
+				<li><strong><i class='icon-filter' ></i> Mask</strong> - time intervals in mask action are used to crop time intervals from the set below.</li>
+			</ul>
+
+			<p>To add action of desired type to the top of the stack, simply click on the button with label of type. By clicking on the action type symbol in the stack you can change type of the action.</p> 
+
+			<p>Time intervals added, removed or used as a mask in each action are of these types:</p>
+			<ul>
+				<li><strong>Interval</strong> - One interval at given range. You specify start and end date and time of interval</li>
+				<li><strong>Repeating interval</strong> - One interval repeated as specified. Depending on period you specify you can select various parameters</li>
+				<li><strong>Nested stack</strong> - Create nested stack of actions. Result of that stack is then used to add to, remove from or mask time domain in the parent stack</li>
+				<li><strong>Domain template</strong> - Use your predefined domain as a time intervals set for action</li>
+			</ul>
+
+			<p>Actions in stack can be reordered by drag-n-drop via button with <i class='icon-resize-vertical'></i> button. You can aslo edit each action time intervals via <i class='icon-edit'></i> button. Action is removed from stack via <i class='icon-trash'></i> button.</p>
 
 			<h4>View modes</h4>
 			<p>Personal Timetabling calendar supports different modes of how it displays time flow. In the left top corner you can choose view mode of calendar. View mode consist of zoom type and orientation.</p>
@@ -87,6 +115,14 @@
 				<li><strong>Day</strong> - days are repeating, same hours in day are aligned to the same line.</li>
 				<li><strong>Week</strong> - weeks are repeating, same weekdays are aligned to the same line. </li>
 				<li><strong>Month</strong> - months are repeating, same month dates are aligned to the same line. </li>
+			</ul>
+
+			<h5>Navigating in time</h5>
+			<p>You can navigate in time in your calendar unlimitted to the past or to the future. For navigation you can use various control:</p>
+			<ul>
+				<li><strong><i style='background-color:rgba(64,64,64,0.8); border-radius:5px; padding:3px'><i class='icon-white icon-chevron-left' ></i></i> and <i style='background-color:rgba(64,64,64,0.8); border-radius:5px; padding:3px'><i class='icon-white icon-chevron-right' ></i></i> buttons</strong> - move visible calendar by one zoom period (day, week, month) to the past or to the future respectivelly.</li>
+				<li><strong><i style='background-color:rgba(64,64,64,0.8); border-radius:5px; padding:3px;font-style:normal;color:white'>Now</i> button</strong> - center current time in the center of view</li>
+				<li><strong>Drag-n-drop</strong> - anywhere in the calendar view area where is no event you can seamlessly move visible range via mouse drag-n-drop.</li>
 			</ul>
 
 			<h4>Scheduler</h4>
