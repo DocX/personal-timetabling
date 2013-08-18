@@ -236,7 +236,7 @@ public class Occurrence {
         
         // if priority is applied and  preferred allocation is not met
         if (preferrencePriority != 0 && (start != preferredStart || duration != preferredDuration)) {
-            cost = ((long)preferrencePriority << PRIORTY_OFFSET);
+            cost += ((long)preferrencePriority << PRIORTY_OFFSET);
         }
         
         return cost;

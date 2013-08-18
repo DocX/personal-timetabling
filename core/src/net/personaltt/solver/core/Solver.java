@@ -130,7 +130,7 @@ public class Solver {
                // System.out.printf("No allocation selected, skipping to next iteration");
                 continue;
             }
-            //System.out.printf(" Selected allocation: %s:%s \n", selectedAllocation, toSolve.getAllocationCost(selectedAllocation));
+            //System.out.printf(" Selected allocation: %s:%s \n", selectedAllocation, toSolve.getPreferrenceCost(selectedAllocation));
             
             boolean conflicts = currentSolution.setAllocation(toSolve, selectedAllocation);
             //System.out.printf(" Conflicting %s\n", conflicts);
